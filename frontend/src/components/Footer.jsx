@@ -3,7 +3,7 @@ import React from "react";
 export default function Footer() {
     const tahunIni = new Date().getFullYear();
     return (
-        <footer className="border-t border-gray-200 pt-8 mt-12">
+        <footer className="border-t border-gray-200 py-8 ">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 mx-auto w-fit">
                 <div className=" md:col-span-1  ">
                     <div className="flex items-center mb-4">
@@ -22,7 +22,7 @@ export default function Footer() {
                     </p>
                 </div>
 
-                <div className="flex justify-center items-center   w-fit">
+                <div className="flex justify-center items-center md:w-[70%] w-fit">
                     <div className="w-fit">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">
                             Menu Cepat
@@ -80,33 +80,33 @@ export default function Footer() {
                     </div>
                 </div>
 
-                <div className="md:col-span-1  ">
+                <div className="md:col-span-1">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
                         Ikuti Kami
                     </h3>
                     <div className="flex space-x-3">
                         <a
                             href="#"
-                            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition duration-150"
+                            className="group w-8 h-8 rounded-full bg-gray-100 hover:bg-green-500 flex items-center justify-center transition-colors duration-150"
                             aria-label="Facebook"
                         >
-                            <i className="fab fa-facebook-f text-gray-600 text-lg"></i>
+                            <i className="fab fa-facebook-f text-gray-600 group-hover:text-white text-lg"></i>
                         </a>
 
                         <a
                             href="#"
-                            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition duration-150"
+                            className="group w-8 h-8 rounded-full bg-gray-100 hover:bg-green-500 flex items-center justify-center transition-colors duration-150"
                             aria-label="Instagram"
                         >
-                            <i className="fab fa-instagram text-gray-600 text-lg"></i>
+                            <i className="fab fa-instagram text-gray-600 group-hover:text-white text-lg"></i>
                         </a>
 
                         <a
                             href="#"
-                            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition duration-150"
+                            className="group w-8 h-8 rounded-full bg-gray-100 hover:bg-green-500 flex items-center justify-center transition-colors duration-150"
                             aria-label="Twitter"
                         >
-                            <i className="fab fa-twitter text-gray-600 text-lg"></i>
+                            <i className="fab fa-twitter text-gray-600 group-hover:text-white text-lg"></i>
                         </a>
                     </div>
                 </div>

@@ -50,15 +50,26 @@ export default function Galeri() {
         },
     ];
 
+    const videos = [
+        {
+            title: "Highlight Pertandingan Final",
+            desc: "Momen kemenangan tim U-14",
+        },
+        {
+            title: "Behind The Scene Training",
+            desc: "Proses latihan intensif tim elite",
+        },
+    ];
+
     return (
-        <div className="min-h-screen pt-16">
-            <section className="py-20 bg-gradient-primary text-white text-center bg-green-600">
+        <div className="pt-16">
+            <section className="py-20 bg-gradient-to-br from-green-400 to-blue-600 text-white text-center bg-green-600">
                 <h1 className="text-5xl md:text-6xl font-bold mb-6">Galeri Kami</h1>
                 <p className="text-xl md:text-2xl max-w-3xl mx-auto">
                     Dokumentasi perjalanan, prestasi, dan momen berharga bersama SSB Akademi                </p>
             </section>
 
-            <div className="py-16 flex justify-center items-center gap-5">
+            <div className="py-10 flex justify-center items-center gap-3 border-b border-gray">
                 {category.map((item) => (
                     <button
                         key={item.name}
@@ -75,7 +86,7 @@ export default function Galeri() {
                 ))}
             </div>
 
-            <div className="container mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="container py-10 mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {cardCategory.map((item, index) => (
                     <div
                         key={index}
@@ -98,6 +109,42 @@ export default function Galeri() {
                         </div>
                     </div>
                 ))}
+            </div>
+
+            <div className="py-16">
+                <h2 className="text-3xl font-bold text-center mb-2">Video Highlight</h2>
+                <p className="text-center text-gray-500 mb-10">
+                    Saksikan aksi terbaik dari kompetisi dan latihan kami
+                </p>
+
+                <div className=" mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl">
+                    {videos.map((item, index) => (
+                        <div
+                            key={index}
+                            className="bg-white rounded-xl overflow-hidden shadow hover:shadow-lg transition-all duration-300"
+                        >
+                            <div className="aspect-video bg-gray-100 flex items-center justify-center">
+                                <div className="text-center">
+                                    <div className="w-16 h-16 bg-green-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <svg
+                                            className="w-8 h-8 text-green-600"
+                                            fill="currentColor"
+                                            viewBox="0 0 20 20"
+                                        >
+                                            <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                                        </svg>
+                                    </div>
+                                    <p className="text-gray-500">Video Coming Soon</p>
+                                </div>
+                            </div>
+
+                            <div className="p-4">
+                                <h3 className="font-semibold text-lg">{item.title}</h3>
+                                <p className="text-sm text-gray-500 mt-1">{item.desc}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );
