@@ -20,7 +20,35 @@ export default function Dashboard() {
     // State lainnya tetap sama
     const [files, setFiles] = useState([]);
     const [paymentAmount, setPaymentAmount] = useState('');
-    const [totalTagihan, setTotalTagihan] = useState(2500000);
+    
+    // [HAPUS] State totalTagihan lama saya hapus karena diganti state 'keuangan' di bawah
+    // const [totalTagihan, setTotalTagihan] = useState(2500000); 
+
+    // [BARU] State untuk menyimpan data keuangan dari API
+    const [keuangan, setKeuangan] = useState({
+        total_tagihan: 0,
+        riwayat: []
+    });
+
+    // [BARU] useEffect untuk mengambil data saat tab 'tagihan' dibuka
+    useEffect(() => {
+        if (activeTab === 'tagihan') {
+            fetchDataKeuangan();
+        }
+    }, [activeTab]);
+
+    // [BARU] Fungsi request ke API Laravel
+    const fetchDataKeuangan = async () => {
+        try {
+            // Catatan: biodata_id=1 ini contoh. Nanti bisa diambil dari LocalStorage / User Login
+            const response = await axios.get('http://localhost:8000/api/keuangan?biodata_id=1');
+            
+            setKeuangan(response.data); // Simpan data dari API ke State
+            console.log("Data Keuangan:", response.data);
+        } catch (error) {
+            console.error("Gagal mengambil data keuangan:", error);
+        }
+    };
 
     const handleBiodataChange = (e) => {
         const { name, value } = e.target;
@@ -30,6 +58,11 @@ export default function Dashboard() {
         }));
     };
 
+    const [newTagihan, setNewTagihan] = useState({
+    judul: '',
+    jumlah: '',
+    jatuh_tempo: ''
+});
     // [FIX 3] Logika Submit yang sudah diperbaiki
     const handleSubmit = async (e) => {
         e.preventDefault(); 
@@ -81,8 +114,36 @@ export default function Dashboard() {
         setFiles(prev => prev.filter((_, i) => i !== index));
     };
 
+    const handleAddTagihan = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+        await axios.post('http://localhost:8000/api/tagihan', {
+            biodata_id: 1, // Hardcode dulu utk testing, nanti dinamis
+            judul: newTagihan.judul,
+            jumlah: newTagihan.jumlah,
+            jatuh_tempo: newTagihan.jatuh_tempo
+        });
+
+        alert("Tagihan Berhasil Ditambahkan!");
+        
+        // Reset Form
+        setNewTagihan({ judul: '', jumlah: '', jatuh_tempo: '' });
+        
+        // Refresh Data (Penting! Supaya angka total langsung berubah)
+        fetchDataKeuangan(); 
+
+    } catch (error) {
+        console.error("Gagal nambah tagihan", error);
+        alert("Gagal menambah tagihan.");
+    } finally {
+        setIsLoading(false);
+    }
+};
     return (
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+            
             {/* Navigation Tabs */}
             <div className="bg-white rounded-xl shadow-sm border mb-8">
                 <div className="border-b">
