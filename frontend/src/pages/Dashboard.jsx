@@ -1,6 +1,17 @@
 // dashboard.jsx
 import React, { useState } from 'react';
 
+useEffect(() => {
+  fetch("http://localhost:8000/api/dashboard-data", {
+    headers: {
+      Authorization: "Bearer " + localStorage.getItem("token")
+    }
+  })
+  .then(res => res.json())
+  .then(data => setDashboardData(data));
+}, []);
+
+
 export default function Dashboard() {
     const [activeTab, setActiveTab] = useState('biodata');
     const [searchTerm, setSearchTerm] = useState('');
