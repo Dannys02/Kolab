@@ -7,8 +7,8 @@ import Dashboard from "./pages/dashboard";
 import Program from './pages/Program';
 import Login from './pages/Login';
 import Galeri from './pages/Galeri';
-{/*import Artikel from './pages/Artikel';
-import Kontak from './pages/Kontak';*/}
+import Artikel from './pages/Artikel';
+import Kontak from './pages/Kontak';
 import Footer from './components/Footer';
 
 function App() {
@@ -26,15 +26,12 @@ function App() {
                 <Route path="/" element={<Beranda />} />
                 <Route path="/program" element={<Program />} />
                 <Route path="/galeri" element={<Galeri />} />
+                <Route path="/artikel" element={<Artikel />} />
+                <Route path="/kontak" element={<Kontak />} />
                 <Route path="/dashboard" element={<Dashboard />} />
             </Routes>
 
             {!hideLayout && <Footer />}
-
-            {/*<Program />
-            <Galeri />
-            <Artikel />
-            <Kontak />*/}
         </div>
     );
 }

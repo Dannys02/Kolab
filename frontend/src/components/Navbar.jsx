@@ -67,8 +67,8 @@ export default function Navbar() {
                         <span className="w-full h-[3px] bg-black"></span>
                     </div>
 
-                    <div className={`${click ? "top-[100%]" : "top-[-450%]"} absolute md:top-0 left-0 md:left-0 translate-[-50%, -50%] md:relative p-5 w-full md:w-fit bg-green-200 md:bg-transparent transition-top duration-300`}>
-                        <div className="flex flex-col md:flex-row flex items-baseline md:space-x-4 space-y-4 md:space-y-0">
+                    <div className={`${click ? "top-[100%]" : "top-[-450%]"} z-[100] bg-green-100 md:bg-transparent md:bg-transparent absolute md:top-0 left-0 md:left-0 translate-[-50%, -50%] md:relative p-5 md:p-0 w-full md:w-fit transition-top duration-300`}>
+                        <div className="flex flex-col md:flex-row flex items-baseline space-x-4 md:space-x-1 space-y-4 md:space-y-0">
                             {navItems.map(item => (
                                 <Link
                                     key={item.name}
@@ -76,8 +76,8 @@ export default function Navbar() {
                                     name={item.name}
                                     onClick={handleClick}
                                     className={`${click ? "" : ""} px-3 py-2 rounded-md text-black text-sm font-medium transition-colors duration-300 hover:bg-green-600 hover:text-white ${active === item.name
-                                            ? "bg-green-600 text-white"
-                                            : ""
+                                        ? "bg-green-600 text-white"
+                                        : ""
                                         }`}
                                 >
                                     {item.name}
