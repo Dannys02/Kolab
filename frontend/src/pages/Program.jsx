@@ -75,7 +75,8 @@ export default function Program() {
 
     return (
         <div className="min-h-screen pt-16">
- <section className="py-20 bg-gradient-to-br from-green-400 to-blue-600 text-white text-center bg-green-600">                <h1 className="text-5xl md:text-6xl font-bold mb-6">Program Pelatihan Kami</h1>
+            <section className="py-20 bg-gradient-to-br from-green-400 to-blue-600 text-white text-center bg-green-600">
+                <h1 className="text-5xl md:text-6xl font-bold mb-6">Program Pelatihan Kami</h1>
                 <p className="text-xl md:text-2xl max-w-3xl mx-auto">
                     Pilih program yang sesuai dengan usia dan kemampuan Anda
                 </p>

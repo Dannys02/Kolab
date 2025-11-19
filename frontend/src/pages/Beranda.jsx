@@ -141,16 +141,11 @@ export default function Beranda() {
                 <div className="max-w-7xl mx-auto pt-8 pb-8">
                     <div className="flex flex-col md:flex-row items-start lg:space-x-12">
                         <div className="w-full md:w-[50%] lg:w-1/2 mb-8 lg:mb-0">
-                            <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight mb-4">
-                                Program Pelatihan <br />
-                                <span className="text-blue-700 text-4xl">
-                                    Terstruktur & Profesional
-                                </span>
-                            </h1>
-                            <p className="text-lg text-gray-600 mb-8 max-w-lg">
-                                Kami menawarkan program pelatihan yang dirancang
-                                khusus untuk mengembangkan kemampuan teknik,
-                                taktik, fisik, dan mental pemain.
+                            <h2 className="text-4xl font-bold mb-6">
+                                Program Pelatihan Terstruktur & Profesional
+                            </h2>
+                            <p className="text-lg text-muted-foreground mb-6 text-gray-600 max-w-lg">
+                                Kami menawarkan program pelatihan yang dirancang khusus untuk mengembangkan kemampuan teknik, taktik, fisik, dan mental pemain.
                             </p>
 
                             <div className="space-y-4">
@@ -174,16 +169,16 @@ export default function Beranda() {
                             </div>
                         </div>
 
-                        <div className="w-full md:w-[50%] h-[420px]">
+                        <div className="relative hidden md:block h-[500px] rounded-2xl overflow-hidden shadow-xl shadow-black">
                             <img
                                 src={ProgramBola}
                                 alt="Program Bola"
-                                className="h-full w-full object-cover object-center rounded-2xl shadow-sm shadow-black"
+                                className="h-full w-full object-cover object-center rounded-2xl"
                             />
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
+        </section >
     );
 }

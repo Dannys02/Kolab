@@ -3,6 +3,9 @@ import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import axios from 'axios'; // [PENTING] Import Axios
 
 // Components & Pages
+import { useState } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
+import "./App.css";
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Beranda from './pages/Beranda';
@@ -49,6 +52,8 @@ function App() {
             {!hideLayout && <Navbar />}
 
             <Routes>
+                <Route path="/login" element={<Login />} />
+
                 <Route path="/" element={<Beranda />} />
                 <Route path="/program" element={<Program />} />
                 <Route path="/galeri" element={<Galeri />} />
