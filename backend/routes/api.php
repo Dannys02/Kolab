@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BiodataController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\KeuanganController;
 
 /*
@@ -29,9 +30,15 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/pembayaran', [KeuanganController::class, 'storePembayaran']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
 Route::get('/keuangan', [KeuanganController::class, 'index']);
 
 Route::post('/tagihan', [KeuanganController::class, 'store']);
+
+Route::post('/contact', [ContactController::class, 'store']);

@@ -66,4 +66,28 @@ class KeuanganController extends Controller
             'data'    => $tagihan
         ], 201);
     }
+
+     // [2] TAMBAHKAN FUNGSI INI DI PALING BAWAH CLASS
+    public function storePembayaran(Request $request)
+    {
+        // Validasi input
+        $request->validate([
+            'biodata_id'   => 'required|exists:biodatas,id',
+            'jumlah_bayar' => 'required|numeric|min:1000',
+        ]);
+
+        // Simpan ke database
+        $pembayaran = Pembayaran::create([
+            'biodata_id'   => $request->biodata_id,
+            'jumlah_bayar' => $request->jumlah_bayar,
+            'tanggal_bayar'=> now()->toDateString(), // Otomatis ambil tanggal hari ini
+            'metode'       => 'Cash',
+            'status'       => 'Lunas'
+        ]);
+
+        return response()->json([
+            'message' => 'Pembayaran berhasil dicatat!',
+            'data' => $pembayaran
+        ], 201);
+    }
 }

@@ -49,17 +49,22 @@ export default function Dashboard({onLogout}) {
     };
 
     // [BARU] Fungsi Tambah Tagihan
-    const handleAddTagihan = async (e) => {
+   const handleAddTagihan = async (e) => {
         e.preventDefault();
         setIsLoading(true);
 
         try {
             // Kirim data ke Laravel
+            // [FIX] Menambahkan parameter ke-3 yaitu HEADERS (Token)
             await axios.post('http://localhost:8000/api/tagihan', {
-                biodata_id: 1, // Sementara hardcode ID 1
+                biodata_id: 1, // Pastikan ID 1 ada di database biodatas
                 judul: newTagihan.judul,
                 jumlah: newTagihan.jumlah,
                 jatuh_tempo: newTagihan.jatuh_tempo
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}` // Token WAJIB ada
+                }
             });
 
             alert("Tagihan Berhasil Ditambahkan!");
@@ -68,7 +73,12 @@ export default function Dashboard({onLogout}) {
 
         } catch (error) {
             console.error("Gagal nambah tagihan", error);
-            alert("Gagal menambah tagihan. Cek koneksi server.");
+            // Tampilkan pesan error dari server jika ada
+            if (error.response) {
+                alert(`Gagal: ${error.response.data.message || 'Server Error'}`);
+            } else {
+                alert("Gagal menambah tagihan. Cek koneksi server.");
+            }
         } finally {
             setIsLoading(false);
         }
@@ -112,10 +122,41 @@ export default function Dashboard({onLogout}) {
     const handleFileUpload = (e) => setFiles(prev => [...prev, ...Array.from(e.target.files)]);
     const removeFile = (index) => setFiles(prev => prev.filter((_, i) => i !== index));
     
-    const handlePayment = () => {
-        if (paymentAmount > 0) {
-            alert(`Pembayaran Rp ${parseInt(paymentAmount).toLocaleString()} berhasil!`);
-            setPaymentAmount('');
+    const handlePayment = async () => {
+        if (!paymentAmount || paymentAmount <= 0) {
+            alert("Masukkan jumlah pembayaran yang valid.");
+            return;
+        }
+
+        // Konfirmasi user sebelum kirim
+        if (!window.confirm(`Yakin input pembayaran sebesar Rp ${parseInt(paymentAmount).toLocaleString()}?`)) {
+            return;
+        }
+
+        setIsLoading(true); // Aktifkan loading
+
+        try {
+            // Kirim ke API Laravel
+            await axios.post('http://localhost:8000/api/pembayaran', {
+                biodata_id: 1, // Hardcode ID 1 (Nanti diganti dinamis sesuai user)
+                jumlah_bayar: paymentAmount
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}` // Wajib bawa token
+                }
+            });
+
+            alert(`Pembayaran Berhasil!`);
+            setPaymentAmount(''); // Kosongkan input
+            
+            // [PENTING] Refresh data agar "Sisa Tagihan" dan "Riwayat" langsung update
+            fetchDataKeuangan(); 
+
+        } catch (error) {
+            console.error("Gagal bayar", error);
+            alert("Gagal memproses pembayaran. Cek koneksi.");
+        } finally {
+            setIsLoading(false); // Matikan loading
         }
     };
 
