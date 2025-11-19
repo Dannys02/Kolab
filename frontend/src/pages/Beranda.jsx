@@ -40,14 +40,14 @@ export default function Beranda() {
                     </p>
                     <div className="flex flex-col sm:flex-row items-center mx-auto gap-5 mt-10">
                         <a
-                            href="/"
-                            className="bg-green-500 py-2 px-6 rounded-md text-white hover:bg-green-600 transition-colors w-full sm:w-auto"
+                            href="/program"
+                            className="bg-green-500 py-2 px-6 rounded-[35px] text-white hover:bg-green-600 transition-colors w-full sm:w-auto"
                         >
                             Lihat Program Kami
                         </a>
                         <a
                             href="/"
-                            className="bg-blue-500 py-2 px-6 rounded-md text-white hover:bg-blue-600 transition-colors w-full sm:w-auto"
+                            className="bg-blue-500 py-2 px-6 rounded-[35px] text-white hover:bg-blue-600 transition-colors w-full sm:w-auto"
                         >
                             Hubungi Kami
                         </a>
