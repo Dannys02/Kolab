@@ -76,8 +76,8 @@ export default function Navbar() {
                                     name={item.name}
                                     onClick={handleClick}
                                     className={`${click ? "" : ""} px-3 py-2 rounded-md text-black text-sm font-medium transition-colors duration-300 hover:bg-green-600 hover:text-white ${active === item.name
-                                            ? "bg-green-600 text-white"
-                                            : ""
+                                        ? "bg-green-600 text-white"
+                                        : ""
                                         }`}
                                 >
                                     {item.name}

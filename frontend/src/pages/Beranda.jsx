@@ -46,7 +46,7 @@ export default function Beranda() {
                             Lihat Program Kami
                         </a>
                         <a
-                            href="/kontak"
+                            href="/"
                             className="bg-blue-500 py-2 px-6 rounded-[35px] text-white hover:bg-blue-600 transition-colors w-full sm:w-auto"
                         >
                             Hubungi Kami
