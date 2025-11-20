@@ -1,22 +1,19 @@
-// agung.jsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 export default function Dsbd() {
     const tahunIni = new Date().getFullYear();
 
+    // --- 1. DEKLARASI SEMUA STATE (HOOKS) DI PALING ATAS ---
+    
+    // State UI
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState(null);
 
-    // State untuk data pemain
-    const [players, setPlayers] = useState([
-        { id: 1, name: 'Ahmad Rizki', age: 15, position: 'Striker', team: 'U-15', status: 'Aktif' },
-        { id: 2, name: 'Budi Santoso', age: 14, position: 'Midfielder', team: 'U-14', status: 'Aktif' },
-        { id: 3, name: 'Cahyo Pratama', age: 16, position: 'Goalkeeper', team: 'U-16', status: 'Cedera' },
-        { id: 4, name: 'Dedi Setiawan', age: 15, position: 'Defender', team: 'U-15', status: 'Aktif' },
-        { id: 5, name: 'Eko Wijaya', age: 13, position: 'Midfielder', team: 'U-13', status: 'Aktif' },
-    ]);
+    // State Data Pemain
+    const [siswa, setSiswa] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // State untuk jadwal latihan
+    // State Jadwal Latihan (DIPINDAHKAN KE ATAS)
     const [schedules, setSchedules] = useState([
         { id: 1, team: 'U-13', date: '2023-10-15', time: '16:00', location: 'Lapangan A' },
         { id: 2, team: 'U-14', date: '2023-10-16', time: '16:00', location: 'Lapangan B' },
@@ -24,7 +21,7 @@ export default function Dsbd() {
         { id: 4, team: 'U-16', date: '2023-10-18', time: '16:00', location: 'Lapangan B' },
     ]);
 
-    // State untuk keuangan
+    // State Keuangan (DIPINDAHKAN KE ATAS)
     const [finances, setFinances] = useState([
         { id: 1, type: 'Pemasukan', description: 'Iuran Bulanan', amount: 2500000, date: '2023-10-01' },
         { id: 2, type: 'Pengeluaran', description: 'Sewa Lapangan', amount: 1500000, date: '2023-10-05' },
@@ -32,7 +29,7 @@ export default function Dsbd() {
         { id: 4, type: 'Pemasukan', description: 'Sponsor Lokal', amount: 3000000, date: '2023-10-12' },
     ]);
 
-    // State untuk statistik
+    // State Statistik (DIPINDAHKAN KE ATAS)
     const [stats, setStats] = useState({
         totalPlayers: 85,
         activePlayers: 78,
@@ -42,10 +39,43 @@ export default function Dsbd() {
         monthlyExpense: 8500000,
     });
 
+    // --- 2. USE EFFECT ---
+    useEffect(() => {
+        fetchDataSiswa();
+    }, []);
+
+    // --- 3. FUNGSI LOGIKA ---
+    const fetchDataSiswa = async () => {
+        try {
+            // Pastikan URL API ini benar sesuai route Laravel kamu
+            const response = await fetch('http://localhost:8000/api/dashboard/index');
+            const dataJson = await response.json();
+            setSiswa(dataJson.data); 
+            setLoading(false);
+        } catch (error) {
+            console.error("Gagal mengambil Data:", error);
+            setLoading(false);
+        }
+    };
+
     const toggleDropdown = (dropdown) => {
         setActiveDropdown(activeDropdown === dropdown ? null : dropdown);
     };
 
+    // --- 4. KONDISIONAL RETURN (BARU BOLEH DISINI) ---
+    // Loading screen dipindah ke sini setelah semua Hooks dideklarasikan
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-green-50">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+                    <p className="text-green-800 font-semibold">Sedang Memuat Data Siswa...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // --- 5. RENDER TAMPILAN UTAMA ---
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
             {/* Mobile Menu Button */}
@@ -316,7 +346,7 @@ export default function Dsbd() {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {players.map((player) => (
+                                    {siswa.map((player) => (
                                         <tr key={player.id} className="hover:bg-gray-50 transition-colors duration-150">
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center">
