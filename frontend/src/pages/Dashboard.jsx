@@ -1,350 +1,531 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+// agung.jsx
+import React, { useState } from 'react';
 
-export default function Dashboard({onLogout}) {
-    // --- 1. STATE (PENAMPUNG DATA) ---
-    const [activeTab, setActiveTab] = useState('biodata');
-    
-    // State Biodata
-    const [biodata, setBiodata] = useState({
-        nama_lengkap: '', email: '', phone: '', alamat: '', tanggal_lahir: ''
+export default function Dsbd() {
+    const tahunIni = new Date().getFullYear();
+
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [activeDropdown, setActiveDropdown] = useState(null);
+
+    // State untuk data pemain
+    const [players, setPlayers] = useState([
+        { id: 1, name: 'Ahmad Rizki', age: 15, position: 'Striker', team: 'U-15', status: 'Aktif' },
+        { id: 2, name: 'Budi Santoso', age: 14, position: 'Midfielder', team: 'U-14', status: 'Aktif' },
+        { id: 3, name: 'Cahyo Pratama', age: 16, position: 'Goalkeeper', team: 'U-16', status: 'Cedera' },
+        { id: 4, name: 'Dedi Setiawan', age: 15, position: 'Defender', team: 'U-15', status: 'Aktif' },
+        { id: 5, name: 'Eko Wijaya', age: 13, position: 'Midfielder', team: 'U-13', status: 'Aktif' },
+    ]);
+
+    // State untuk jadwal latihan
+    const [schedules, setSchedules] = useState([
+        { id: 1, team: 'U-13', date: '2023-10-15', time: '16:00', location: 'Lapangan A' },
+        { id: 2, team: 'U-14', date: '2023-10-16', time: '16:00', location: 'Lapangan B' },
+        { id: 3, team: 'U-15', date: '2023-10-17', time: '16:00', location: 'Lapangan A' },
+        { id: 4, team: 'U-16', date: '2023-10-18', time: '16:00', location: 'Lapangan B' },
+    ]);
+
+    // State untuk keuangan
+    const [finances, setFinances] = useState([
+        { id: 1, type: 'Pemasukan', description: 'Iuran Bulanan', amount: 2500000, date: '2023-10-01' },
+        { id: 2, type: 'Pengeluaran', description: 'Sewa Lapangan', amount: 1500000, date: '2023-10-05' },
+        { id: 3, type: 'Pengeluaran', description: 'Pembelian Bola', amount: 500000, date: '2023-10-10' },
+        { id: 4, type: 'Pemasukan', description: 'Sponsor Lokal', amount: 3000000, date: '2023-10-12' },
+    ]);
+
+    // State untuk statistik
+    const [stats, setStats] = useState({
+        totalPlayers: 85,
+        activePlayers: 78,
+        injuredPlayers: 7,
+        teams: 4,
+        monthlyIncome: 12500000,
+        monthlyExpense: 8500000,
     });
 
-    // State Umum
-    const [message, setMessage] = useState({ type: '', text: '' });
-    const [isLoading, setIsLoading] = useState(false);
-    const [files, setFiles] = useState([]);
-    const [paymentAmount, setPaymentAmount] = useState('');
-    
-    // State Keuangan (Data dari API)
-    const [keuangan, setKeuangan] = useState({
-        total_tagihan: 0,
-        riwayat: []
-    });
-
-    // [BARU] State untuk Form Tambah Tagihan
-    const [newTagihan, setNewTagihan] = useState({
-        judul: '',
-        jumlah: '',
-        jatuh_tempo: ''
-    });
-
-    // --- 2. EFFECT (JALAN OTOMATIS) ---
-    useEffect(() => {
-        if (activeTab === 'tagihan') {
-            fetchDataKeuangan();
-        }
-    }, [activeTab]);
-
-    // --- 3. FUNGSI-FUNGSI (LOGIC) ---
-    
-    // Ambil Data Keuangan
-    const fetchDataKeuangan = async () => {
-        try {
-            const response = await axios.get('http://localhost:8000/api/keuangan?biodata_id=1');
-            setKeuangan(response.data);
-        } catch (error) {
-            console.error("Gagal mengambil data keuangan:", error);
-        }
+    const toggleDropdown = (dropdown) => {
+        setActiveDropdown(activeDropdown === dropdown ? null : dropdown);
     };
 
-    // [BARU] Fungsi Tambah Tagihan
-   const handleAddTagihan = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-
-        try {
-            // Kirim data ke Laravel
-            // [FIX] Menambahkan parameter ke-3 yaitu HEADERS (Token)
-            await axios.post('http://localhost:8000/api/tagihan', {
-                biodata_id: 1, // Pastikan ID 1 ada di database biodatas
-                judul: newTagihan.judul,
-                jumlah: newTagihan.jumlah,
-                jatuh_tempo: newTagihan.jatuh_tempo
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${token}` // Token WAJIB ada
-                }
-            });
-
-            alert("Tagihan Berhasil Ditambahkan!");
-            setNewTagihan({ judul: '', jumlah: '', jatuh_tempo: '' }); // Reset form
-            fetchDataKeuangan(); // Refresh data agar angka berubah
-
-        } catch (error) {
-            console.error("Gagal nambah tagihan", error);
-            // Tampilkan pesan error dari server jika ada
-            if (error.response) {
-                alert(`Gagal: ${error.response.data.message || 'Server Error'}`);
-            } else {
-                alert("Gagal menambah tagihan. Cek koneksi server.");
-            }
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const token = localStorage.getItem('token');
-    // Fungsi Submit Biodata
-    const handleSubmit = async (e) => {
-        e.preventDefault(); 
-        setIsLoading(true);
-        setMessage({ type: '', text: '' });
-
-        try {
-            // [PERBAIKAN DI SINI] Tambahkan parameter ke-3 untuk headers
-            const response = await axios.post('http://localhost:8000/api/biodata', biodata, {
-                headers: {
-                    // Token ini HARUS SAMA PERSIS dengan yang ada di file .env Laravel Anda
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            setMessage({ type: 'success', text: 'Sukses: ' + response.data.message });
-            setBiodata({ nama_lengkap: '', email: '', phone: '', alamat: '', tanggal_lahir: '' });
-        } catch (error) {
-            // ... kode error handling (tetap sama) ...
-            if (error.response && error.response.status === 403) {
-                // Tangkap error spesifik 403 Forbidden
-                 setMessage({ type: 'error', text: 'Gagal: Akses Ditolak! Token Rahasia Salah.' });
-            } else if (error.response && error.response.data.message) {
-                setMessage({ type: 'error', text: 'Gagal: ' + error.response.data.message });
-            } else {
-                setMessage({ type: 'error', text: 'Terjadi kesalahan koneksi.' });
-            }
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // Fungsi Helper lain
-    const handleBiodataChange = (e) => setBiodata({ ...biodata, [e.target.name]: e.target.value });
-    const handleFileUpload = (e) => setFiles(prev => [...prev, ...Array.from(e.target.files)]);
-    const removeFile = (index) => setFiles(prev => prev.filter((_, i) => i !== index));
-    
-    const handlePayment = async () => {
-        if (!paymentAmount || paymentAmount <= 0) {
-            alert("Masukkan jumlah pembayaran yang valid.");
-            return;
-        }
-
-        // Konfirmasi user sebelum kirim
-        if (!window.confirm(`Yakin input pembayaran sebesar Rp ${parseInt(paymentAmount).toLocaleString()}?`)) {
-            return;
-        }
-
-        setIsLoading(true); // Aktifkan loading
-
-        try {
-            // Kirim ke API Laravel
-            await axios.post('http://localhost:8000/api/pembayaran', {
-                biodata_id: 1, // Hardcode ID 1 (Nanti diganti dinamis sesuai user)
-                jumlah_bayar: paymentAmount
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${token}` // Wajib bawa token
-                }
-            });
-
-            alert(`Pembayaran Berhasil!`);
-            setPaymentAmount(''); // Kosongkan input
-            
-            // [PENTING] Refresh data agar "Sisa Tagihan" dan "Riwayat" langsung update
-            fetchDataKeuangan(); 
-
-        } catch (error) {
-            console.error("Gagal bayar", error);
-            alert("Gagal memproses pembayaran. Cek koneksi.");
-        } finally {
-            setIsLoading(false); // Matikan loading
-        }
-    };
-
-    // --- 4. TAMPILAN (JSX) ---
     return (
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-            
-            {/* Tabs Header */}
-            <div className="bg-white rounded-xl shadow-sm border mb-8">
-                <div className="border-b">
-                    <nav className="flex space-x-8 px-6 overflow-x-auto">
-                        {[
-                            { id: 'biodata', name: 'Input Biodata', icon: '👤' },
-                            { id: 'berkas', name: 'Upload Berkas', icon: '📁' },
-                            { id: 'pembayaran', name: 'Pembayaran Cash', icon: '💰' },
-                            { id: 'tagihan', name: 'Cek Tagihan', icon: '🧾' }
-                        ].map((tab) => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors duration-200 whitespace-nowrap ${activeTab === tab.id ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-                            >
-                                <span>{tab.icon}</span><span>{tab.name}</span>
-                            </button>
-                        ))}
-                    </nav>
+        <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+            {/* Mobile Menu Button */}
+            <div className="lg:hidden fixed top-4 left-4 z-50">
+                <button
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                    className="p-2 bg-white rounded-lg shadow-md text-gray-600 hover:text-green-600 transition-colors"
+                >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
+
+            {/* Sidebar */}
+            <aside className={`min-h-screen w-64 fixed left-0 p-6 bg-gradient-to-b from-green-600 to-blue-600 shadow-2xl transform transition-transform duration-300 z-40
+                ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+
+                {/* Logo */}
+                <div className="flex items-center justify-center mb-8 pt-4">
+                    <div className="bg-white rounded-xl p-3 shadow-lg">
+                        <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg flex items-center justify-center">
+                            <span className="text-white font-bold text-lg">⚽</span>
+                        </div>
+                    </div>
+                    <h1 className="ml-3 text-white text-xl font-bold">Football Academy</h1>
                 </div>
-                        
-                <div className="p-6">
-                    {/* Notifikasi */}
-                    {message.text && (
-                        <div className={`mb-4 p-4 rounded-lg ${message.type === 'success' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>
-                            {message.text}
-                        </div>
-                    )}
 
-                    {/* TAB 1: Biodata */}
-                    {activeTab === 'biodata' && (
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <h3 className="text-lg font-semibold text-gray-900">Input Biodata</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <input type="text" name="nama_lengkap" value={biodata.nama_lengkap} onChange={handleBiodataChange} className="w-full px-4 py-3 border rounded-lg" placeholder="Nama Lengkap" required />
-                                <input type="email" name="email" value={biodata.email} onChange={handleBiodataChange} className="w-full px-4 py-3 border rounded-lg" placeholder="Email" required />
-                                <input type="number" name="phone" value={biodata.phone} onChange={handleBiodataChange} className="w-full px-4 py-3 border rounded-lg" placeholder="No HP" required />
-                                <input type="date" name="tanggal_lahir" value={biodata.tanggal_lahir} onChange={handleBiodataChange} className="w-full px-4 py-3 border rounded-lg" required />
-                                <textarea name="alamat" value={biodata.alamat} onChange={handleBiodataChange} rows="3" className="w-full px-4 py-3 border rounded-lg md:col-span-2" placeholder="Alamat" required />
+                {/* Navigation */}
+                <nav className="space-y-2">
+                    {/* Dashboard */}
+                    <button className="w-full flex items-center px-4 py-3 text-white bg-white bg-opacity-10 rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm">
+                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                        <span className="font-medium">Dashboard</span>
+                    </button>
+
+                    {/* Transaksi Dropdown */}
+                    <div className="relative">
+                        <button
+                            onClick={() => toggleDropdown('transaksi')}
+                            className="w-full flex items-center justify-between px-4 py-3 text-white bg-white bg-opacity-10 rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm"
+                        >
+                            <div className="flex items-center">
+                                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                                </svg>
+                                <span className="font-medium">Transaksi</span>
                             </div>
-                            <div className="flex justify-end gap-2">
-                                <button type="submit" disabled={isLoading} className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400">
-                                    {isLoading ? 'Menyimpan...' : 'Simpan Biodata'}
+                            <svg className={`w-4 h-4 transform transition-transform ${activeDropdown === 'transaksi' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        {/* Transaksi Submenu */}
+                        {activeDropdown === 'transaksi' && (
+                            <div className="ml-6 mt-2 space-y-1 border-l-2 border-white border-opacity-20 pl-4">
+                                <button className="w-full flex items-center px-3 py-2 text-blue-100 bg-white bg-opacity-5 rounded-lg hover:bg-opacity-10 transition-all duration-200">
+                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                                    </svg>
+                                    Pemasukan
                                 </button>
-                                <button onClick={onLogout} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center">
-                                    Logout
+                                <button className="w-full flex items-center px-3 py-2 text-blue-100 bg-white bg-opacity-5 rounded-lg hover:bg-opacity-10 transition-all duration-200">
+                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM8 12h8m-4-4v8" />
+                                    </svg>
+                                    Pengeluaran
                                 </button>
                             </div>
-                        </form>
-                    )}
+                        )}
+                    </div>
 
-                    {/* TAB 2: Berkas */}
-                    {activeTab === 'berkas' && (
-                        <div className="text-center p-8 border-2 border-dashed rounded-xl">
-                            <input type="file" multiple onChange={handleFileUpload} className="hidden" id="file-upload" />
-                            <label htmlFor="file-upload" className="cursor-pointer text-blue-600 font-semibold">Klik untuk upload berkas</label>
-                            <div className="mt-4 space-y-2">
-                                {files.map((f, i) => (
-                                    <div key={i} className="flex justify-between p-2 bg-gray-50 rounded border">
-                                        <span>{f.name}</span>
-                                        <button onClick={() => removeFile(i)} className="text-red-600">Hapus</button>
-                                    </div>
-                                ))}
+                    {/* Inventaris Dropdown */}
+                    <div className="relative">
+                        <button
+                            onClick={() => toggleDropdown('inventaris')}
+                            className="w-full flex items-center justify-between px-4 py-3 text-white bg-white bg-opacity-10 rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm"
+                        >
+                            <div className="flex items-center">
+                                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                </svg>
+                                <span className="font-medium">Inventaris</span>
                             </div>
+                            <svg className={`w-4 h-4 transform transition-transform ${activeDropdown === 'inventaris' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        {/* Inventaris Submenu */}
+                        {activeDropdown === 'inventaris' && (
+                            <div className="ml-6 mt-2 space-y-1 border-l-2 border-white border-opacity-20 pl-4">
+                                <button className="w-full flex items-center px-3 py-2 text-blue-100 bg-white bg-opacity-5 rounded-lg hover:bg-opacity-10 transition-all duration-200">
+                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                                    </svg>
+                                    Barang In
+                                </button>
+                                <button className="w-full flex items-center px-3 py-2 text-blue-100 bg-white bg-opacity-5 rounded-lg hover:bg-opacity-10 transition-all duration-200">
+                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
+                                    </svg>
+                                    Barang Out
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Additional Menu Items */}
+                    <button className="w-full flex items-center px-4 py-3 text-white bg-white bg-opacity-10 rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm">
+                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span className="font-medium">Manajemen Pemain</span>
+                    </button>
+
+                    <button className="w-full flex items-center px-4 py-3 text-white bg-white bg-opacity-10 rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm">
+                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span className="font-medium">Jadwal</span>
+                    </button>
+                </nav>
+
+                {/* User Profile */}
+                <div className="absolute bottom-6 left-6 right-6">
+                    <div className="flex items-center space-x-3 bg-white bg-opacity-10 rounded-xl p-3 backdrop-blur-sm">
+                        <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center shadow-md">
+                            <span className="text-white font-bold text-sm">A</span>
                         </div>
-                    )}
-
-                    {/* TAB 3: Pembayaran */}
-                    {activeTab === 'pembayaran' && (
-                        <div className="max-w-md space-y-4">
-                            <h3 className="text-lg font-semibold">Pembayaran Cash</h3>
-                            <input type="number" value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} className="w-full px-4 py-3 border rounded-lg" placeholder="Jumlah Bayar (Rp)" />
-                            <div className="p-4 bg-blue-50 rounded-lg flex justify-between">
-                                <span>Sisa Tagihan:</span>
-                                <span className="font-bold">Rp {(keuangan.total_tagihan - (paymentAmount || 0)).toLocaleString('id-ID')}</span>
-                            </div>
-                            <button onClick={handlePayment} className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700">Konfirmasi</button>
+                        <div className="flex-1">
+                            <p className="text-white font-medium text-sm">Admin User</p>
+                            <p className="text-blue-100 text-xs">Administrator</p>
                         </div>
-                    )}
+                    </div>
+                </div>
+            </aside>
 
-                    {/* TAB 4: Cek Tagihan (YANG KAMU TANYAKAN) */}
-                    {activeTab === 'tagihan' && (
-                        <div className="space-y-8">
-                            
-                            {/* 1. FORM TAMBAH TAGIHAN (BARU) */}
-                            <div className="bg-white border border-orange-200 rounded-xl p-6 shadow-sm">
-                                <h3 className="text-lg font-bold text-orange-600 mb-4 flex items-center">
-                                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                                    Buat Tagihan Baru
-                                </h3>
-                                <form onSubmit={handleAddTagihan} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-500 mb-1">Judul Tagihan</label>
-                                        <input 
-                                            type="text" 
-                                            placeholder="Cth: Uang Seragam"
-                                            className="w-full p-2 border rounded-lg text-sm"
-                                            value={newTagihan.judul}
-                                            onChange={(e) => setNewTagihan({...newTagihan, judul: e.target.value})}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-500 mb-1">Jumlah (Rp)</label>
-                                        <input 
-                                            type="number" 
-                                            placeholder="Cth: 150000"
-                                            className="w-full p-2 border rounded-lg text-sm"
-                                            value={newTagihan.jumlah}
-                                            onChange={(e) => setNewTagihan({...newTagihan, jumlah: e.target.value})}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-500 mb-1">Jatuh Tempo</label>
-                                        <input 
-                                            type="date" 
-                                            className="w-full p-2 border rounded-lg text-sm"
-                                            value={newTagihan.jatuh_tempo}
-                                            onChange={(e) => setNewTagihan({...newTagihan, jatuh_tempo: e.target.value})}
-                                            required
-                                        />
-                                    </div>
-                                    <button 
-                                        type="submit" 
-                                        disabled={isLoading}
-                                        className="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-lg text-sm font-medium transition-colors"
-                                    >
-                                        + Tambah
-                                    </button>
-                                </form>
-                            </div>
-
-                            <hr className="border-gray-200" />
-
-                            {/* 2. INFO TAGIHAN & RIWAYAT (LAMA) */}
-                            <h3 className="text-lg font-semibold text-gray-900">Cek Total Tagihan</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                
-                                {/* Kartu Biru */}
-                                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
-                                    <h4 className="font-semibold mb-4">Total Tagihan</h4>
-                                    <p className="text-3xl font-bold mb-2">
-                                        Rp {parseInt(keuangan.total_tagihan).toLocaleString('id-ID')}
-                                    </p>
-                                    <p className="text-blue-100 text-sm">Sisa Kewajiban Pembayaran</p>
+            {/* Main Content */}
+            <main className="lg:ml-64 p-6">
+                {/* Header */}
+                <div className="bg-white rounded-2xl shadow-sm p-6 mb-6 border border-green-100">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-800">Dashboard Academy</h1>
+                            <p className="text-gray-600">Selamat datang di sistem manajemen football academy</p>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                            <div className="relative">
+                                <div className="bg-green-50 rounded-full p-2 text-green-600 hover:bg-green-100 transition-colors duration-200 cursor-pointer">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM8 12h8m-4-4v8" />
+                                    </svg>
                                 </div>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-sm text-gray-500">Hari ini</p>
+                                <p className="font-semibold text-gray-800">{new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                                {/* Riwayat List */}
-                                <div className="md:col-span-2 bg-white border border-gray-200 rounded-xl p-6">
-                                    <h4 className="font-semibold text-gray-900 mb-4">Riwayat Pembayaran</h4>
-                                    <div className="space-y-4">
-                                        {keuangan.riwayat.length === 0 ? (
-                                            <p className="text-gray-500 italic">Belum ada data pembayaran.</p>
-                                        ) : (
-                                            keuangan.riwayat.map((payment, index) => (
-                                                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                                    <div>
-                                                        <p className="font-medium text-gray-900">
-                                                            {new Date(payment.tanggal_bayar).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                        </p>
-                                                        <p className="text-sm text-gray-500">Metode: {payment.metode}</p>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <p className="font-semibold text-gray-900">
-                                                            Rp {parseInt(payment.jumlah_bayar).toLocaleString('id-ID')}
-                                                        </p>
-                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                            {payment.status}
+                {/* Statistik Utama */}
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+                    <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100 hover:shadow-xl transition-shadow duration-300">
+                        <div className="px-6 py-5">
+                            <div className="flex items-center">
+                                <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-3 shadow-md">
+                                    <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                </div>
+                                <div className="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt className="text-sm font-medium text-gray-500 truncate">Total Pemain</dt>
+                                        <dd className="text-xl font-bold text-gray-900">{stats.totalPlayers}</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100 hover:shadow-xl transition-shadow duration-300">
+                        <div className="px-6 py-5">
+                            <div className="flex items-center">
+                                <div className="flex-shrink-0 bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-3 shadow-md">
+                                    <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div className="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt className="text-sm font-medium text-gray-500 truncate">Pemain Aktif</dt>
+                                        <dd className="text-xl font-bold text-gray-900">{stats.activePlayers}</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100 hover:shadow-xl transition-shadow duration-300">
+                        <div className="px-6 py-5">
+                            <div className="flex items-center">
+                                <div className="flex-shrink-0 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl p-3 shadow-md">
+                                    <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+                                <div className="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt className="text-sm font-medium text-gray-500 truncate">Pemain Cedera</dt>
+                                        <dd className="text-xl font-bold text-gray-900">{stats.injuredPlayers}</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100 hover:shadow-xl transition-shadow duration-300">
+                        <div className="px-6 py-5">
+                            <div className="flex items-center">
+                                <div className="flex-shrink-0 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-3 shadow-md">
+                                    <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                </div>
+                                <div className="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt className="text-sm font-medium text-gray-500 truncate">Tim</dt>
+                                        <dd className="text-xl font-bold text-gray-900">{stats.teams}</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                    {/* Daftar Pemain */}
+                    <div className="bg-white shadow-lg rounded-2xl overflow-hidden border border-green-100">
+                        <div className="px-6 py-5 border-b border-gray-200">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-lg font-bold text-gray-900">Daftar Pemain</h3>
+                                <button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
+                                    Tambah Pemain
+                                </button>
+                            </div>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gradient-to-r from-green-50 to-blue-50">
+                                    <tr>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Nama
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Usia
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Posisi
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Status
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {players.map((player) => (
+                                        <tr key={player.id} className="hover:bg-gray-50 transition-colors duration-150">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center">
+                                                    <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center mr-3 shadow-sm">
+                                                        <span className="text-white font-semibold text-xs">
+                                                            {player.name.charAt(0)}
                                                         </span>
                                                     </div>
+                                                    <div>
+                                                        <div className="text-sm font-medium text-gray-900">{player.name}</div>
+                                                        <div className="text-xs text-gray-500">{player.team}</div>
+                                                    </div>
                                                 </div>
-                                            ))
-                                        )}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {player.age} tahun
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {player.position}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                    ${player.status === 'Aktif'
+                                                        ? 'bg-green-100 text-green-800'
+                                                        : 'bg-red-100 text-red-800'}`}>
+                                                    {player.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* Jadwal Latihan */}
+                    <div className="bg-white shadow-lg rounded-2xl overflow-hidden border border-green-100">
+                        <div className="px-6 py-5 border-b border-gray-200">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-lg font-bold text-gray-900">Jadwal Latihan</h3>
+                                <button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
+                                    Tambah Jadwal
+                                </button>
+                            </div>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gradient-to-r from-green-50 to-blue-50">
+                                    <tr>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Tim
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Tanggal
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Waktu
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Lokasi
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {schedules.map((schedule) => (
+                                        <tr key={schedule.id} className="hover:bg-gray-50 transition-colors duration-150">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm font-medium text-gray-900">{schedule.team}</div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {new Date(schedule.date).toLocaleDateString('id-ID')}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {schedule.time}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {schedule.location}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Keuangan */}
+                <div className="mt-8 bg-white shadow-lg rounded-2xl overflow-hidden border border-green-100">
+                    <div className="px-6 py-5 border-b border-gray-200">
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-gray-900">Keuangan</h3>
+                            <div className="flex space-x-3">
+                                <button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
+                                    Tambah Transaksi
+                                </button>
+                                <button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
+                                    Laporan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gradient-to-r from-green-50 to-blue-50">
+                                <tr>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        Tipe
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        Deskripsi
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        Jumlah
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        Tanggal
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {finances.map((finance) => (
+                                    <tr key={finance.id} className="hover:bg-gray-50 transition-colors duration-150">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                ${finance.type === 'Pemasukan'
+                                                    ? 'bg-green-100 text-green-800 border border-green-200'
+                                                    : 'bg-red-100 text-red-800 border border-red-200'}`}>
+                                                {finance.type}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {finance.description}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <span className={finance.type === 'Pemasukan' ? 'text-green-600' : 'text-red-600'}>
+                                                Rp {finance.amount.toLocaleString('id-ID')}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {new Date(finance.date).toLocaleDateString('id-ID')}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Ringkasan Keuangan */}
+                <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100">
+                        <div className="px-6 py-5">
+                            <h3 className="text-lg font-bold text-gray-900 mb-4">Ringkasan Keuangan Bulan Ini</h3>
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-500">Total Pemasukan:</span>
+                                    <span className="text-lg font-bold text-green-600">Rp {stats.monthlyIncome.toLocaleString('id-ID')}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-500">Total Pengeluaran:</span>
+                                    <span className="text-lg font-bold text-red-600">Rp {stats.monthlyExpense.toLocaleString('id-ID')}</span>
+                                </div>
+                                <div className="flex justify-between items-center border-t pt-4">
+                                    <span className="text-base font-bold text-gray-900">Saldo:</span>
+                                    <span className="text-lg font-bold text-blue-600">Rp {(stats.monthlyIncome - stats.monthlyExpense).toLocaleString('id-ID')}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100">
+                        <div className="px-6 py-5">
+                            <h3 className="text-lg font-bold text-gray-900 mb-4">Aktivitas Terbaru</h3>
+                            <div className="space-y-4">
+                                <div className="flex items-start">
+                                    <div className="flex-shrink-0">
+                                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center shadow-sm">
+                                            <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div className="ml-3">
+                                        <p className="text-sm font-medium text-gray-900">Pemain baru bergabung</p>
+                                        <p className="text-sm text-gray-500">2 pemain baru bergabung dengan tim U-13</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start">
+                                    <div className="flex-shrink-0">
+                                        <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center shadow-sm">
+                                            <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div className="ml-3">
+                                        <p className="text-sm font-medium text-gray-900">Pembayaran iuran</p>
+                                        <p className="text-sm text-gray-500">15 pemain telah membayar iuran bulan ini</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    )}
+                    </div>
                 </div>
-            </div>
-        </main>
+            </main>
+            <footer className="py-6">
+                <p className="text-center">&copy;{tahunIni} SSB Akademi Sepak Bola. Semua hak
+                    dilindungi.</p>
+            </footer>
+        </div>
     );
-}
+};

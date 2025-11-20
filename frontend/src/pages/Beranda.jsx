@@ -41,13 +41,13 @@ export default function Beranda() {
                     <div className="flex flex-col sm:flex-row items-center mx-auto gap-5 mt-10">
                         <a
                             href="/program"
-                            className="bg-green-500 py-2 px-6 rounded-[35px] text-white hover:bg-green-600 transition-colors w-full sm:w-auto"
+                            className="bg-green-500 py-3 px-6 rounded-[35px] text-white hover:bg-green-600 transition-colors w-full sm:w-auto"
                         >
                             Lihat Program Kami
                         </a>
                         <a
                             href="/kontak"
-                            className="bg-blue-500 py-2 px-6 rounded-[35px] text-white hover:bg-blue-600 transition-colors w-full sm:w-auto"
+                            className="bg-blue-500 py-3 px-6 rounded-[35px] text-white hover:bg-blue-600 transition-colors w-full sm:w-auto"
                         >
                             Hubungi Kami
                         </a>

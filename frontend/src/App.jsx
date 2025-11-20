@@ -7,13 +7,13 @@ import "./App.css";
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Beranda from './pages/Beranda';
-import Dashboard from "../src/pages/Dashboard"; 
+import Dsbd from "./pages/Dsbd"; 
 import Program from './pages/Program';
 import Login from './pages/Login'; // Pastikan path ini benar (sesuai struktur folder kamu)
 import Galeri from './pages/Galeri';
 import Artikel from './pages/Artikel';
 import Kontak from './pages/Kontak';
-import Dsbd from "./pages/Dsbd";
+import Dashboard from "./pages/Dashboard";
 
 function App() {
     // Ambil token awal dari Local Storage
@@ -38,7 +38,7 @@ function App() {
     };
 
     // Logic menyembunyikan Navbar/Footer di halaman Login
-    const noLayoutRoutes = ["/login"];
+    const noLayoutRoutes = ["/login", "/dashboard"];
     const hideLayout = noLayoutRoutes.includes(location.pathname);
 
     // Komponen Pembungkus Halaman Private (Dashboard)
