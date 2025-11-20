@@ -46,7 +46,7 @@ export default function Beranda() {
                             Lihat Program Kami
                         </a>
                         <a
-                            href="/"
+                            href="/kontak"
                             className="bg-blue-500 py-2 px-6 rounded-[35px] text-white hover:bg-blue-600 transition-colors w-full sm:w-auto"
                         >
                             Hubungi Kami
@@ -126,14 +126,14 @@ export default function Beranda() {
 
                     </h2>
 
-                    <p className="text-white/90 mt-3 max-w-lg mx-auto">
+                    <p className="text-white/90 mt-3 max-w-lg mx-auto mb-6">
                         Daftar sekarang dan dapatkan trial gratis
                         untuk merasakan pengalaman latihan bersama kami
                     </p>
 
-                    <button className="mt-6 bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg font-semibold shadow">
+                    <a href="/biodata" className="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg font-semibold shadow">
                         Daftar Sekarang
-                    </button>
+                    </a>
                 </div>
             </div>
 

@@ -4,7 +4,7 @@ export default function Footer() {
     const tahunIni = new Date().getFullYear();
     return (
         <footer className="border-t border-gray-200 py-8 ">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 mx-auto w-fit">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 mx-auto max-w-6xl">
                 <div className=" md:col-span-1  ">
                     <div className="flex items-center mb-4">
                         <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center mr-2">
@@ -56,7 +56,7 @@ export default function Footer() {
                         <div className="flex items-center">
                             <i className="fas fa-map-marker-alt text-green-600 mr-2 text-base"></i>
                             <p className="text-gray-600">
-                                Jl. Stadion No. 123, Jakarta Selatan
+                                Jl. KH. Mansyur No. 45, Genteng, Banyuwangi, Jawa Timur
                             </p>
                         </div>
                         <div className="flex items-center">
@@ -106,7 +106,7 @@ export default function Footer() {
                             className="group w-8 h-8 rounded-full bg-gray-100 hover:bg-green-500 flex items-center justify-center transition-colors duration-150"
                             aria-label="Twitter"
                         >
-                            <i className="fab fa-twitter text-gray-600 group-hover:text-white text-lg"></i>
+                            <i class="fab fa-tiktok text-gray-600 group-hover:text-white text-lg"></i>
                         </a>
                     </div>
                 </div>

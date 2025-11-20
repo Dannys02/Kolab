@@ -49,7 +49,6 @@ const Contact = () => {
         <div className="min-h-screen py-16 bg-gradient-to-br from-green-50 to-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    {/* Contact Form Section */}
                     <div className="bg-white rounded-2xl shadow-xl p-8">
                         <div className="mb-8">
                             <h2 className="text-3xl font-bold text-gray-900 mb-4">Kirim Pesan</h2>
@@ -68,7 +67,6 @@ const Contact = () => {
                         )}
 
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            {/* Nama Input */}
                             <div>
                                 <label htmlFor="nama" className="block text-sm font-medium text-gray-700 mb-2">
                                     Nama Lengkap *
@@ -92,7 +90,6 @@ const Contact = () => {
                                 </div>
                             </div>
 
-                            {/* Email Input */}
                             <div>
                                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                                     Alamat Email *
@@ -116,7 +113,6 @@ const Contact = () => {
                                 </div>
                             </div>
 
-                            {/* Alamat Input */}
                             <div>
                                 <label htmlFor="alamat" className="block text-sm font-medium text-gray-700 mb-2">
                                     Alamat *
@@ -141,7 +137,6 @@ const Contact = () => {
                                 </div>
                             </div>
 
-                            {/* Pesan Textarea */}
                             <div>
                                 <label htmlFor="pesan" className="block text-sm font-medium text-gray-700 mb-2">
                                     Pesan *
@@ -160,7 +155,6 @@ const Contact = () => {
                                 </div>
                             </div>
 
-                            {/* Submit Button */}
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
@@ -181,12 +175,9 @@ const Contact = () => {
                         </form>
                     </div>
 
-                    {/* Map & Info Section */}
                     <div className="space-y-8">
-                        {/* Map Container */}
                         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
                             <div className="h-80 bg-gradient-to-br from-green-100 to-green-200 relative">
-                                {/* Simplified Map Representation */}
                                 <div className="absolute inset-0 flex items-center justify-center">
                                     <div className="text-center">
                                         <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
@@ -223,12 +214,10 @@ const Contact = () => {
                             </div>
                         </div>
 
-                        {/* Contact Information */}
                         <div className="bg-white rounded-2xl shadow-xl p-8">
                             <h3 className="text-2xl font-bold text-gray-900 mb-6">Informasi Kontak</h3>
 
                             <div className="space-y-6">
-                                {/* Phone */}
                                 <div className="flex items-center space-x-4">
                                     <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
                                         <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -241,7 +230,6 @@ const Contact = () => {
                                     </div>
                                 </div>
 
-                                {/* Email */}
                                 <div className="flex items-center space-x-4">
                                     <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
                                         <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -254,7 +242,6 @@ const Contact = () => {
                                     </div>
                                 </div>
 
-                                {/* Hours */}
                                 <div className="flex items-center space-x-4">
                                     <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
                                         <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -269,7 +256,6 @@ const Contact = () => {
                                 </div>
                             </div>
 
-                            {/* Social Media */}
                             <div className="mt-8 pt-6 border-t border-gray-200">
                                 <h4 className="font-semibold text-gray-900 mb-4">Follow Kami</h4>
                                 <div className="flex space-x-4">
@@ -290,7 +276,6 @@ const Contact = () => {
                 </div>
             </div>
 
-            {/* Custom Animation */}
             <style jsx>{`
         @keyframes fade-in {
           from { opacity: 0; transform: translateY(-10px); }
