@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import axios from 'axios';
+import "./App.css";
+
+// Import Components & Pages
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Beranda from './pages/Beranda';
 import Dashboard from "../src/pages/Dashboard"; 
 import Program from './pages/Program';
-import Login from './pages/Login';
+import Login from './pages/Login'; // Pastikan path ini benar (sesuai struktur folder kamu)
 import Galeri from './pages/Galeri';
 import Artikel from './pages/Artikel';
 import Kontak from './pages/Kontak';
