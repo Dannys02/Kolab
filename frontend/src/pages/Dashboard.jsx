@@ -204,14 +204,20 @@ export default function Dsbd() {
 
                 {/* User Profile */}
                 <div className="absolute bottom-6 left-6 right-6">
-                    <div className="flex items-center space-x-3 bg-white bg-opacity-10 rounded-xl p-3 backdrop-blur-sm">
-                        <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center shadow-md">
-                            <span className="text-white font-bold text-sm">A</span>
+                    <div className="h-fit flex flex-col gap-5">
+                        <div className="flex items-center space-x-3 bg-white bg-opacity-10 rounded-xl p-3 backdrop-blur-sm">
+                            <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center shadow-md">
+                                <span className="text-white font-bold text-sm">A</span>
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-white font-medium text-sm">Admin User</p>
+                                <p className="text-blue-100 text-xs">Administrator</p>
+                            </div>
                         </div>
-                        <div className="flex-1">
-                            <p className="text-white font-medium text-sm">Admin User</p>
-                            <p className="text-blue-100 text-xs">Administrator</p>
-                        </div>
+                        <a href="#" className="grup flex items-center justify-center gap-2 bg-red-300 hover:text-white text-red-800 hover:bg-red-500 py-3 px-6 rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md hover:shadow-red-600 hover:border-none">
+                            <i className="fas fa-sign-out-alt"></i>
+                            Logout
+                        </a>
                     </div>
                 </div>
             </aside>
