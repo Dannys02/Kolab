@@ -3,9 +3,7 @@ import React, { useEffect, useState } from 'react';
 export default function Dsbd() {
     const tahunIni = new Date().getFullYear();
 
-    // --- 1. DEKLARASI SEMUA STATE (HOOKS) DI PALING ATAS ---
-    
-    // State UI
+    // --- 1. DEKLARASI SEMUA STATE (HOOKS) ---
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState(null);
 
@@ -13,7 +11,7 @@ export default function Dsbd() {
     const [siswa, setSiswa] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // State Jadwal Latihan (DIPINDAHKAN KE ATAS)
+    // State Jadwal Latihan
     const [schedules, setSchedules] = useState([
         { id: 1, team: 'U-13', date: '2023-10-15', time: '16:00', location: 'Lapangan A' },
         { id: 2, team: 'U-14', date: '2023-10-16', time: '16:00', location: 'Lapangan B' },
@@ -21,7 +19,7 @@ export default function Dsbd() {
         { id: 4, team: 'U-16', date: '2023-10-18', time: '16:00', location: 'Lapangan B' },
     ]);
 
-    // State Keuangan (DIPINDAHKAN KE ATAS)
+    // State Keuangan
     const [finances, setFinances] = useState([
         { id: 1, type: 'Pemasukan', description: 'Iuran Bulanan', amount: 2500000, date: '2023-10-01' },
         { id: 2, type: 'Pengeluaran', description: 'Sewa Lapangan', amount: 1500000, date: '2023-10-05' },
@@ -29,7 +27,7 @@ export default function Dsbd() {
         { id: 4, type: 'Pemasukan', description: 'Sponsor Lokal', amount: 3000000, date: '2023-10-12' },
     ]);
 
-    // State Statistik (DIPINDAHKAN KE ATAS)
+    // State Statistik
     const [stats, setStats] = useState({
         totalPlayers: 85,
         activePlayers: 78,
@@ -47,10 +45,11 @@ export default function Dsbd() {
     // --- 3. FUNGSI LOGIKA ---
     const fetchDataSiswa = async () => {
         try {
-            // Pastikan URL API ini benar sesuai route Laravel kamu
             const response = await fetch('http://localhost:8000/api/dashboard/index');
             const dataJson = await response.json();
-            setSiswa(dataJson.data); 
+            
+            // Safety check: pastikan dataJson.data ada, jika tidak pakai array kosong
+            setSiswa(dataJson.data || []); 
             setLoading(false);
         } catch (error) {
             console.error("Gagal mengambil Data:", error);
@@ -62,8 +61,7 @@ export default function Dsbd() {
         setActiveDropdown(activeDropdown === dropdown ? null : dropdown);
     };
 
-    // --- 4. KONDISIONAL RETURN (BARU BOLEH DISINI) ---
-    // Loading screen dipindah ke sini setelah semua Hooks dideklarasikan
+    // --- 4. LOADING SCREEN ---
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-green-50">
@@ -74,6 +72,18 @@ export default function Dsbd() {
             </div>
         );
     }
+    // --- FUNGSI BANTUAN ---
+    const hitungUmur = (tanggalLahir) => {
+        if (!tanggalLahir) return "-";
+        const today = new Date();
+        const birthDate = new Date(tanggalLahir);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age;
+    };
 
     // --- 5. RENDER TAMPILAN UTAMA ---
     return (
@@ -186,7 +196,6 @@ export default function Dsbd() {
                         )}
                     </div>
 
-                    {/* Additional Menu Items */}
                     <button className="w-full flex items-center px-4 py-3 text-white bg-white bg-opacity-10 rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm">
                         <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -322,9 +331,9 @@ export default function Dsbd() {
                         <div className="px-6 py-5 border-b border-gray-200">
                             <div className="flex justify-between items-center">
                                 <h3 className="text-lg font-bold text-gray-900">Daftar Pemain</h3>
-                                <button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
+                                <a href='/dsbd' className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
                                     Tambah Pemain
-                                </button>
+                                </a>
                             </div>
                         </div>
                         <div className="overflow-x-auto">
@@ -346,38 +355,66 @@ export default function Dsbd() {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {siswa.map((player) => (
-                                        <tr key={player.id} className="hover:bg-gray-50 transition-colors duration-150">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center mr-3 shadow-sm">
-                                                        <span className="text-white font-semibold text-xs">
-                                                            {player.name.charAt(0)}
-                                                        </span>
-                                                    </div>
-                                                    <div>
-                                                        <div className="text-sm font-medium text-gray-900">{player.name}</div>
-                                                        <div className="text-xs text-gray-500">{player.team}</div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {player.age} tahun
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {player.position}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                    ${player.status === 'Aktif'
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : 'bg-red-100 text-red-800'}`}>
-                                                    {player.status}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
+    {siswa.length > 0 ? (
+        siswa.map((player, index) => {
+            // --- PERBAIKAN DISINI SESUAI DATABASE ---
+            
+            // 1. Ambil Nama Lengkap (sesuai kolom database 'nama_lengkap')
+            const displayName = player.nama_lengkap || "Tanpa Nama";
+            
+            // 2. Hitung Umur dari 'tanggal_lahir'
+            const displayAge = hitungUmur(player.tanggal_lahir);
+            
+            // 3. Data Dummy (Karena tidak ada di tabel biodatas screenshot)
+            // Jika nanti sudah ada relasi tabel, ganti string ini dengan player.team.nama_tim, dll.
+            const displayTeam = player.team || "U-13"; 
+            const displayPos = player.position || "Striker";
+            const displayStatus = player.status || "Aktif";
+
+            // Ambil inisial nama
+            const initial = displayName.charAt(0).toUpperCase();
+
+            return (
+                <tr key={player.id || index} className="hover:bg-gray-50 transition-colors duration-150">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                            <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center mr-3 shadow-sm">
+                                <span className="text-white font-semibold text-xs">
+                                    {initial}
+                                </span>
+                            </div>
+                            <div>
+                                <div className="text-sm font-medium text-gray-900">{displayName}</div>
+                                {/* Tampilkan Email atau Phone dari database sebagai info tambahan */}
+                                <div className="text-xs text-gray-500">{player.email || displayTeam}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {displayAge} tahun
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {displayPos}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${displayStatus === 'Aktif'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'}`}>
+                            {displayStatus}
+                        </span>
+                    </td>
+                </tr>
+            );
+        })
+    ) : (
+        <tr>
+            <td colSpan="4" className="px-6 py-4 text-center text-gray-500 italic">
+                Belum ada data pemain.
+            </td>
+        </tr>
+    )}
+</tbody>
                             </table>
                         </div>
                     </div>
