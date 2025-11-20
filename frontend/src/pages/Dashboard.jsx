@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 export default function Dsbd() {
     const tahunIni = new Date().getFullYear();
-
-    // --- 1. DEKLARASI SEMUA STATE (HOOKS) ---
+    const [activePage, setActivePage] = useState('dashboard');
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState(null);
 
@@ -117,7 +116,7 @@ export default function Dsbd() {
                 {/* Navigation */}
                 <nav className="space-y-2">
                     {/* Dashboard */}
-                    <button className="w-full flex items-center px-4 py-3 text-white bg-white bg-opacity-10 rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm">
+                    <button onClick={() => setActivePage('dashboard')} className="w-full flex items-center px-4 py-3 text-white bg-white bg-opacity-10 rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm">
                         <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
@@ -144,7 +143,7 @@ export default function Dsbd() {
                         {/* Transaksi Submenu */}
                         {activeDropdown === 'transaksi' && (
                             <div className="ml-6 mt-2 space-y-1 border-l-2 border-white border-opacity-20 pl-4">
-                                <button className="w-full flex items-center px-3 py-2 text-blue-100 bg-white bg-opacity-5 rounded-lg hover:bg-opacity-10 transition-all duration-200">
+                                <button onClick={() => setActivePage('pemasukan')} className="w-full flex items-center px-3 py-2 text-blue-100 bg-white bg-opacity-5 rounded-lg hover:bg-opacity-10 transition-all duration-200">
                                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                                     </svg>
@@ -232,104 +231,105 @@ export default function Dsbd() {
             </aside>
 
             {/* Main Content */}
-            <main className="lg:ml-64 p-6">
-                {/* Header */}
-                <div className="bg-white rounded-2xl shadow-sm p-6 mb-6 border border-green-100">
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-800">Dashboard Academy</h1>
-                            <p className="text-gray-600">Selamat datang di sistem manajemen football academy</p>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                            <div className="relative">
-                                <div className="bg-green-50 rounded-full p-2 text-green-600 hover:bg-green-100 transition-colors duration-200 cursor-pointer">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM8 12h8m-4-4v8" />
-                                    </svg>
-                                </div>
+            {activePage === 'dashboard' && (
+                <main className="lg:ml-64 p-6">
+                    {/* Header */}
+                    <div className="bg-white rounded-2xl shadow-sm p-6 mb-6 border border-green-100">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <h1 className="text-2xl font-bold text-gray-800">Dashboard Academy</h1>
+                                <p className="text-gray-600">Selamat datang di sistem manajemen football academy</p>
                             </div>
-                            <div className="text-right">
-                                <p className="text-sm text-gray-500">Hari ini</p>
-                                <p className="font-semibold text-gray-800">{new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Statistik Utama */}
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-                    <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100 hover:shadow-xl transition-shadow duration-300">
-                        <div className="px-6 py-5">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-3 shadow-md">
-                                    <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                    </svg>
+                            <div className="flex items-center space-x-4">
+                                <div className="relative">
+                                    <div className="bg-green-50 rounded-full p-2 text-green-600 hover:bg-green-100 transition-colors duration-200 cursor-pointer">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM8 12h8m-4-4v8" />
+                                        </svg>
+                                    </div>
                                 </div>
-                                <div className="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt className="text-sm font-medium text-gray-500 truncate">Total Pemain</dt>
-                                        <dd className="text-xl font-bold text-gray-900">{stats.totalPlayers}</dd>
-                                    </dl>
+                                <div className="text-right">
+                                    <p className="text-sm text-gray-500">Hari ini</p>
+                                    <p className="font-semibold text-gray-800">{new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100 hover:shadow-xl transition-shadow duration-300">
-                        <div className="px-6 py-5">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0 bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-3 shadow-md">
-                                    <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <div className="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt className="text-sm font-medium text-gray-500 truncate">Pemain Aktif</dt>
-                                        <dd className="text-xl font-bold text-gray-900">{stats.activePlayers}</dd>
-                                    </dl>
+                    {/* Statistik Utama */}
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+                        <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100 hover:shadow-xl transition-shadow duration-300">
+                            <div className="px-6 py-5">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-3 shadow-md">
+                                        <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt className="text-sm font-medium text-gray-500 truncate">Total Pemain</dt>
+                                            <dd className="text-xl font-bold text-gray-900">{stats.totalPlayers}</dd>
+                                        </dl>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100 hover:shadow-xl transition-shadow duration-300">
-                        <div className="px-6 py-5">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl p-3 shadow-md">
-                                    <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                    </svg>
-                                </div>
-                                <div className="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt className="text-sm font-medium text-gray-500 truncate">Pemain Cedera</dt>
-                                        <dd className="text-xl font-bold text-gray-900">{stats.injuredPlayers}</dd>
-                                    </dl>
+                        <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100 hover:shadow-xl transition-shadow duration-300">
+                            <div className="px-6 py-5">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0 bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-3 shadow-md">
+                                        <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt className="text-sm font-medium text-gray-500 truncate">Pemain Aktif</dt>
+                                            <dd className="text-xl font-bold text-gray-900">{stats.activePlayers}</dd>
+                                        </dl>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100 hover:shadow-xl transition-shadow duration-300">
-                        <div className="px-6 py-5">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-3 shadow-md">
-                                    <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                    </svg>
+                        <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100 hover:shadow-xl transition-shadow duration-300">
+                            <div className="px-6 py-5">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl p-3 shadow-md">
+                                        <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt className="text-sm font-medium text-gray-500 truncate">Pemain Cedera</dt>
+                                            <dd className="text-xl font-bold text-gray-900">{stats.injuredPlayers}</dd>
+                                        </dl>
+                                    </div>
                                 </div>
-                                <div className="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt className="text-sm font-medium text-gray-500 truncate">Tim</dt>
-                                        <dd className="text-xl font-bold text-gray-900">{stats.teams}</dd>
-                                    </dl>
+                            </div>
+                        </div>
+
+                        <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100 hover:shadow-xl transition-shadow duration-300">
+                            <div className="px-6 py-5">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-3 shadow-md">
+                                        <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt className="text-sm font-medium text-gray-500 truncate">Tim</dt>
+                                            <dd className="text-xl font-bold text-gray-900">{stats.teams}</dd>
+                                        </dl>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
                 <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
                     {/* Daftar Pemain */}
@@ -425,14 +425,19 @@ export default function Dsbd() {
                         </div>
                     </div>
 
-                    {/* Jadwal Latihan */}
-                    <div className="bg-white shadow-lg rounded-2xl overflow-hidden border border-green-100">
+                    {/* Keuangan */}
+                    <div className="mt-8 bg-white shadow-lg rounded-2xl overflow-hidden border border-green-100">
                         <div className="px-6 py-5 border-b border-gray-200">
                             <div className="flex justify-between items-center">
-                                <h3 className="text-lg font-bold text-gray-900">Jadwal Latihan</h3>
-                                <button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
-                                    Tambah Jadwal
-                                </button>
+                                <h3 className="text-lg font-bold text-gray-900">Keuangan</h3>
+                                <div className="flex space-x-3">
+                                    <button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
+                                        Tambah Transaksi
+                                    </button>
+                                    <button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
+                                        Laporan
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div className="overflow-x-auto">
@@ -440,33 +445,40 @@ export default function Dsbd() {
                                 <thead className="bg-gradient-to-r from-green-50 to-blue-50">
                                     <tr>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                            Tim
+                                            Tipe
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Deskripsi
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Jumlah
                                         </th>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                             Tanggal
                                         </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                            Waktu
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                            Lokasi
-                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {schedules.map((schedule) => (
-                                        <tr key={schedule.id} className="hover:bg-gray-50 transition-colors duration-150">
+                                    {finances.map((finance) => (
+                                        <tr key={finance.id} className="hover:bg-gray-50 transition-colors duration-150">
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-gray-900">{schedule.team}</div>
+                                                <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                ${finance.type === 'Pemasukan'
+                                                        ? 'bg-green-100 text-green-800 border border-green-200'
+                                                        : 'bg-red-100 text-red-800 border border-red-200'}`}>
+                                                    {finance.type}
+                                                </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {new Date(schedule.date).toLocaleDateString('id-ID')}
+                                                {finance.description}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <span className={finance.type === 'Pemasukan' ? 'text-green-600' : 'text-red-600'}>
+                                                    Rp {finance.amount.toLocaleString('id-ID')}
+                                                </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {schedule.time}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {schedule.location}
+                                                {new Date(finance.date).toLocaleDateString('id-ID')}
                                             </td>
                                         </tr>
                                     ))}
@@ -474,127 +486,69 @@ export default function Dsbd() {
                             </table>
                         </div>
                     </div>
-                </div>
 
-                {/* Keuangan */}
-                <div className="mt-8 bg-white shadow-lg rounded-2xl overflow-hidden border border-green-100">
-                    <div className="px-6 py-5 border-b border-gray-200">
-                        <div className="flex justify-between items-center">
-                            <h3 className="text-lg font-bold text-gray-900">Keuangan</h3>
-                            <div className="flex space-x-3">
-                                <button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
-                                    Tambah Transaksi
-                                </button>
-                                <button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
-                                    Laporan
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gradient-to-r from-green-50 to-blue-50">
-                                <tr>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                        Tipe
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                        Deskripsi
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                        Jumlah
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                        Tanggal
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {finances.map((finance) => (
-                                    <tr key={finance.id} className="hover:bg-gray-50 transition-colors duration-150">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                ${finance.type === 'Pemasukan'
-                                                    ? 'bg-green-100 text-green-800 border border-green-200'
-                                                    : 'bg-red-100 text-red-800 border border-red-200'}`}>
-                                                {finance.type}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {finance.description}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <span className={finance.type === 'Pemasukan' ? 'text-green-600' : 'text-red-600'}>
-                                                Rp {finance.amount.toLocaleString('id-ID')}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {new Date(finance.date).toLocaleDateString('id-ID')}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                {/* Ringkasan Keuangan */}
-                <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100">
-                        <div className="px-6 py-5">
-                            <h3 className="text-lg font-bold text-gray-900 mb-4">Ringkasan Keuangan Bulan Ini</h3>
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm text-gray-500">Total Pemasukan:</span>
-                                    <span className="text-lg font-bold text-green-600">Rp {stats.monthlyIncome.toLocaleString('id-ID')}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm text-gray-500">Total Pengeluaran:</span>
-                                    <span className="text-lg font-bold text-red-600">Rp {stats.monthlyExpense.toLocaleString('id-ID')}</span>
-                                </div>
-                                <div className="flex justify-between items-center border-t pt-4">
-                                    <span className="text-base font-bold text-gray-900">Saldo:</span>
-                                    <span className="text-lg font-bold text-blue-600">Rp {(stats.monthlyIncome - stats.monthlyExpense).toLocaleString('id-ID')}</span>
+                    {/* Ringkasan Keuangan */}
+                    <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
+                        <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100">
+                            <div className="px-6 py-5">
+                                <h3 className="text-lg font-bold text-gray-900 mb-4">Ringkasan Keuangan Bulan Ini</h3>
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm text-gray-500">Total Pemasukan:</span>
+                                        <span className="text-lg font-bold text-green-600">Rp {stats.monthlyIncome.toLocaleString('id-ID')}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm text-gray-500">Total Pengeluaran:</span>
+                                        <span className="text-lg font-bold text-red-600">Rp {stats.monthlyExpense.toLocaleString('id-ID')}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center border-t pt-4">
+                                        <span className="text-base font-bold text-gray-900">Saldo:</span>
+                                        <span className="text-lg font-bold text-blue-600">Rp {(stats.monthlyIncome - stats.monthlyExpense).toLocaleString('id-ID')}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100">
-                        <div className="px-6 py-5">
-                            <h3 className="text-lg font-bold text-gray-900 mb-4">Aktivitas Terbaru</h3>
-                            <div className="space-y-4">
-                                <div className="flex items-start">
-                                    <div className="flex-shrink-0">
-                                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center shadow-sm">
-                                            <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                            </svg>
+                        <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100">
+                            <div className="px-6 py-5">
+                                <h3 className="text-lg font-bold text-gray-900 mb-4">Aktivitas Terbaru</h3>
+                                <div className="space-y-4">
+                                    <div className="flex items-start">
+                                        <div className="flex-shrink-0">
+                                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center shadow-sm">
+                                                <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div className="ml-3">
+                                            <p className="text-sm font-medium text-gray-900">Pemain baru bergabung</p>
+                                            <p className="text-sm text-gray-500">2 pemain baru bergabung dengan tim U-13</p>
                                         </div>
                                     </div>
-                                    <div className="ml-3">
-                                        <p className="text-sm font-medium text-gray-900">Pemain baru bergabung</p>
-                                        <p className="text-sm text-gray-500">2 pemain baru bergabung dengan tim U-13</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start">
-                                    <div className="flex-shrink-0">
-                                        <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center shadow-sm">
-                                            <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
+                                    <div className="flex items-start">
+                                        <div className="flex-shrink-0">
+                                            <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center shadow-sm">
+                                                <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="ml-3">
-                                        <p className="text-sm font-medium text-gray-900">Pembayaran iuran</p>
-                                        <p className="text-sm text-gray-500">15 pemain telah membayar iuran bulan ini</p>
+                                        <div className="ml-3">
+                                            <p className="text-sm font-medium text-gray-900">Pembayaran iuran</p>
+                                            <p className="text-sm text-gray-500">15 pemain telah membayar iuran bulan ini</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </main>
+                </main>
+            )}
+
+            {activePage === 'pemasukan' && (
+                <div>Konten Pemasukan</div>
+            )}
             <footer className="py-6">
                 <p className="text-center">&copy;{tahunIni} SSB Akademi Sepak Bola. Semua hak
                     dilindungi.</p>
