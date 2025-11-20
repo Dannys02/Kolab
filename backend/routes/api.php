@@ -42,3 +42,5 @@ Route::get('/keuangan', [KeuanganController::class, 'index']);
 Route::post('/tagihan', [KeuanganController::class, 'store']);
 
 Route::post('/contact', [ContactController::class, 'store']);
+
+Route::get('/dashboard/index', [DashboardController::class, 'biodataIndex']);
