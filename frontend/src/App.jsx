@@ -13,6 +13,7 @@ import Login from './pages/Login'; // Pastikan path ini benar (sesuai struktur f
 import Galeri from './pages/Galeri';
 import Artikel from './pages/Artikel';
 import Kontak from './pages/Kontak';
+import Dsbd from "./pages/Dsbd";
 
 function App() {
     // Ambil token awal dari Local Storage
@@ -57,6 +58,7 @@ function App() {
                 <Route path="/galeri" element={<Galeri />} />
                 <Route path="/artikel" element={<Artikel />} />
                 <Route path="/kontak" element={<Kontak />} />
+                <Route path="/dsbd" element={<Dsbd />} />
 
                 {/* --- ROUTE LOGIN (FIXED) --- */}
                 {/* Logika: Jika sudah ada token -> lempar ke Dashboard. Jika belum -> Buka Login */}

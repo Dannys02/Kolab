@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
+import Logo from '../assets/logosmks.png';
 
 export default function Navbar() {
     const [active, setActive] = useState("");
@@ -54,9 +55,10 @@ export default function Navbar() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     <div className="flex items-center">
-                        <div className="flex-shrink-0">
+                        <div className="flex items-center gap-3">
+                            <img src={Logo} alt="" className="h-10 w-15" />
                             <span className="text-black font-bold text-xl">
-                                SSB Akademi Sepak Bola
+                                SSB Sekolah Sepak Bola
                             </span>
                         </div>
                     </div>
