@@ -1,5 +1,4 @@
-// agung.jsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 export default function Dsbd() {
     const tahunIni = new Date().getFullYear();
@@ -7,16 +6,11 @@ export default function Dsbd() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState(null);
 
-    // State untuk data pemain
-    const [players, setPlayers] = useState([
-        { id: 1, name: 'Ahmad Rizki', age: 15, position: 'Striker', team: 'U-15', status: 'Aktif' },
-        { id: 2, name: 'Budi Santoso', age: 14, position: 'Midfielder', team: 'U-14', status: 'Aktif' },
-        { id: 3, name: 'Cahyo Pratama', age: 16, position: 'Goalkeeper', team: 'U-16', status: 'Cedera' },
-        { id: 4, name: 'Dedi Setiawan', age: 15, position: 'Defender', team: 'U-15', status: 'Aktif' },
-        { id: 5, name: 'Eko Wijaya', age: 13, position: 'Midfielder', team: 'U-13', status: 'Aktif' },
-    ]);
+    // State Data Pemain
+    const [siswa, setSiswa] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // State untuk jadwal latihan
+    // State Jadwal Latihan
     const [schedules, setSchedules] = useState([
         { id: 1, team: 'U-13', date: '2023-10-15', time: '16:00', location: 'Lapangan A' },
         { id: 2, team: 'U-14', date: '2023-10-16', time: '16:00', location: 'Lapangan B' },
@@ -24,7 +18,7 @@ export default function Dsbd() {
         { id: 4, team: 'U-16', date: '2023-10-18', time: '16:00', location: 'Lapangan B' },
     ]);
 
-    // State untuk keuangan
+    // State Keuangan
     const [finances, setFinances] = useState([
         { id: 1, type: 'Pemasukan', description: 'Iuran Bulanan', amount: 2500000, date: '2023-10-01' },
         { id: 2, type: 'Pengeluaran', description: 'Sewa Lapangan', amount: 1500000, date: '2023-10-05' },
@@ -32,7 +26,7 @@ export default function Dsbd() {
         { id: 4, type: 'Pemasukan', description: 'Sponsor Lokal', amount: 3000000, date: '2023-10-12' },
     ]);
 
-    // State untuk statistik
+    // State Statistik
     const [stats, setStats] = useState({
         totalPlayers: 85,
         activePlayers: 78,
@@ -42,10 +36,55 @@ export default function Dsbd() {
         monthlyExpense: 8500000,
     });
 
+    // --- 2. USE EFFECT ---
+    useEffect(() => {
+        fetchDataSiswa();
+    }, []);
+
+    // --- 3. FUNGSI LOGIKA ---
+    const fetchDataSiswa = async () => {
+        try {
+            const response = await fetch('http://localhost:8000/api/dashboard/index');
+            const dataJson = await response.json();
+            
+            // Safety check: pastikan dataJson.data ada, jika tidak pakai array kosong
+            setSiswa(dataJson.data || []); 
+            setLoading(false);
+        } catch (error) {
+            console.error("Gagal mengambil Data:", error);
+            setLoading(false);
+        }
+    };
+
     const toggleDropdown = (dropdown) => {
         setActiveDropdown(activeDropdown === dropdown ? null : dropdown);
     };
 
+    // --- 4. LOADING SCREEN ---
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-green-50">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+                    <p className="text-green-800 font-semibold">Sedang Memuat Data Siswa...</p>
+                </div>
+            </div>
+        );
+    }
+    // --- FUNGSI BANTUAN ---
+    const hitungUmur = (tanggalLahir) => {
+        if (!tanggalLahir) return "-";
+        const today = new Date();
+        const birthDate = new Date(tanggalLahir);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age;
+    };
+
+    // --- 5. RENDER TAMPILAN UTAMA ---
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
             {/* Mobile Menu Button */}
@@ -156,7 +195,6 @@ export default function Dsbd() {
                         )}
                     </div>
 
-                    {/* Additional Menu Items */}
                     <button className="w-full flex items-center px-4 py-3 text-white bg-white bg-opacity-10 rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm">
                         <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -293,120 +331,97 @@ export default function Dsbd() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-                        {/* Daftar Pemain */}
-                        <div className="bg-white shadow-lg rounded-2xl overflow-hidden border border-green-100">
-                            <div className="px-6 py-5 border-b border-gray-200">
-                                <div className="flex justify-between items-center">
-                                    <h3 className="text-lg font-bold text-gray-900">Daftar Pemain</h3>
-                                    <button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
-                                        Tambah Pemain
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gradient-to-r from-green-50 to-blue-50">
-                                        <tr>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Nama
-                                            </th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Usia
-                                            </th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Posisi
-                                            </th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Status
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {players.map((player) => (
-                                            <tr key={player.id} className="hover:bg-gray-50 transition-colors duration-150">
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center">
-                                                        <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center mr-3 shadow-sm">
-                                                            <span className="text-white font-semibold text-xs">
-                                                                {player.name.charAt(0)}
-                                                            </span>
-                                                        </div>
-                                                        <div>
-                                                            <div className="text-sm font-medium text-gray-900">{player.name}</div>
-                                                            <div className="text-xs text-gray-500">{player.team}</div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {player.age} tahun
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {player.position}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                    ${player.status === 'Aktif'
-                                                            ? 'bg-green-100 text-green-800'
-                                                            : 'bg-red-100 text-red-800'}`}>
-                                                        {player.status}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                    {/* Daftar Pemain */}
+                    <div className="bg-white shadow-lg rounded-2xl overflow-hidden border border-green-100">
+                        <div className="px-6 py-5 border-b border-gray-200">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-lg font-bold text-gray-900">Daftar Pemain</h3>
+                                <a href='/dsbd' className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
+                                    Tambah Pemain
+                                </a>
                             </div>
                         </div>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gradient-to-r from-green-50 to-blue-50">
+                                    <tr>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Nama
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Usia
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Posisi
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Status
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+    {siswa.length > 0 ? (
+        siswa.map((player, index) => {
+            // --- PERBAIKAN DISINI SESUAI DATABASE ---
+            
+            // 1. Ambil Nama Lengkap (sesuai kolom database 'nama_lengkap')
+            const displayName = player.nama_lengkap || "Tanpa Nama";
+            
+            // 2. Hitung Umur dari 'tanggal_lahir'
+            const displayAge = hitungUmur(player.tanggal_lahir);
+            
+            // 3. Data Dummy (Karena tidak ada di tabel biodatas screenshot)
+            // Jika nanti sudah ada relasi tabel, ganti string ini dengan player.team.nama_tim, dll.
+            const displayTeam = player.team || "U-13"; 
+            const displayPos = player.position || "Striker";
+            const displayStatus = player.status || "Aktif";
 
-                        {/* Jadwal Latihan */}
-                        <div className="bg-white shadow-lg rounded-2xl overflow-hidden border border-green-100">
-                            <div className="px-6 py-5 border-b border-gray-200">
-                                <div className="flex justify-between items-center">
-                                    <h3 className="text-lg font-bold text-gray-900">Jadwal Latihan</h3>
-                                    <button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
-                                        Tambah Jadwal
-                                    </button>
-                                </div>
+            // Ambil inisial nama
+            const initial = displayName.charAt(0).toUpperCase();
+
+            return (
+                <tr key={player.id || index} className="hover:bg-gray-50 transition-colors duration-150">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                            <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center mr-3 shadow-sm">
+                                <span className="text-white font-semibold text-xs">
+                                    {initial}
+                                </span>
                             </div>
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gradient-to-r from-green-50 to-blue-50">
-                                        <tr>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Tim
-                                            </th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Tanggal
-                                            </th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Waktu
-                                            </th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Lokasi
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {schedules.map((schedule) => (
-                                            <tr key={schedule.id} className="hover:bg-gray-50 transition-colors duration-150">
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm font-medium text-gray-900">{schedule.team}</div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {new Date(schedule.date).toLocaleDateString('id-ID')}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {schedule.time}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {schedule.location}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                            <div>
+                                <div className="text-sm font-medium text-gray-900">{displayName}</div>
+                                {/* Tampilkan Email atau Phone dari database sebagai info tambahan */}
+                                <div className="text-xs text-gray-500">{player.email || displayTeam}</div>
                             </div>
+                        </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {displayAge} tahun
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {displayPos}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${displayStatus === 'Aktif'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'}`}>
+                            {displayStatus}
+                        </span>
+                    </td>
+                </tr>
+            );
+        })
+    ) : (
+        <tr>
+            <td colSpan="4" className="px-6 py-4 text-center text-gray-500 italic">
+                Belum ada data pemain.
+            </td>
+        </tr>
+    )}
+</tbody>
+                            </table>
                         </div>
                     </div>
 
