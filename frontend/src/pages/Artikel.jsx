@@ -101,7 +101,7 @@ export default function Artikel() {
                             <button
                                 key={cat}
                                 onClick={() => setActiveCategory(cat)}
-                                className={`border border-gray px-4 py-2 rounded-full text-sm cursor-pointer transition text-black 
+                                className={`border border-gray px-4 py-2 rounded-full text-sm cursor-pointer transition-colors duration-300 hover:bg-green-500 hover:text-white transition text-black 
                                     ${activeCategory === cat ? "bg-green-500 text-white" : ""}
                                 `}
                             >

@@ -2,8 +2,17 @@ import React from "react";
 
 export default function Footer() {
     const tahunIni = new Date().getFullYear();
+
+    const menu = [
+        { name: "Beranda", to: "/" },
+        { name: "Program", to: "/program" },
+        { name: "Galeri", to: "/galeri" },
+        { name: "Artikel", to: "/artikel" },
+        { name: "Kontak", to: "/kontak" }
+    ];
+
     return (
-        <footer className="border-t border-gray-200 py-8 ">
+        <footer className="border-t border-gray-200 py-8 px-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 mx-auto max-w-6xl">
                 <div className=" md:col-span-1  ">
                     <div className="flex items-center mb-4">
@@ -28,19 +37,13 @@ export default function Footer() {
                             Menu Cepat
                         </h3>
                         <ul className="space-y-2 text-sm">
-                            {[
-                                "Beranda",
-                                "Program",
-                                "Galeri",
-                                "Artikel",
-                                "Kontak"
-                            ].map(item => (
-                                <li key={item}>
+                            {menu.map((item) => (
+                                <li key={item.name}>
                                     <a
-                                        href="#"
+                                        href={item.to}
                                         className="text-gray-600 hover:text-blue-700 transition duration-150"
                                     >
-                                        {item}
+                                        {item.name}
                                     </a>
                                 </li>
                             ))}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
+
 export default function Dsbd() {
     const tahunIni = new Date().getFullYear();
     const [activePage, setActivePage] = useState('dashboard');
@@ -46,9 +47,9 @@ export default function Dsbd() {
         try {
             const response = await fetch('http://localhost:8000/api/dashboard/index');
             const dataJson = await response.json();
-            
+
             // Safety check: pastikan dataJson.data ada, jika tidak pakai array kosong
-            setSiswa(dataJson.data || []); 
+            setSiswa(dataJson.data || []);
             setLoading(false);
         } catch (error) {
             console.error("Gagal mengambil Data:", error);
@@ -105,8 +106,8 @@ export default function Dsbd() {
 
                 {/* Logo */}
                 <div className="flex items-center justify-center mb-8 pt-4">
-                    <div className="bg-white rounded-xl p-3 shadow-lg">
-                        <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg flex items-center justify-center">
+                    <div className="bg-white rounded-full p-3 shadow-lg">
+                        <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
                             <span className="text-white font-bold text-lg">⚽</span>
                         </div>
                     </div>
@@ -149,7 +150,7 @@ export default function Dsbd() {
                                     </svg>
                                     Pemasukan
                                 </button>
-                                <button className="w-full flex items-center px-3 py-2 text-blue-100 bg-white bg-opacity-5 rounded-lg hover:bg-opacity-10 transition-all duration-200">
+                                <button onClick={() => setActivePage('pengeluaran')} className="w-full flex items-center px-3 py-2 text-blue-100 bg-white bg-opacity-5 rounded-lg hover:bg-opacity-10 transition-all duration-200">
                                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM8 12h8m-4-4v8" />
                                     </svg>
@@ -179,40 +180,26 @@ export default function Dsbd() {
                         {/* Inventaris Submenu */}
                         {activeDropdown === 'inventaris' && (
                             <div className="ml-6 mt-2 space-y-1 border-l-2 border-white border-opacity-20 pl-4">
-                                <button className="w-full flex items-center px-3 py-2 text-blue-100 bg-white bg-opacity-5 rounded-lg hover:bg-opacity-10 transition-all duration-200">
+                                <button onClick={() => setActivePage('barang-masuk')} className="w-full flex items-center px-3 py-2 text-blue-100 bg-white bg-opacity-5 rounded-lg hover:bg-opacity-10 transition-all duration-200">
                                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                                     </svg>
-                                    Barang In
+                                    Barang Masuk
                                 </button>
-                                <button className="w-full flex items-center px-3 py-2 text-blue-100 bg-white bg-opacity-5 rounded-lg hover:bg-opacity-10 transition-all duration-200">
+                                <button onClick={() => setActivePage('barang-keluar')} className="w-full flex items-center px-3 py-2 text-blue-100 bg-white bg-opacity-5 rounded-lg hover:bg-opacity-10 transition-all duration-200">
                                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
                                     </svg>
-                                    Barang Out
+                                    Barang Keluar
                                 </button>
                             </div>
                         )}
                     </div>
-
-                    <button className="w-full flex items-center px-4 py-3 text-white bg-white bg-opacity-10 rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm">
-                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        <span className="font-medium">Manajemen Pemain</span>
-                    </button>
-
-                    <button className="w-full flex items-center px-4 py-3 text-white bg-white bg-opacity-10 rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm">
-                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span className="font-medium">Jadwal</span>
-                    </button>
                 </nav>
 
                 {/* User Profile */}
                 <div className="absolute bottom-6 left-6 right-6">
-                    <div className="h-fit flex flex-col gap-5">
+                    <div className="h-fit flex flex-col gap-3">
                         <div className="flex items-center space-x-3 bg-white bg-opacity-10 rounded-xl p-3 backdrop-blur-sm">
                             <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center shadow-md">
                                 <span className="text-white font-bold text-sm">A</span>
@@ -331,97 +318,98 @@ export default function Dsbd() {
                         </div>
                     </div>
 
-                <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-                    {/* Daftar Pemain */}
-                    <div className="bg-white shadow-lg rounded-2xl overflow-hidden border border-green-100">
-                        <div className="px-6 py-5 border-b border-gray-200">
-                            <div className="flex justify-between items-center">
-                                <h3 className="text-lg font-bold text-gray-900">Daftar Pemain</h3>
-                                <a href='/dsbd' className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
-                                    Tambah Pemain
-                                </a>
+                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                        {/* Daftar Pemain */}
+                        <div className="bg-white shadow-lg rounded-2xl overflow-hidden border border-green-100">
+                            <div className="px-6 py-5 border-b border-gray-200">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="text-lg font-bold text-gray-900">Daftar Pemain</h3>
+                                    <a href='/dsbd' className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
+                                        Tambah Pemain
+                                    </a>
+                                </div>
                             </div>
-                        </div>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gradient-to-r from-green-50 to-blue-50">
-                                    <tr>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                            Nama
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                            Usia
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                            Posisi
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                            Status
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-    {siswa.length > 0 ? (
-        siswa.map((player, index) => {
-            // --- PERBAIKAN DISINI SESUAI DATABASE ---
-            
-            // 1. Ambil Nama Lengkap (sesuai kolom database 'nama_lengkap')
-            const displayName = player.nama_lengkap || "Tanpa Nama";
-            
-            // 2. Hitung Umur dari 'tanggal_lahir'
-            const displayAge = hitungUmur(player.tanggal_lahir);
-            
-            // 3. Data Dummy (Karena tidak ada di tabel biodatas screenshot)
-            // Jika nanti sudah ada relasi tabel, ganti string ini dengan player.team.nama_tim, dll.
-            const displayTeam = player.team || "U-13"; 
-            const displayPos = player.position || "Striker";
-            const displayStatus = player.status || "Aktif";
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gradient-to-r from-green-50 to-blue-50">
+                                        <tr>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                Nama
+                                            </th>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                Usia
+                                            </th>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                Posisi
+                                            </th>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                Status
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {siswa.length > 0 ? (
+                                            siswa.map((player, index) => {
+                                                // --- PERBAIKAN DISINI SESUAI DATABASE ---
 
-            // Ambil inisial nama
-            const initial = displayName.charAt(0).toUpperCase();
+                                                // 1. Ambil Nama Lengkap (sesuai kolom database 'nama_lengkap')
+                                                const displayName = player.nama_lengkap || "Tanpa Nama";
 
-            return (
-                <tr key={player.id || index} className="hover:bg-gray-50 transition-colors duration-150">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                            <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center mr-3 shadow-sm">
-                                <span className="text-white font-semibold text-xs">
-                                    {initial}
-                                </span>
-                            </div>
-                            <div>
-                                <div className="text-sm font-medium text-gray-900">{displayName}</div>
-                                {/* Tampilkan Email atau Phone dari database sebagai info tambahan */}
-                                <div className="text-xs text-gray-500">{player.email || displayTeam}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {displayAge} tahun
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {displayPos}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                // 2. Hitung Umur dari 'tanggal_lahir'
+                                                const displayAge = hitungUmur(player.tanggal_lahir);
+
+                                                // 3. Data Dummy (Karena tidak ada di tabel biodatas screenshot)
+                                                // Jika nanti sudah ada relasi tabel, ganti string ini dengan player.team.nama_tim, dll.
+                                                const displayTeam = player.team || "U-13";
+                                                const displayPos = player.position || "Striker";
+                                                const displayStatus = player.status || "Aktif";
+
+                                                // Ambil inisial nama
+                                                const initial = displayName.charAt(0).toUpperCase();
+
+                                                return (
+                                                    <tr key={player.id || index} className="hover:bg-gray-50 transition-colors duration-150">
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <div className="flex items-center">
+                                                                <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center mr-3 shadow-sm">
+                                                                    <span className="text-white font-semibold text-xs">
+                                                                        {initial}
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <div className="text-sm font-medium text-gray-900">{displayName}</div>
+                                                                    {/* Tampilkan Email atau Phone dari database sebagai info tambahan */}
+                                                                    <div className="text-xs text-gray-500">{player.email || displayTeam}</div>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                            {displayAge} tahun
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                            {displayPos}
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
                             ${displayStatus === 'Aktif'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'}`}>
-                            {displayStatus}
-                        </span>
-                    </td>
-                </tr>
-            );
-        })
-    ) : (
-        <tr>
-            <td colSpan="4" className="px-6 py-4 text-center text-gray-500 italic">
-                Belum ada data pemain.
-            </td>
-        </tr>
-    )}
-</tbody>
-                            </table>
+                                                                    ? 'bg-green-100 text-green-800'
+                                                                    : 'bg-red-100 text-red-800'}`}>
+                                                                {displayStatus}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="4" className="px-6 py-4 text-center text-gray-500 italic">
+                                                    Belum ada data pemain.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
 
@@ -431,10 +419,10 @@ export default function Dsbd() {
                             <div className="flex justify-between items-center">
                                 <h3 className="text-lg font-bold text-gray-900">Keuangan</h3>
                                 <div className="flex space-x-3">
-                                    <button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
+                                    <button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 text-[8px] md:text-sm rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg">
                                         Tambah Transaksi
                                     </button>
-                                    <button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
+                                    <button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 text-[8px] md:text-sm rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg">
                                         Laporan
                                     </button>
                                 </div>
@@ -547,8 +535,978 @@ export default function Dsbd() {
             )}
 
             {activePage === 'pemasukan' && (
-                <div>Konten Pemasukan</div>
+                <div className="lg:ml-64 p-6">
+                    {/* Header */}
+                    <div className="bg-white rounded-2xl shadow-sm p-6 border border-green-100">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <h1 className="text-2xl font-bold text-gray-800">Manajemen Pemasukan</h1>
+                                <p className="text-gray-600">Kelola kas pemain dan transaksi umum</p>
+                            </div>
+                            <div className="flex gap-3">
+                                <button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2">
+                                    <i className="fas fa-download"></i>
+                                    Export Excel
+                                </button>
+                                <button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2">
+                                    <i className="fas fa-plus"></i>
+                                    Tambah Transaksi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Kas Pemain Bola */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-green-100">
+                            <div className="px-6 py-4 border-b border-gray-200">
+                                <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                    <i className="fas fa-users text-blue-500"></i>
+                                    Kas Pemain Bola
+                                </h2>
+                            </div>
+                            <div className="p-6">
+                                <div className="space-y-4">
+                                    {/* Total Kas */}
+                                    <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-4 border border-blue-100">
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <p className="text-sm text-gray-600">Total Kas Terkumpul</p>
+                                                <p className="text-2xl font-bold text-gray-800">Rp 15.750.000</p>
+                                            </div>
+                                            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                                <i className="fas fa-wallet text-blue-600 text-xl"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Daftar Pemain */}
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                                                    <span className="text-white font-semibold">A</span>
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-gray-800">Ahmad Rizki</p>
+                                                    <p className="text-sm text-gray-600">U-15 - Striker</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-bold text-green-600">Rp 500.000</p>
+                                                <p className="text-xs text-gray-500">Lunas</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                                                    <span className="text-white font-semibold">B</span>
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-gray-800">Budi Santoso</p>
+                                                    <p className="text-sm text-gray-600">U-14 - Midfielder</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-bold text-green-600">Rp 500.000</p>
+                                                <p className="text-xs text-gray-500">Lunas</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
+                                                    <span className="text-white font-semibold">C</span>
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-gray-800">Cahyo Pratama</p>
+                                                    <p className="text-sm text-gray-600">U-16 - Goalie</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-bold text-red-600">Rp 250.000</p>
+                                                <p className="text-xs text-gray-500">Belum Lunas</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button className="w-full bg-blue-50 text-blue-600 hover:bg-blue-100 py-3 rounded-xl font-medium transition-colors duration-200 border border-blue-200 flex items-center justify-center gap-2">
+                                        <i className="fas fa-eye"></i>
+                                        Lihat Semua Pemain
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Transaksi Umum */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-green-100">
+                            <div className="px-6 py-4 border-b border-gray-200">
+                                <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                    <i className="fas fa-exchange-alt text-green-500"></i>
+                                    Transaksi Umum
+                                </h2>
+                            </div>
+                            <div className="p-6">
+                                <div className="space-y-4">
+                                    {/* Statistik Cepat */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                                            <p className="text-sm text-gray-600">Transaksi Bulan Ini</p>
+                                            <p className="text-xl font-bold text-gray-800">24</p>
+                                        </div>
+                                        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                                            <p className="text-sm text-gray-600">Total Pemasukan</p>
+                                            <p className="text-xl font-bold text-gray-800">Rp 8.5JT</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Daftar Transaksi Terbaru */}
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between items-center p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <p className="font-medium text-gray-800">Sponsor Local Brand</p>
+                                                <p className="text-sm text-gray-600">12 Okt 2024</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-bold text-green-600">Rp 3.000.000</p>
+                                                <p className="text-xs text-gray-500">Sponsorship</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-between items-center p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <p className="font-medium text-gray-800">Donasi Orang Tua</p>
+                                                <p className="text-sm text-gray-600">10 Okt 2024</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-bold text-green-600">Rp 1.500.000</p>
+                                                <p className="text-xs text-gray-500">Donasi</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-between items-center p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <p className="font-medium text-gray-800">Penjualan Merchandise</p>
+                                                <p className="text-sm text-gray-600">08 Okt 2024</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-bold text-green-600">Rp 750.000</p>
+                                                <p className="text-xs text-gray-500">Penjualan</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button className="w-full bg-green-50 text-green-600 hover:bg-green-100 py-3 rounded-xl font-medium transition-colors duration-200 border border-green-200 flex items-center justify-center gap-2">
+                                        <i className="fas fa-history"></i>
+                                        Riwayat Transaksi
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Chart/Graph Section */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
+                        <h3 className="text-lg font-bold text-gray-800 mb-4">Grafik Pemasukan Bulan Ini</h3>
+                        <div className="h-64 bg-gray-50 rounded-xl border border-gray-200 flex items-center justify-center">
+                            <div className="text-center text-gray-500">
+                                <i className="fas fa-chart-bar text-4xl mb-2"></i>
+                                <p>Grafik pemasukan akan ditampilkan di sini</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
+
+            {activePage === 'pengeluaran' && (
+                <div className="lg:ml-64 p-6">
+                    {/* Header */}
+                    <div className="bg-white rounded-2xl shadow-sm p-6 border border-green-100">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <h1 className="text-2xl font-bold text-gray-800">Manajemen Pengeluaran</h1>
+                                <p className="text-gray-600">Kelola kas pemain dan transaksi umum</p>
+                            </div>
+                            <div className="flex gap-3">
+                                <button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2">
+                                    <i className="fas fa-download"></i>
+                                    Export Excel
+                                </button>
+                                <button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2">
+                                    <i className="fas fa-plus"></i>
+                                    Tambah Transaksi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Kas Pemain Bola */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-green-100">
+                            <div className="px-6 py-4 border-b border-gray-200">
+                                <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                    <i className="fas fa-users text-blue-500"></i>
+                                    Kas Pemain Bola
+                                </h2>
+                            </div>
+                            <div className="p-6">
+                                <div className="space-y-4">
+                                    {/* Total Kas */}
+                                    <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-4 border border-blue-100">
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <p className="text-sm text-gray-600">Total Kas Terkumpul</p>
+                                                <p className="text-2xl font-bold text-gray-800">Rp 15.750.000</p>
+                                            </div>
+                                            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                                <i className="fas fa-wallet text-blue-600 text-xl"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Daftar Pemain */}
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                                                    <span className="text-white font-semibold">A</span>
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-gray-800">Ahmad Rizki</p>
+                                                    <p className="text-sm text-gray-600">U-15 - Striker</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-bold text-green-600">Rp 500.000</p>
+                                                <p className="text-xs text-gray-500">Lunas</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                                                    <span className="text-white font-semibold">B</span>
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-gray-800">Budi Santoso</p>
+                                                    <p className="text-sm text-gray-600">U-14 - Midfielder</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-bold text-green-600">Rp 500.000</p>
+                                                <p className="text-xs text-gray-500">Lunas</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
+                                                    <span className="text-white font-semibold">C</span>
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-gray-800">Cahyo Pratama</p>
+                                                    <p className="text-sm text-gray-600">U-16 - Goalie</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-bold text-red-600">Rp 250.000</p>
+                                                <p className="text-xs text-gray-500">Belum Lunas</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button className="w-full bg-blue-50 text-blue-600 hover:bg-blue-100 py-3 rounded-xl font-medium transition-colors duration-200 border border-blue-200 flex items-center justify-center gap-2">
+                                        <i className="fas fa-eye"></i>
+                                        Lihat Semua Pemain
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Transaksi Umum */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-green-100">
+                            <div className="px-6 py-4 border-b border-gray-200">
+                                <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                    <i className="fas fa-exchange-alt text-green-500"></i>
+                                    Transaksi Umum
+                                </h2>
+                            </div>
+                            <div className="p-6">
+                                <div className="space-y-4">
+                                    {/* Statistik Cepat */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                                            <p className="text-sm text-gray-600">Transaksi Bulan Ini</p>
+                                            <p className="text-xl font-bold text-gray-800">24</p>
+                                        </div>
+                                        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                                            <p className="text-sm text-gray-600">Total Pemasukan</p>
+                                            <p className="text-xl font-bold text-gray-800">Rp 8.5JT</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Daftar Transaksi Terbaru */}
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between items-center p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <p className="font-medium text-gray-800">Sponsor Local Brand</p>
+                                                <p className="text-sm text-gray-600">12 Okt 2024</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-bold text-green-600">Rp 3.000.000</p>
+                                                <p className="text-xs text-gray-500">Sponsorship</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-between items-center p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <p className="font-medium text-gray-800">Donasi Orang Tua</p>
+                                                <p className="text-sm text-gray-600">10 Okt 2024</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-bold text-green-600">Rp 1.500.000</p>
+                                                <p className="text-xs text-gray-500">Donasi</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-between items-center p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <p className="font-medium text-gray-800">Penjualan Merchandise</p>
+                                                <p className="text-sm text-gray-600">08 Okt 2024</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-bold text-green-600">Rp 750.000</p>
+                                                <p className="text-xs text-gray-500">Penjualan</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button className="w-full bg-green-50 text-green-600 hover:bg-green-100 py-3 rounded-xl font-medium transition-colors duration-200 border border-green-200 flex items-center justify-center gap-2">
+                                        <i className="fas fa-history"></i>
+                                        Riwayat Transaksi
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {activePage === 'barang-masuk' && (
+                <div className="lg:ml-64 p-6">
+                    {/* Header */}
+                    <div className="bg-white rounded-2xl shadow-sm p-6 border border-green-100">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <h1 className="text-2xl font-bold text-gray-800">Manajemen Barang Masuk</h1>
+                                <p className="text-gray-600">Kelola stok barang dan perlengkapan sepak bola</p>
+                            </div>
+                            <div className="flex gap-3">
+                                <button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2">
+                                    <i className="fas fa-download"></i>
+                                    Export Excel
+                                </button>
+                                <button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2">
+                                    <i className="fas fa-plus"></i>
+                                    Tambah Barang
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Statistik Cepat */}
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                        <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100 p-6">
+                            <div className="flex items-center">
+                                <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-3 shadow-md">
+                                    <i className="fas fa-boxes text-white text-lg"></i>
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm font-medium text-gray-500">Total Barang</p>
+                                    <p className="text-2xl font-bold text-gray-800">156</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100 p-6">
+                            <div className="flex items-center">
+                                <div className="flex-shrink-0 bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-3 shadow-md">
+                                    <i className="fas fa-shopping-cart text-white text-lg"></i>
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm font-medium text-gray-500">Barang Masuk Bulan Ini</p>
+                                    <p className="text-2xl font-bold text-gray-800">24</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100 p-6">
+                            <div className="flex items-center">
+                                <div className="flex-shrink-0 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-3 shadow-md">
+                                    <i className="fas fa-futbol text-white text-lg"></i>
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm font-medium text-gray-500">Total Bola</p>
+                                    <p className="text-2xl font-bold text-gray-800">45</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100 p-6">
+                            <div className="flex items-center">
+                                <div className="flex-shrink-0 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl p-3 shadow-md">
+                                    <i className="fas fa-tshirt text-white text-lg"></i>
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm font-medium text-gray-500">Seragam</p>
+                                    <p className="text-2xl font-bold text-gray-800">85</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Tabel Barang Masuk */}
+                    <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-green-100">
+                        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-gray-800">Daftar Barang Masuk</h3>
+                            <div className="flex gap-3">
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Cari barang..."
+                                        className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    />
+                                    <i className="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                                </div>
+                                <select className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                    <option>Semua Kategori</option>
+                                    <option>Bola</option>
+                                    <option>Seragam</option>
+                                    <option>Alat Latihan</option>
+                                    <option>Perlengkapan</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-gradient-to-r from-green-50 to-blue-50">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Nama Barang
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Kategori
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Jumlah
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Supplier
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Tanggal Masuk
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Status
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Aksi
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {/* Sample Data */}
+                                    <tr className="hover:bg-gray-50 transition-colors duration-150">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center">
+                                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                                    <i className="fas fa-futbol text-blue-600"></i>
+                                                </div>
+                                                <div>
+                                                    <div className="text-sm font-medium text-gray-900">Bola Sepak Size 5</div>
+                                                    <div className="text-xs text-gray-500">Kode: BL-001</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">Bola</span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <div className="font-semibold">12 pcs</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            Sport Supplier
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            15 Okt 2024
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Tersedia</span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex gap-2">
+                                                <button className="text-blue-600 hover:text-blue-800 transition-colors p-1">
+                                                    <i className="fas fa-edit"></i>
+                                                </button>
+                                                <button className="text-green-600 hover:text-green-800 transition-colors p-1">
+                                                    <i className="fas fa-eye"></i>
+                                                </button>
+                                                <button className="text-red-600 hover:text-red-800 transition-colors p-1">
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr className="hover:bg-gray-50 transition-colors duration-150">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center">
+                                                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                                                    <i className="fas fa-tshirt text-green-600"></i>
+                                                </div>
+                                                <div>
+                                                    <div className="text-sm font-medium text-gray-900">Seragam Tim U-15</div>
+                                                    <div className="text-xs text-gray-500">Kode: SG-015</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Seragam</span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <div className="font-semibold">25 set</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            Jersey Maker
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            12 Okt 2024
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Tersedia</span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex gap-2">
+                                                <button className="text-blue-600 hover:text-blue-800 transition-colors p-1">
+                                                    <i className="fas fa-edit"></i>
+                                                </button>
+                                                <button className="text-green-600 hover:text-green-800 transition-colors p-1">
+                                                    <i className="fas fa-eye"></i>
+                                                </button>
+                                                <button className="text-red-600 hover:text-red-800 transition-colors p-1">
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr className="hover:bg-gray-50 transition-colors duration-150">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center">
+                                                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                                                    <i className="fas fa-dumbbell text-purple-600"></i>
+                                                </div>
+                                                <div>
+                                                    <div className="text-sm font-medium text-gray-900">Cone Markers</div>
+                                                    <div className="text-xs text-gray-500">Kode: CM-050</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded-full">Alat Latihan</span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <div className="font-semibold">50 pcs</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            Sport Equipment
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            10 Okt 2024
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">Terbatas</span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex gap-2">
+                                                <button className="text-blue-600 hover:text-blue-800 transition-colors p-1">
+                                                    <i className="fas fa-edit"></i>
+                                                </button>
+                                                <button className="text-green-600 hover:text-green-800 transition-colors p-1">
+                                                    <i className="fas fa-eye"></i>
+                                                </button>
+                                                <button className="text-red-600 hover:text-red-800 transition-colors p-1">
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Pagination */}
+                        <div className="px-6 py-4 border-t border-gray-200 flex justify-between items-center">
+                            <div className="text-sm text-gray-500">
+                                Menampilkan 1-3 dari 156 barang
+                            </div>
+                            <div className="flex gap-1">
+                                <button className="px-3 py-1 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50">
+                                    <i className="fas fa-chevron-left"></i>
+                                </button>
+                                <button className="px-3 py-1 bg-blue-500 text-white rounded-lg">1</button>
+                                <button className="px-3 py-1 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50">2</button>
+                                <button className="px-3 py-1 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50">3</button>
+                                <button className="px-3 py-1 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50">
+                                    <i className="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {activePage === 'barang-keluar' && (
+                <div className="lg:ml-64 p-6">
+                    {/* Header */}
+                    <div className="bg-white rounded-2xl shadow-sm p-6 border border-green-100">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <h1 className="text-2xl font-bold text-gray-800">Manajemen Barang Keluar</h1>
+                                <p className="text-gray-600">Kelola barang rusak dan tidak layak pakai</p>
+                            </div>
+                            <div className="flex gap-3">
+                                <button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2">
+                                    <i className="fas fa-download"></i>
+                                    Export Excel
+                                </button>
+                                <button className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2">
+                                    <i className="fas fa-plus"></i>
+                                    Tambah Barang Keluar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Statistik Cepat */}
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                        <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100 p-6">
+                            <div className="flex items-center">
+                                <div className="flex-shrink-0 bg-gradient-to-r from-red-500 to-red-600 rounded-xl p-3 shadow-md">
+                                    <i className="fas fa-times-circle text-white text-lg"></i>
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm font-medium text-gray-500">Total Barang Rusak</p>
+                                    <p className="text-2xl font-bold text-gray-800">28</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100 p-6">
+                            <div className="flex items-center">
+                                <div className="flex-shrink-0 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl p-3 shadow-md">
+                                    <i className="fas fa-exclamation-triangle text-white text-lg"></i>
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm font-medium text-gray-500">Bulan Ini</p>
+                                    <p className="text-2xl font-bold text-gray-800">7</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100 p-6">
+                            <div className="flex items-center">
+                                <div className="flex-shrink-0 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl p-3 shadow-md">
+                                    <i className="fas fa-futbol text-white text-lg"></i>
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm font-medium text-gray-500">Bola Rusak</p>
+                                    <p className="text-2xl font-bold text-gray-800">12</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white overflow-hidden shadow-lg rounded-2xl border border-green-100 p-6">
+                            <div className="flex items-center">
+                                <div className="flex-shrink-0 bg-gradient-to-r from-gray-500 to-gray-600 rounded-xl p-3 shadow-md">
+                                    <i className="fas fa-tshirt text-white text-lg"></i>
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm font-medium text-gray-500">Seragam Rusak</p>
+                                    <p className="text-2xl font-bold text-gray-800">9</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Tabel Barang Keluar */}
+                    <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-green-100">
+                        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-gray-800">Daftar Barang Keluar (Rusak/Tidak Layak Pakai)</h3>
+                            <div className="flex gap-3">
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Cari barang..."
+                                        className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                                    />
+                                    <i className="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                                </div>
+                                <select className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                                    <option>Semua Kategori</option>
+                                    <option>Bola</option>
+                                    <option>Seragam</option>
+                                    <option>Alat Latihan</option>
+                                    <option>Perlengkapan</option>
+                                </select>
+                                <select className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                                    <option>Semua Status</option>
+                                    <option>Rusak Berat</option>
+                                    <option>Rusak Ringan</option>
+                                    <option>Hilang</option>
+                                    <option>Kadaluarsa</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-gradient-to-r from-red-50 to-orange-50">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Nama Barang
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Kategori
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Jumlah
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Alasan Keluar
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Kondisi
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Tanggal Keluar
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Penanggung Jawab
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Aksi
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {/* Sample Data Barang Rusak */}
+                                    <tr className="hover:bg-gray-50 transition-colors duration-150">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center">
+                                                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+                                                    <i className="fas fa-futbol text-red-600"></i>
+                                                </div>
+                                                <div>
+                                                    <div className="text-sm font-medium text-gray-900">Bola Sepak Size 5</div>
+                                                    <div className="text-xs text-gray-500">Kode: BL-001</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">Bola</span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <div className="font-semibold">3 pcs</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            Bolong/pecah
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">Rusak Berat</span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            18 Okt 2024
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            Coach Ahmad
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex gap-2">
+                                                <button className="text-blue-600 hover:text-blue-800 transition-colors p-1">
+                                                    <i className="fas fa-edit"></i>
+                                                </button>
+                                                <button className="text-green-600 hover:text-green-800 transition-colors p-1">
+                                                    <i className="fas fa-eye"></i>
+                                                </button>
+                                                <button className="text-red-600 hover:text-red-800 transition-colors p-1">
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr className="hover:bg-gray-50 transition-colors duration-150">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center">
+                                                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+                                                    <i className="fas fa-tshirt text-orange-600"></i>
+                                                </div>
+                                                <div>
+                                                    <div className="text-sm font-medium text-gray-900">Seragam Tim U-15</div>
+                                                    <div className="text-xs text-gray-500">Kode: SG-015</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded-full">Seragam</span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <div className="font-semibold">5 set</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            Sobek & luntur
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded-full">Rusak Ringan</span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            15 Okt 2024
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            Manager Budi
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex gap-2">
+                                                <button className="text-blue-600 hover:text-blue-800 transition-colors p-1">
+                                                    <i className="fas fa-edit"></i>
+                                                </button>
+                                                <button className="text-green-600 hover:text-green-800 transition-colors p-1">
+                                                    <i className="fas fa-eye"></i>
+                                                </button>
+                                                <button className="text-red-600 hover:text-red-800 transition-colors p-1">
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr className="hover:bg-gray-50 transition-colors duration-150">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center">
+                                                <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
+                                                    <i className="fas fa-dumbbell text-yellow-600"></i>
+                                                </div>
+                                                <div>
+                                                    <div className="text-sm font-medium text-gray-900">Cone Markers</div>
+                                                    <div className="text-xs text-gray-500">Kode: CM-050</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">Alat Latihan</span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <div className="font-semibold">8 pcs</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            Patah & hilang
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">Rusak Berat</span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            12 Okt 2024
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            Coach Rudi
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex gap-2">
+                                                <button className="text-blue-600 hover:text-blue-800 transition-colors p-1">
+                                                    <i className="fas fa-edit"></i>
+                                                </button>
+                                                <button className="text-green-600 hover:text-green-800 transition-colors p-1">
+                                                    <i className="fas fa-eye"></i>
+                                                </button>
+                                                <button className="text-red-600 hover:text-red-800 transition-colors p-1">
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr className="hover:bg-gray-50 transition-colors duration-150">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center">
+                                                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+                                                    <i className="fas fa-first-aid text-gray-600"></i>
+                                                </div>
+                                                <div>
+                                                    <div className="text-sm font-medium text-gray-900">P3K Kit</div>
+                                                    <div className="text-xs text-gray-500">Kode: PK-001</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">Perlengkapan</span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <div className="font-semibold">1 set</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            Kadaluarsa
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">Kadaluarsa</span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            10 Okt 2024
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            Admin Sari
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex gap-2">
+                                                <button className="text-blue-600 hover:text-blue-800 transition-colors p-1">
+                                                    <i className="fas fa-edit"></i>
+                                                </button>
+                                                <button className="text-green-600 hover:text-green-800 transition-colors p-1">
+                                                    <i className="fas fa-eye"></i>
+                                                </button>
+                                                <button className="text-red-600 hover:text-red-800 transition-colors p-1">
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Pagination */}
+                        <div className="px-6 py-4 border-t border-gray-200 flex justify-between items-center">
+                            <div className="text-sm text-gray-500">
+                                Menampilkan 1-4 dari 28 barang rusak
+                            </div>
+                            <div className="flex gap-1">
+                                <button className="px-3 py-1 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50">
+                                    <i className="fas fa-chevron-left"></i>
+                                </button>
+                                <button className="px-3 py-1 bg-red-500 text-white rounded-lg">1</button>
+                                <button className="px-3 py-1 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50">2</button>
+                                <button className="px-3 py-1 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50">3</button>
+                                <button className="px-3 py-1 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50">
+                                    <i className="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <footer className="py-6">
                 <p className="text-center">&copy;{tahunIni} SSB Akademi Sepak Bola. Semua hak
                     dilindungi.</p>
