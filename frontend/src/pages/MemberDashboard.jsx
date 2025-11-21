@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-export default function Dashboard({onLogout}) {
+export default function MemberDashboard({onLogout}) {
     // --- 1. STATE (PENAMPUNG DATA) ---
     const [activeTab, setActiveTab] = useState('biodata');
     
-    // State Biodata
+    // State Biodata                       
     const [biodata, setBiodata] = useState({
         nama_lengkap: '', email: '', phone: '', alamat: '', tanggal_lahir: ''
     });

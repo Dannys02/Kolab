@@ -4,9 +4,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BiodataController;
+use App\Http\Controllers\TotalKasController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\KeuanganController;
+use App\Http\Controllers\Api\TransaksiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +20,8 @@ use App\Http\Controllers\Api\KeuanganController;
 Route::post('/login', [AuthController::class, 'login']);
 // Ini menggunakan token Login Admin (Otomatis aman)
 Route::middleware('auth:sanctum')->post('/biodata', [BiodataController::class, 'store']);
+// regster
+Route::post('/register', [AuthController::class, 'register']);
 
 // 2. Route Protected (Harus login/punya token)
 Route::middleware('auth:sanctum')->group(function () {
@@ -44,3 +48,14 @@ Route::post('/tagihan', [KeuanganController::class, 'store']);
 Route::post('/contact', [ContactController::class, 'store']);
 
 Route::get('/dashboard/index', [DashboardController::class, 'biodataIndex']);
+
+
+Route::prefix('transaksi')->group(function () {
+    Route::get('/', [TransaksiController::class, 'index']);
+    Route::get('/pemasukan', [TransaksiController::class, 'pemasukan']);
+    Route::get('/pengeluaran', [TransaksiController::class, 'pengeluaran']);
+    Route::post('/', [TransaksiController::class, 'store']);
+});
+
+
+Route::get('/total', [TotalKasController::class, 'index']);
