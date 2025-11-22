@@ -60,7 +60,7 @@ export default function Galeri() {
                 </p>
             </section>
 
-            <div className="py-10 flex justify-center items-center gap-3 border-b border-gray">
+            <div className="py-10 flex justify-center flex-wrap items-center gap-3 border-b border-gray">
                 {categories.map((item) => (
                     <button
                         key={item}
@@ -76,7 +76,7 @@ export default function Galeri() {
                 ))}
             </div>
 
-            <div className="container py-10 mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="container px-4 py-10 mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredGallery.map((item, index) => (
                     <div
                         key={index}
