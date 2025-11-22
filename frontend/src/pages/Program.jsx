@@ -135,10 +135,10 @@ export default function Program() {
                                     </ul>
                                 </div>
 
-                                <div className="border-t pt-4 md:flex md:flex-row flex-col items-center md:justify-between gap-4">
+                                <div className="border-t pt-4 flex md:flex-row flex-col h-[120px] md:h-fit justify-between items-start md:justify-between">
                                     <div>
                                         <p className="text-sm text-muted-foreground">Biaya</p>
-                                        <p className="text-2xl font-bold text-primary">{program.price}</p>
+                                        <p className="text-2xl font-bold text-green-500">{program.price}</p>
                                     </div>
 
                                     <Link to="/kontak" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-600/80 transition">

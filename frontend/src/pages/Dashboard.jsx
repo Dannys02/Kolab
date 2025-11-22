@@ -390,7 +390,7 @@ export default function Dsbd({ onLogout }) {
           </div>
         </nav>
 
-        <div className="absolute bottom-6 left-6 right-6">
+        <div className="absolute bottom-20 md:bottom-[150px] left-6 right-6">
           <div className="h-fit flex flex-col gap-3">
             <div className="flex items-center space-x-3 bg-white bg-opacity-10 rounded-xl p-3 backdrop-blur-sm">
               <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center shadow-md">
