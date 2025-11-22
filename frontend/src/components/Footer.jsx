@@ -1,4 +1,5 @@
 import React from "react";
+import Logo from '../assets/logosmks.png';
 
 export default function Footer() {
     const tahunIni = new Date().getFullYear();
@@ -16,14 +17,9 @@ export default function Footer() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 mx-auto max-w-6xl">
                 <div className=" md:col-span-1  ">
                     <div className="flex items-center mb-4">
-                        <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center mr-2">
-                            <span className="text-white font-bold text-sm">
-                                SSB
-                            </span>
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center mr-2">
+                            <img src={Logo} alt="Logo SMKS MUHAMMADIYAH 1 GENTENG" />
                         </div>
-                        <span className="text-xl font-semibold text-gray-800">
-                            SSB Akademi
-                        </span>
                     </div>
                     <p className="text-sm text-gray-600 max-w-xs">
                         Membangun karakter dan keterampilan sepak bola
