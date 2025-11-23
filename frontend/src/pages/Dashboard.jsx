@@ -212,12 +212,14 @@ export default function Dsbd({ onLogout }) {
       </div>
 
       {/* Sidebar */}
+      {/* Sidebar */}
       <aside
-        className={`min-h-screen w-64 fixed left-0 p-6 bg-gradient-to-b from-green-600 to-blue-600 shadow-2xl transform transition-transform duration-300 z-40 ${
+        className={`fixed top-0 left-0 h-screen w-64 bg-gradient-to-b from-green-600 to-blue-600 shadow-2xl transform transition-transform duration-300 z-40 flex flex-col ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <div className="flex items-center justify-center mb-8 pt-4">
+        {/* 1. Bagian Header / Logo (Fixed di atas) */}
+        <div className="flex-shrink-0 flex items-center justify-center pt-8 pb-6">
           <div className="bg-white rounded-full p-3 shadow-lg">
             <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
               <span className="text-white font-bold text-lg">⚽</span>
@@ -228,7 +230,9 @@ export default function Dsbd({ onLogout }) {
           </h1>
         </div>
 
-        <nav className="space-y-2">
+        {/* 2. Bagian Menu Navigasi (Scrollable) */}
+        {/* 'flex-1' agar mengisi sisa ruang, 'overflow-y-auto' agar bisa discroll jika landscape sempit */}
+        <nav className="flex-1 overflow-y-auto px-6 space-y-2 custom-scrollbar">
           <button
             onClick={() => setActivePage("dashboard")}
             className={`w-full flex items-center px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${
@@ -237,18 +241,8 @@ export default function Dsbd({ onLogout }) {
                 : "bg-white bg-opacity-10"
             }`}
           >
-            <svg
-              className="w-5 h-5 mr-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-              />
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
             <span className="font-medium">Dashboard</span>
           </button>
@@ -264,57 +258,21 @@ export default function Dsbd({ onLogout }) {
               }`}
             >
               <div className="flex items-center">
-                <svg
-                  className="w-5 h-5 mr-3"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-                  />
+                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                 </svg>
                 <span className="font-medium">Transaksi</span>
               </div>
-              <svg
-                className={`w-4 h-4 transform transition-transform ${
-                  activeDropdown === "transaksi" ? "rotate-180" : ""
-                }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
+              <svg className={`w-4 h-4 transform transition-transform ${activeDropdown === "transaksi" ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             {activeDropdown === "transaksi" && (
               <div className="ml-6 mt-2 space-y-1 border-l-2 border-white border-opacity-20 pl-4">
-                <button
-                  onClick={() => setActivePage("pemasukan")}
-                  className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
-                    activePage === "pemasukan"
-                      ? "bg-white bg-opacity-20"
-                      : "bg-white bg-opacity-5"
-                  }`}
-                >
+                <button onClick={() => setActivePage("pemasukan")} className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "pemasukan" ? "bg-white bg-opacity-20" : "bg-white bg-opacity-5"}`}>
                   Pemasukan
                 </button>
-                <button
-                  onClick={() => setActivePage("pengeluaran")}
-                  className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
-                    activePage === "pengeluaran"
-                      ? "bg-white bg-opacity-20"
-                      : "bg-white bg-opacity-5"
-                  }`}
-                >
+                <button onClick={() => setActivePage("pengeluaran")} className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "pengeluaran" ? "bg-white bg-opacity-20" : "bg-white bg-opacity-5"}`}>
                   Pengeluaran
                 </button>
               </div>
@@ -332,57 +290,21 @@ export default function Dsbd({ onLogout }) {
               }`}
             >
               <div className="flex items-center">
-                <svg
-                  className="w-5 h-5 mr-3"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                  />
+                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
                 <span className="font-medium">Inventaris</span>
               </div>
-              <svg
-                className={`w-4 h-4 transform transition-transform ${
-                  activeDropdown === "inventaris" ? "rotate-180" : ""
-                }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
+              <svg className={`w-4 h-4 transform transition-transform ${activeDropdown === "inventaris" ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             {activeDropdown === "inventaris" && (
               <div className="ml-6 mt-2 space-y-1 border-l-2 border-white border-opacity-20 pl-4">
-                <button
-                  onClick={() => setActivePage("barang-masuk")}
-                  className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
-                    activePage === "barang-masuk"
-                      ? "bg-white bg-opacity-20"
-                      : "bg-white bg-opacity-5"
-                  }`}
-                >
+                <button onClick={() => setActivePage("barang-masuk")} className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "barang-masuk" ? "bg-white bg-opacity-20" : "bg-white bg-opacity-5"}`}>
                   Barang Masuk
                 </button>
-                <button
-                  onClick={() => setActivePage("barang-keluar")}
-                  className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
-                    activePage === "barang-keluar"
-                      ? "bg-white bg-opacity-20"
-                      : "bg-white bg-opacity-5"
-                  }`}
-                >
+                <button onClick={() => setActivePage("barang-keluar")} className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "barang-keluar" ? "bg-white bg-opacity-20" : "bg-white bg-opacity-5"}`}>
                   Barang Keluar
                 </button>
               </div>
@@ -390,8 +312,10 @@ export default function Dsbd({ onLogout }) {
           </div>
         </nav>
 
-        <div className="absolute bottom-20 md:bottom-[150px] left-6 right-6">
-          <div className="h-fit flex flex-col gap-3">
+        {/* 3. Bagian Bawah (Profil & Logout) */}
+        {/* Menggunakan 'mt-auto' supaya otomatis turun ke bawah, tapi tidak absolute */}
+        <div className="flex-shrink-0 p-6 mt-auto">
+          <div className="flex flex-col gap-3">
             <div className="flex items-center space-x-3 bg-white bg-opacity-10 rounded-xl p-3 backdrop-blur-sm">
               <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center shadow-md">
                 <span className="text-white font-bold text-sm">A</span>
@@ -403,7 +327,7 @@ export default function Dsbd({ onLogout }) {
             </div>
             <button
               onClick={onLogout}
-              className="w-full flex items-center justify-center gap-2 bg-red-400 hover:bg-red-500 text-white py-2 px-4 rounded-xl font-medium shadow-sm"
+              className="w-full flex items-center justify-center gap-2 bg-red-400 hover:bg-red-500 text-white py-2 px-4 rounded-xl font-medium shadow-sm transition-colors"
             >
               Logout
             </button>
