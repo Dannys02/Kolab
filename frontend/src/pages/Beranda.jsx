@@ -131,7 +131,7 @@ export default function Beranda() {
                         untuk merasakan pengalaman latihan bersama kami
                     </p>
 
-                    <a href="/biodata" className="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg font-semibold shadow">
+                    <a href="/register" className="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg font-semibold shadow">
                         Daftar Sekarang
                     </a>
                 </div>
