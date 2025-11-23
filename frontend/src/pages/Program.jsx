@@ -141,7 +141,7 @@ export default function Program() {
                                         <p className="text-2xl font-bold text-green-500">{program.price}</p>
                                     </div>
 
-                                    <Link to="/kontak" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-600/80 transition">
+                                    <Link to="/register" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-600/80 transition">
                                         Daftar Program
                                     </Link>
                                 </div>

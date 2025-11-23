@@ -26,6 +26,13 @@ export default function Dsbd({ onLogout }) {
     status: "Aktif",
   });
 
+  // --- STATE FORM TRANSAKSI ---
+  const [transaksiForm, setTransaksiForm] = useState({
+    tanggal: "",
+    deskripsi: "",
+    jumlah: "",
+  });
+
   // State Statistik
   const [stats, setStats] = useState({
     totalPlayers: 0,
@@ -34,7 +41,7 @@ export default function Dsbd({ onLogout }) {
     teams: 0,
     monthlyIncome: 0,
     monthlyExpense: 0,
-    totalKas: 0, // [UBAH] Dari 'saldo' jadi 'totalKas'
+    totalKas: 0,
   });
 
   // --- USE EFFECT ---
@@ -51,10 +58,18 @@ export default function Dsbd({ onLogout }) {
     fetchAllData();
   }, []);
 
-  // --- FUNGSI API ---
+  // --- FUNGSI API (DISESUAIKAN DENGAN API.PHP) ---
+
+  // 1. GET /api/dashboard/index
   const fetchDataSiswa = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/dashboard/index");
+      const response = await fetch("http://localhost:8000/api/dashboard/index", {
+         headers: {
+          "Content-Type": "application/json",
+          // Sertakan token jika route dashboard diprotect di masa depan
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       const result = await response.json();
       const dataSiswa = result.data || [];
       setSiswa(dataSiswa);
@@ -69,42 +84,51 @@ export default function Dsbd({ onLogout }) {
     }
   };
 
+  // 2. GET /api/transaksi
   const fetchDataKeuangan = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/transaksi");
+      // Sesuai Route::prefix('transaksi')->get('/')
+      const response = await fetch("http://localhost:8000/api/transaksi", {
+         headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+         }
+      });
       const result = await response.json();
-      const data = result.data || [];
+      
+      // Handle jika return array langsung atau object {data: []}
+      const data = Array.isArray(result) ? result : result.data || [];
       setFinances(data);
 
-      // Hitung Pemasukan & Pengeluaran Bulan Ini (Logic Frontend)
       let income = 0;
       let expense = 0;
 
       data.forEach((item) => {
-        // Asumsi ada field 'amount' dan 'type'
-        if (item.type?.toLowerCase() === "pemasukan")
-          income += Number(item.amount);
-        else expense += Number(item.amount);
+        if (item.tipe === "pemasukan") income += Number(item.jumlah);
+        else if (item.tipe === "pengeluaran") expense += Number(item.jumlah);
       });
 
       setStats((prev) => ({
         ...prev,
         monthlyIncome: income,
         monthlyExpense: expense,
-        // Note: totalKas kita ambil dari fungsi terpisah di bawah
       }));
     } catch (error) {
       console.error("Error fetching transaksi:", error);
     }
   };
 
-  // [BARU] Ambil Total Kas dari Database Khusus
+  // 3. GET /api/total
   const fetchDataTotalKas = async () => {
     try {
-      // Nanti buat endpoint ini di Laravel
-      const response = await fetch("http://localhost:8000/api/total");
+      // Sesuai Route::get('/total', ...)
+      const response = await fetch("http://localhost:8000/api/total", {
+        headers: {
+           "Content-Type": "application/json",
+           Authorization: `Bearer ${localStorage.getItem("token")}`,
+        }
+      });
       const result = await response.json();
-
       setStats((prev) => ({
         ...prev,
         totalKas: Number(result.total_kas) || 0,
@@ -114,24 +138,85 @@ export default function Dsbd({ onLogout }) {
     }
   };
 
-  // --- FUNGSI HANDLER MODAL & HELPER ---
+  // --- FUNGSI HANDLER ---
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleTransaksiChange = (e) => {
+    const { name, value } = e.target;
+    setTransaksiForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // 4. POST /api/transaksi
+  const handleSubmitTransaksi = async (e, tipeTransaksi) => {
+    e.preventDefault();
+    setIsLoadingSubmit(true);
+
+    const payload = {
+      tipe: tipeTransaksi,
+      deskripsi: transaksiForm.deskripsi,
+      jumlah: transaksiForm.jumlah,
+      tanggal: transaksiForm.tanggal,
+    };
+
+    try {
+      // Sesuai Route::prefix('transaksi')->post('/')
+      const response = await fetch("http://localhost:8000/api/transaksi", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Kirim token untuk keamanan (best practice)
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        alert(`Data ${tipeTransaksi} berhasil disimpan!`);
+        setTransaksiForm({ tanggal: "", deskripsi: "", jumlah: "" });
+        setIsPemasukan(false);
+        setIsPengeluaran(false);
+        fetchDataKeuangan();
+        fetchDataTotalKas();
+      } else {
+        const errorData = await response.json();
+        alert("Gagal menyimpan: " + JSON.stringify(errorData));
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Terjadi kesalahan koneksi ke server.");
+    } finally {
+      setIsLoadingSubmit(false);
+    }
+  };
+
+  // 5. POST /api/biodata
   const handleSubmitPemain = async (e) => {
     e.preventDefault();
     setIsLoadingSubmit(true);
     try {
+      // Sesuai Route::middleware('auth:sanctum')->post('/biodata', ...)
+      // WAJIB PAKAI TOKEN
+      const token = localStorage.getItem("token");
+      
+      if(!token) {
+        alert("Anda harus login untuk menambah data (Token tidak ditemukan)");
+        setIsLoadingSubmit(false);
+        return;
+      }
+
       const response = await fetch("http://localhost:8000/api/biodata", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(formData),
       });
+      
       const result = await response.json();
       if (response.ok) {
         alert("Pemain berhasil ditambahkan!");
@@ -168,11 +253,12 @@ export default function Dsbd({ onLogout }) {
     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
     return age;
   };
+
   const getFilteredFinances = () => {
     if (activePage === "pemasukan")
-      return finances.filter((f) => f.type?.toLowerCase() === "pemasukan");
+      return finances.filter((f) => f.tipe === "pemasukan");
     if (activePage === "pengeluaran")
-      return finances.filter((f) => f.type?.toLowerCase() === "pengeluaran");
+      return finances.filter((f) => f.tipe === "pengeluaran");
     return finances;
   };
 
@@ -212,14 +298,12 @@ export default function Dsbd({ onLogout }) {
       </div>
 
       {/* Sidebar */}
-      {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-screen w-64 bg-gradient-to-b from-green-600 to-blue-600 shadow-2xl transform transition-transform duration-300 z-40 flex flex-col ${
+        className={`min-h-screen w-64 fixed left-0 p-6 bg-gradient-to-b from-green-600 to-blue-600 shadow-2xl transform transition-transform duration-300 z-40 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        {/* 1. Bagian Header / Logo (Fixed di atas) */}
-        <div className="flex-shrink-0 flex items-center justify-center pt-8 pb-6">
+        <div className="flex items-center justify-center mb-8 pt-4">
           <div className="bg-white rounded-full p-3 shadow-lg">
             <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
               <span className="text-white font-bold text-lg">⚽</span>
@@ -230,9 +314,7 @@ export default function Dsbd({ onLogout }) {
           </h1>
         </div>
 
-        {/* 2. Bagian Menu Navigasi (Scrollable) */}
-        {/* 'flex-1' agar mengisi sisa ruang, 'overflow-y-auto' agar bisa discroll jika landscape sempit */}
-        <nav className="flex-1 overflow-y-auto px-6 space-y-2 custom-scrollbar">
+        <nav className="space-y-2">
           <button
             onClick={() => setActivePage("dashboard")}
             className={`w-full flex items-center px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${
@@ -241,8 +323,18 @@ export default function Dsbd({ onLogout }) {
                 : "bg-white bg-opacity-10"
             }`}
           >
-            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            <svg
+              className="w-5 h-5 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+              />
             </svg>
             <span className="font-medium">Dashboard</span>
           </button>
@@ -258,21 +350,57 @@ export default function Dsbd({ onLogout }) {
               }`}
             >
               <div className="flex items-center">
-                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                <svg
+                  className="w-5 h-5 mr-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                  />
                 </svg>
                 <span className="font-medium">Transaksi</span>
               </div>
-              <svg className={`w-4 h-4 transform transition-transform ${activeDropdown === "transaksi" ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <svg
+                className={`w-4 h-4 transform transition-transform ${
+                  activeDropdown === "transaksi" ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
               </svg>
             </button>
             {activeDropdown === "transaksi" && (
               <div className="ml-6 mt-2 space-y-1 border-l-2 border-white border-opacity-20 pl-4">
-                <button onClick={() => setActivePage("pemasukan")} className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "pemasukan" ? "bg-white bg-opacity-20" : "bg-white bg-opacity-5"}`}>
+                <button
+                  onClick={() => setActivePage("pemasukan")}
+                  className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
+                    activePage === "pemasukan"
+                      ? "bg-white bg-opacity-20"
+                      : "bg-white bg-opacity-5"
+                  }`}
+                >
                   Pemasukan
                 </button>
-                <button onClick={() => setActivePage("pengeluaran")} className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "pengeluaran" ? "bg-white bg-opacity-20" : "bg-white bg-opacity-5"}`}>
+                <button
+                  onClick={() => setActivePage("pengeluaran")}
+                  className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
+                    activePage === "pengeluaran"
+                      ? "bg-white bg-opacity-20"
+                      : "bg-white bg-opacity-5"
+                  }`}
+                >
                   Pengeluaran
                 </button>
               </div>
@@ -290,21 +418,57 @@ export default function Dsbd({ onLogout }) {
               }`}
             >
               <div className="flex items-center">
-                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                <svg
+                  className="w-5 h-5 mr-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                  />
                 </svg>
                 <span className="font-medium">Inventaris</span>
               </div>
-              <svg className={`w-4 h-4 transform transition-transform ${activeDropdown === "inventaris" ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <svg
+                className={`w-4 h-4 transform transition-transform ${
+                  activeDropdown === "inventaris" ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
               </svg>
             </button>
             {activeDropdown === "inventaris" && (
               <div className="ml-6 mt-2 space-y-1 border-l-2 border-white border-opacity-20 pl-4">
-                <button onClick={() => setActivePage("barang-masuk")} className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "barang-masuk" ? "bg-white bg-opacity-20" : "bg-white bg-opacity-5"}`}>
+                <button
+                  onClick={() => setActivePage("barang-masuk")}
+                  className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
+                    activePage === "barang-masuk"
+                      ? "bg-white bg-opacity-20"
+                      : "bg-white bg-opacity-5"
+                  }`}
+                >
                   Barang Masuk
                 </button>
-                <button onClick={() => setActivePage("barang-keluar")} className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "barang-keluar" ? "bg-white bg-opacity-20" : "bg-white bg-opacity-5"}`}>
+                <button
+                  onClick={() => setActivePage("barang-keluar")}
+                  className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
+                    activePage === "barang-keluar"
+                      ? "bg-white bg-opacity-20"
+                      : "bg-white bg-opacity-5"
+                  }`}
+                >
                   Barang Keluar
                 </button>
               </div>
@@ -312,10 +476,8 @@ export default function Dsbd({ onLogout }) {
           </div>
         </nav>
 
-        {/* 3. Bagian Bawah (Profil & Logout) */}
-        {/* Menggunakan 'mt-auto' supaya otomatis turun ke bawah, tapi tidak absolute */}
-        <div className="flex-shrink-0 p-6 mt-auto">
-          <div className="flex flex-col gap-3">
+        <div className="absolute bottom-20 md:bottom-[150px] left-6 right-6">
+          <div className="h-fit flex flex-col gap-3">
             <div className="flex items-center space-x-3 bg-white bg-opacity-10 rounded-xl p-3 backdrop-blur-sm">
               <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center shadow-md">
                 <span className="text-white font-bold text-sm">A</span>
@@ -327,7 +489,7 @@ export default function Dsbd({ onLogout }) {
             </div>
             <button
               onClick={onLogout}
-              className="w-full flex items-center justify-center gap-2 bg-red-400 hover:bg-red-500 text-white py-2 px-4 rounded-xl font-medium shadow-sm transition-colors"
+              className="w-full flex items-center justify-center gap-2 bg-red-400 hover:bg-red-500 text-white py-2 px-4 rounded-xl font-medium shadow-sm"
             >
               Logout
             </button>
@@ -414,7 +576,7 @@ export default function Dsbd({ onLogout }) {
                   </p>
                 </div>
               </div>
-              {/* Total Kas (Database) */}
+              {/* Total Kas */}
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-green-100 flex items-center">
                 <div className="p-3 bg-yellow-500 rounded-xl text-white mr-4">
                   <svg
@@ -553,7 +715,7 @@ export default function Dsbd({ onLogout }) {
                   <div className="border-t pt-4 mt-2">
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-gray-800">
-                        Total Kas (Database)
+                        Total Kas
                       </span>
                       <span className="font-bold text-blue-600 text-xl">
                         {formatRupiah(stats.totalKas)}
@@ -579,7 +741,11 @@ export default function Dsbd({ onLogout }) {
                     ? setIsPemasukan(true)
                     : setIsPengeluaran(true)
                 }
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm"
+                className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm text-white transition-colors ${
+                  activePage === "pemasukan"
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-red-600 hover:bg-red-700"
+                }`}
               >
                 + Input {activePage}
               </button>
@@ -603,19 +769,23 @@ export default function Dsbd({ onLogout }) {
                   {getFilteredFinances().map((item, idx) => (
                     <tr key={idx}>
                       <td className="px-6 py-4 text-sm text-gray-500">
-                        {new Date(item.date).toLocaleDateString("id-ID")}
+                        {/* Sesuaikan field database: tanggal */}
+                        {new Date(item.tanggal).toLocaleDateString("id-ID")}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900 font-medium">
-                        {item.description}
+                        {/* Sesuaikan field database: deskripsi */}
+                        {item.deskripsi}
                       </td>
                       <td
                         className={`px-6 py-4 text-sm font-bold ${
-                          activePage === "pemasukan"
+                          // Sesuaikan field database: tipe
+                          item.tipe === "pemasukan"
                             ? "text-green-600"
                             : "text-red-600"
                         }`}
                       >
-                        {formatRupiah(item.amount)}
+                        {/* Sesuaikan field database: jumlah */}
+                        {formatRupiah(item.jumlah)}
                       </td>
                     </tr>
                   ))}
@@ -635,11 +805,11 @@ export default function Dsbd({ onLogout }) {
           </div>
         )}
 
+        {/* --- MODAL PEMASUKAN --- */}
         {isPemasukan && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fadeIn">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 animate-slideUp">
-              {/* Modal Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-4 rounded-t-2xl">
+              <div className="bg-gradient-to-r from-green-600 to-green-500 px-6 py-4 rounded-t-2xl">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-bold text-white">
                     Tambah Pemasukan
@@ -665,33 +835,40 @@ export default function Dsbd({ onLogout }) {
                 </div>
               </div>
 
-              {/* Modal Body - Form Input */}
               <div className="p-6">
-                <form className="space-y-6">
-                  {/* Input Tanggal */}
+                <form
+                  className="space-y-6"
+                  onSubmit={(e) => handleSubmitTransaksi(e, "pemasukan")}
+                >
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Tanggal <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="date"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 outline-none"
+                      name="tanggal"
+                      value={transaksiForm.tanggal}
+                      onChange={handleTransaksiChange}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none"
                     />
                   </div>
 
-                  {/* Input Keterangan */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Keterangan <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
-                      placeholder="Masukkan keterangan pemasukan"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 outline-none"
+                      name="deskripsi"
+                      value={transaksiForm.deskripsi}
+                      onChange={handleTransaksiChange}
+                      required
+                      placeholder="Contoh: Iuran Bulanan"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none"
                     />
                   </div>
 
-                  {/* Input Jumlah */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Jumlah <span className="text-red-500">*</span>
@@ -702,14 +879,17 @@ export default function Dsbd({ onLogout }) {
                       </span>
                       <input
                         type="number"
+                        name="jumlah"
+                        value={transaksiForm.jumlah}
+                        onChange={handleTransaksiChange}
+                        required
                         placeholder="0"
                         min="0"
-                        className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 outline-none"
+                        className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none"
                       />
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
                   <div className="flex space-x-3 pt-4">
                     <button
                       type="button"
@@ -720,9 +900,10 @@ export default function Dsbd({ onLogout }) {
                     </button>
                     <button
                       type="submit"
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+                      disabled={isLoadingSubmit}
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
                     >
-                      Simpan
+                      {isLoadingSubmit ? "Menyimpan..." : "Simpan"}
                     </button>
                   </div>
                 </form>
@@ -731,11 +912,11 @@ export default function Dsbd({ onLogout }) {
           </div>
         )}
 
+        {/* --- MODAL PENGELUARAN --- */}
         {isPengeluaran && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fadeIn">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 animate-slideUp">
-              {/* Modal Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-4 rounded-t-2xl">
+              <div className="bg-gradient-to-r from-red-600 to-red-500 px-6 py-4 rounded-t-2xl">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-bold text-white">
                     Tambah Pengeluaran
@@ -761,33 +942,40 @@ export default function Dsbd({ onLogout }) {
                 </div>
               </div>
 
-              {/* Modal Body - Form Input */}
               <div className="p-6">
-                <form className="space-y-6">
-                  {/* Input Tanggal */}
+                <form
+                  className="space-y-6"
+                  onSubmit={(e) => handleSubmitTransaksi(e, "pengeluaran")}
+                >
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Tanggal <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="date"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 outline-none"
+                      name="tanggal"
+                      value={transaksiForm.tanggal}
+                      onChange={handleTransaksiChange}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 outline-none"
                     />
                   </div>
 
-                  {/* Input Keterangan */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Keterangan <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
-                      placeholder="Masukkan keterangan pemasukan"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 outline-none"
+                      name="deskripsi"
+                      value={transaksiForm.deskripsi}
+                      onChange={handleTransaksiChange}
+                      required
+                      placeholder="Contoh: Beli Bola"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 outline-none"
                     />
                   </div>
 
-                  {/* Input Jumlah */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Jumlah <span className="text-red-500">*</span>
@@ -798,14 +986,17 @@ export default function Dsbd({ onLogout }) {
                       </span>
                       <input
                         type="number"
+                        name="jumlah"
+                        value={transaksiForm.jumlah}
+                        onChange={handleTransaksiChange}
+                        required
                         placeholder="0"
                         min="0"
-                        className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 outline-none"
+                        className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 outline-none"
                       />
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
                   <div className="flex space-x-3 pt-4">
                     <button
                       type="button"
@@ -816,9 +1007,10 @@ export default function Dsbd({ onLogout }) {
                     </button>
                     <button
                       type="submit"
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+                      disabled={isLoadingSubmit}
+                      className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
                     >
-                      Simpan
+                      {isLoadingSubmit ? "Menyimpan..." : "Simpan"}
                     </button>
                   </div>
                 </form>
@@ -827,8 +1019,7 @@ export default function Dsbd({ onLogout }) {
           </div>
         )}
 
-        {/* --- PAGE: INVENTARIS (BARANG MASUK / KELUAR) --- */}
-        {/* Ini yang Anda minta untuk TIDAK DIHAPUS */}
+        {/* --- PAGE: INVENTARIS --- */}
         {["barang-masuk", "barang-keluar"].includes(activePage) && (
           <div className="flex items-center justify-center h-96 bg-white rounded-2xl shadow-sm border border-green-100">
             <div className="text-center">
