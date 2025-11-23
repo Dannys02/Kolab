@@ -58,7 +58,7 @@ export default function Navbar() {
                         <div className="flex items-center gap-3">
                             <img src={Logo} alt="" className="h-10 w-15" />
                             <span className="text-black font-bold text-xl">
-                                SSB Sekolah Sepak Bola
+                                Sekolah Sepak Bola
                             </span>
                         </div>
                     </div>
@@ -72,9 +72,9 @@ export default function Navbar() {
                     <div className={`${click ? "top-[100%]" : "top-[-450%]"} z-[100] bg-green-100 md:bg-transparent md:bg-transparent absolute md:top-0 left-0 md:left-0 translate-[-50%, -50%] md:relative p-5 md:p-0 w-full md:w-fit transition-top duration-300`}>
                         <div className="flex flex-col md:flex-row flex items-baseline space-x-4 md:space-x-1 space-y-4 md:space-y-0">
                             {navItems.map(item => (
-                                <Link
+                                <a
                                     key={item.name}
-                                    to={item.to}
+                                    href={item.to}
                                     name={item.name}
                                     onClick={handleClick}
                                     className={`${click ? "" : ""} px-3 py-2 rounded-md text-black text-sm font-medium transition-colors duration-300 hover:bg-green-600 hover:text-white ${active === item.name
@@ -83,7 +83,7 @@ export default function Navbar() {
                                         }`}
                                 >
                                     {item.name}
-                                </Link>
+                                </a>
                             ))}
                         </div>
                     </div>

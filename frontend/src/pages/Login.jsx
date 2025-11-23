@@ -1,50 +1,51 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 // [PENTING] Komponen menerima props 'setToken' dari App.js
-export default function Login({ setToken }) {
-    
-    // --- 1. STATE MANAGEMENT ---
+export default function Login({ setToken, setUserRole }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    
+    // 2. Inisialisasi navigate
+    const navigate = useNavigate(); 
 
-    // --- 2. FUNGSI LOGIN ---
     const handleLogin = async (e) => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
 
         try {
-            // Request ke Backend Laravel
-            // Pastikan port 8000 sesuai dengan terminal "php artisan serve" Anda
             const response = await axios.post('http://localhost:8000/api/login', {
                 email: email,
                 password: password
             });
 
-            // Ambil data dari respon sukses
-            const token = response.data.access_token;
-            const userName = response.data.user.name;
+            const { access_token, user, role } = response.data;
 
-            // Simpan ke Local Storage
-            localStorage.setItem('token', token);
-            localStorage.setItem('user_name', userName);
+            // Simpan LocalStorage
+            localStorage.setItem('token', access_token);
+            localStorage.setItem('user_name', user.name);
+            localStorage.setItem('role', role);
 
-            // Update state di App.js agar otomatis pindah halaman
-            setToken(token);
+            // Update State App
+            setToken(access_token);
+            setUserRole(role);
+
+            // 3. [SOLUSI] Paksa Pindah Halaman Manual
+            // Ini memastikan kita pindah hanya setelah data siap
+            if (role === 'admin') {
+                navigate('/dashboard', { replace: true });
+            } else {
+                navigate('/portal/dashboard', { replace: true });
+            }
 
         } catch (err) {
-            console.error('Login Error:', err);
-            
-            if (err.response && err.response.status === 401) {
-                setError('Email atau password salah.');
-            } else if (err.code === 'ERR_NETWORK') {
-                setError('Gagal terhubung ke server. Pastikan Laravel menyala.');
-            } else {
-                setError('Terjadi kesalahan. Silakan coba lagi.');
-            }
+            // ... error handling tetap sama
+            console.error(err);
+            setError('Login Gagal. Cek email/password.');
         } finally {
             setIsLoading(false);
         }
@@ -61,7 +62,7 @@ export default function Login({ setToken }) {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
                         </div>
-                        <h1 className="text-3xl font-bold text-white mb-2">Admin Login</h1>
+                        <h1 className="text-3xl font-bold text-white mb-2">Login</h1>
                         <p className="text-green-100">Masuk untuk mengelola data</p>
                     </div>
 
@@ -79,7 +80,7 @@ export default function Login({ setToken }) {
                                 <input
                                     type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
                                     className="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 transition-colors"
-                                    placeholder="Masukkan Akun Admin"
+                                    placeholder="Masukkan Akun Anda"
                                 />
                             </div>
                             <div>
@@ -87,7 +88,7 @@ export default function Login({ setToken }) {
                                 <input
                                     type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
                                     className="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 transition-colors"
-                                    placeholder="Masukkan Password Admin"
+                                    placeholder="Masukkan Password Anda"
                                 />
                             </div>
                             <button

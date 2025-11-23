@@ -1,20 +1,25 @@
 import React from "react";
+import Logo from '../assets/logosmks.png';
 
 export default function Footer() {
     const tahunIni = new Date().getFullYear();
+
+    const menu = [
+        { name: "Beranda", to: "/" },
+        { name: "Program", to: "/program" },
+        { name: "Galeri", to: "/galeri" },
+        { name: "Artikel", to: "/artikel" },
+        { name: "Kontak", to: "/kontak" }
+    ];
+
     return (
-        <footer className="border-t border-gray-200 py-8 ">
+        <footer className="border-t border-gray-200 py-8 px-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 mx-auto max-w-6xl">
                 <div className=" md:col-span-1  ">
                     <div className="flex items-center mb-4">
-                        <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center mr-2">
-                            <span className="text-white font-bold text-sm">
-                                SSB
-                            </span>
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center mr-2">
+                            <img src={Logo} alt="Logo SMKS MUHAMMADIYAH 1 GENTENG" />
                         </div>
-                        <span className="text-xl font-semibold text-gray-800">
-                            SSB Akademi
-                        </span>
                     </div>
                     <p className="text-sm text-gray-600 max-w-xs">
                         Membangun karakter dan keterampilan sepak bola
@@ -28,19 +33,13 @@ export default function Footer() {
                             Menu Cepat
                         </h3>
                         <ul className="space-y-2 text-sm">
-                            {[
-                                "Beranda",
-                                "Program",
-                                "Galeri",
-                                "Artikel",
-                                "Kontak"
-                            ].map(item => (
-                                <li key={item}>
+                            {menu.map((item) => (
+                                <li key={item.name}>
                                     <a
-                                        href="#"
+                                        href={item.to}
                                         className="text-gray-600 hover:text-blue-700 transition duration-150"
                                     >
-                                        {item}
+                                        {item.name}
                                     </a>
                                 </li>
                             ))}

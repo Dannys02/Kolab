@@ -128,17 +128,17 @@ export default function Program() {
                                     <ul className="space-y-1">
                                         {program.features.map((f, i) => (
                                             <li key={i} className="flex gap-2 text-sm">
-                                                <CheckCircle className="h-4 w-4 text-primary mt-1" />
+                                                <CheckCircle className="h-4 w-4 text-green-500 mt-1" />
                                                 {f}
                                             </li>
                                         ))}
                                     </ul>
                                 </div>
 
-                                <div className="border-t pt-4 flex items-center justify-between">
+                                <div className="border-t pt-4 flex md:flex-row flex-col h-[120px] md:h-fit justify-between items-start md:justify-between">
                                     <div>
                                         <p className="text-sm text-muted-foreground">Biaya</p>
-                                        <p className="text-2xl font-bold text-primary">{program.price}</p>
+                                        <p className="text-2xl font-bold text-green-500">{program.price}</p>
                                     </div>
 
                                     <Link to="/kontak" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-600/80 transition">
