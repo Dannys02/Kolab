@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 
 export default function Dsbd({ onLogout }) {
   const tahunIni = new Date().getFullYear();
+  const [activeEdit, setActiveEdit] = useState(false);
   const [isPemasukan, setIsPemasukan] = useState(false);
   const [isPengeluaran, setIsPengeluaran] = useState(false);
   const [activePage, setActivePage] = useState("dashboard");
@@ -64,7 +65,7 @@ export default function Dsbd({ onLogout }) {
   const fetchDataSiswa = async () => {
     try {
       const response = await fetch("http://localhost:8000/api/dashboard/index", {
-         headers: {
+        headers: {
           "Content-Type": "application/json",
           // Sertakan token jika route dashboard diprotect di masa depan
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -89,13 +90,13 @@ export default function Dsbd({ onLogout }) {
     try {
       // Sesuai Route::prefix('transaksi')->get('/')
       const response = await fetch("http://localhost:8000/api/transaksi", {
-         headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-         }
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        }
       });
       const result = await response.json();
-      
+
       // Handle jika return array langsung atau object {data: []}
       const data = Array.isArray(result) ? result : result.data || [];
       setFinances(data);
@@ -124,8 +125,8 @@ export default function Dsbd({ onLogout }) {
       // Sesuai Route::get('/total', ...)
       const response = await fetch("http://localhost:8000/api/total", {
         headers: {
-           "Content-Type": "application/json",
-           Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         }
       });
       const result = await response.json();
@@ -201,8 +202,8 @@ export default function Dsbd({ onLogout }) {
       // Sesuai Route::middleware('auth:sanctum')->post('/biodata', ...)
       // WAJIB PAKAI TOKEN
       const token = localStorage.getItem("token");
-      
-      if(!token) {
+
+      if (!token) {
         alert("Anda harus login untuk menambah data (Token tidak ditemukan)");
         setIsLoadingSubmit(false);
         return;
@@ -216,7 +217,7 @@ export default function Dsbd({ onLogout }) {
         },
         body: JSON.stringify(formData),
       });
-      
+
       const result = await response.json();
       if (response.ok) {
         alert("Pemain berhasil ditambahkan!");
@@ -299,9 +300,8 @@ export default function Dsbd({ onLogout }) {
 
       {/* Sidebar */}
       <aside
-        className={`min-h-screen w-64 fixed left-0 p-6 bg-gradient-to-b from-green-600 to-blue-600 shadow-2xl transform transition-transform duration-300 z-40 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        }`}
+        className={`min-h-screen w-64 fixed left-0 p-6 bg-gradient-to-b from-green-600 to-blue-600 shadow-2xl transform transition-transform duration-300 z-40 ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          }`}
       >
         <div className="flex items-center justify-center mb-8 pt-4">
           <div className="bg-white rounded-full p-3 shadow-lg">
@@ -317,11 +317,10 @@ export default function Dsbd({ onLogout }) {
         <nav className="space-y-2">
           <button
             onClick={() => setActivePage("dashboard")}
-            className={`w-full flex items-center px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${
-              activePage === "dashboard"
-                ? "bg-white bg-opacity-20"
-                : "bg-white bg-opacity-10"
-            }`}
+            className={`w-full flex items-center px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${activePage === "dashboard"
+              ? "bg-white bg-opacity-20"
+              : "bg-white bg-opacity-10"
+              }`}
           >
             <svg
               className="w-5 h-5 mr-3"
@@ -343,11 +342,10 @@ export default function Dsbd({ onLogout }) {
           <div className="relative">
             <button
               onClick={() => toggleDropdown("transaksi")}
-              className={`w-full flex items-center justify-between px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${
-                ["pemasukan", "pengeluaran"].includes(activePage)
-                  ? "bg-white bg-opacity-20"
-                  : "bg-white bg-opacity-10"
-              }`}
+              className={`w-full flex items-center justify-between px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${["pemasukan", "pengeluaran"].includes(activePage)
+                ? "bg-white bg-opacity-20"
+                : "bg-white bg-opacity-10"
+                }`}
             >
               <div className="flex items-center">
                 <svg
@@ -366,9 +364,8 @@ export default function Dsbd({ onLogout }) {
                 <span className="font-medium">Transaksi</span>
               </div>
               <svg
-                className={`w-4 h-4 transform transition-transform ${
-                  activeDropdown === "transaksi" ? "rotate-180" : ""
-                }`}
+                className={`w-4 h-4 transform transition-transform ${activeDropdown === "transaksi" ? "rotate-180" : ""
+                  }`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -385,21 +382,19 @@ export default function Dsbd({ onLogout }) {
               <div className="ml-6 mt-2 space-y-1 border-l-2 border-white border-opacity-20 pl-4">
                 <button
                   onClick={() => setActivePage("pemasukan")}
-                  className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
-                    activePage === "pemasukan"
-                      ? "bg-white bg-opacity-20"
-                      : "bg-white bg-opacity-5"
-                  }`}
+                  className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "pemasukan"
+                    ? "bg-white bg-opacity-20"
+                    : "bg-white bg-opacity-5"
+                    }`}
                 >
                   Pemasukan
                 </button>
                 <button
                   onClick={() => setActivePage("pengeluaran")}
-                  className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
-                    activePage === "pengeluaran"
-                      ? "bg-white bg-opacity-20"
-                      : "bg-white bg-opacity-5"
-                  }`}
+                  className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "pengeluaran"
+                    ? "bg-white bg-opacity-20"
+                    : "bg-white bg-opacity-5"
+                    }`}
                 >
                   Pengeluaran
                 </button>
@@ -411,11 +406,10 @@ export default function Dsbd({ onLogout }) {
           <div className="relative">
             <button
               onClick={() => toggleDropdown("inventaris")}
-              className={`w-full flex items-center justify-between px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${
-                ["barang-masuk", "barang-keluar"].includes(activePage)
-                  ? "bg-white bg-opacity-20"
-                  : "bg-white bg-opacity-10"
-              }`}
+              className={`w-full flex items-center justify-between px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${["barang-masuk", "barang-keluar"].includes(activePage)
+                ? "bg-white bg-opacity-20"
+                : "bg-white bg-opacity-10"
+                }`}
             >
               <div className="flex items-center">
                 <svg
@@ -434,9 +428,8 @@ export default function Dsbd({ onLogout }) {
                 <span className="font-medium">Inventaris</span>
               </div>
               <svg
-                className={`w-4 h-4 transform transition-transform ${
-                  activeDropdown === "inventaris" ? "rotate-180" : ""
-                }`}
+                className={`w-4 h-4 transform transition-transform ${activeDropdown === "inventaris" ? "rotate-180" : ""
+                  }`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -453,21 +446,19 @@ export default function Dsbd({ onLogout }) {
               <div className="ml-6 mt-2 space-y-1 border-l-2 border-white border-opacity-20 pl-4">
                 <button
                   onClick={() => setActivePage("barang-masuk")}
-                  className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
-                    activePage === "barang-masuk"
-                      ? "bg-white bg-opacity-20"
-                      : "bg-white bg-opacity-5"
-                  }`}
+                  className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "barang-masuk"
+                    ? "bg-white bg-opacity-20"
+                    : "bg-white bg-opacity-5"
+                    }`}
                 >
                   Barang Masuk
                 </button>
                 <button
                   onClick={() => setActivePage("barang-keluar")}
-                  className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
-                    activePage === "barang-keluar"
-                      ? "bg-white bg-opacity-20"
-                      : "bg-white bg-opacity-5"
-                  }`}
+                  className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "barang-keluar"
+                    ? "bg-white bg-opacity-20"
+                    : "bg-white bg-opacity-5"
+                    }`}
                 >
                   Barang Keluar
                 </button>
@@ -640,7 +631,8 @@ export default function Dsbd({ onLogout }) {
                     + Tambah Pemain
                   </button>
                 </div>
-                <div className="overflow-x-auto">
+
+                <div className="scroll-stylling overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
@@ -655,6 +647,9 @@ export default function Dsbd({ onLogout }) {
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
                           Phone
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
+                          Action
                         </th>
                       </tr>
                     </thead>
@@ -676,6 +671,53 @@ export default function Dsbd({ onLogout }) {
                             >
                               {item.phone}
                             </span>
+                          </td>
+                          <td className="flex items-center gap-2 px-6 py-4">
+                            {/* Edit button */}
+                            <button
+                              type="button"
+                              // onClick={onEdit}
+                              onClick={() => setActiveEdit(true)}
+                              className="
+                              inline-flex items-center gap-1
+                              px-2.5 py-1.5 text-sm font-medium
+                              rounded-md
+                              bg-transparent
+                              hover:bg-yellow-500 hover:text-white
+                              focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-yellow-300
+                              transition transform duration-150
+                              shadow-sm
+                            "
+                            >
+                              {/* pencil icon */}
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5h6M4 20l7-7 3 3 7-7a2.828 2.828 0 10-4-4l-7 7-3-3-7 7v4h4z" />
+                              </svg>
+                              <span className="leading-none">Edit</span>
+                            </button>
+
+                            {/* Delete button */}
+                            <button
+                              type="button"
+                              // onClick={onDelete}
+                              aria-label="Delete"
+                              className="
+                              inline-flex items-center gap-1
+                              px-2.5 py-1.5 text-sm font-medium
+                              rounded-md
+                              bg-transparent
+                              hover:bg-red-600 hover:text-white
+                              focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-400
+                              transition transform duration-150
+                              shadow-sm
+                            "
+                            >
+                              {/* trash icon */}
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4m-7 4h10" />
+                              </svg>
+                              <span className="leading-none">Delete</span>
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -741,11 +783,10 @@ export default function Dsbd({ onLogout }) {
                     ? setIsPemasukan(true)
                     : setIsPengeluaran(true)
                 }
-                className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm text-white transition-colors ${
-                  activePage === "pemasukan"
-                    ? "bg-green-600 hover:bg-green-700"
-                    : "bg-red-600 hover:bg-red-700"
-                }`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm text-white transition-colors ${activePage === "pemasukan"
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-red-600 hover:bg-red-700"
+                  }`}
               >
                 + Input {activePage}
               </button>
@@ -782,7 +823,7 @@ export default function Dsbd({ onLogout }) {
                           item.tipe === "pemasukan"
                             ? "text-green-600"
                             : "text-red-600"
-                        }`}
+                          }`}
                       >
                         {/* Sesuaikan field database: jumlah */}
                         {formatRupiah(item.jumlah)}
@@ -801,6 +842,120 @@ export default function Dsbd({ onLogout }) {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* --- MODAL EDIT PEMAIN --- */}
+        {activeEdit && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
+
+              {/* HEADER */}
+              <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-500 flex justify-between items-center">
+                <h3 className="text-lg font-bold text-white">Edit Data Siswa</h3>
+
+                <button
+                  onClick={() => setActiveEdit(false)}
+                  className="text-white hover:text-gray-200"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* FORM */}
+              {/*  */}
+              <form onSubmit={handleSubmitPemain} className="p-6 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Nama
+                    </label>
+                    <input
+                      type="text"
+                      name="nama"
+                      value={formData.nama_lengkap}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Usia
+                    </label>
+                    <input
+                      type="number"
+                      name="usia"
+                      value={formData.tanggal_lahir}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Alamat
+                    </label>
+                    <textarea
+                      name="alamat"
+                      value={formData.alamat}
+                      onChange={handleInputChange}
+                      rows="3"
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    ></textarea>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      No HP
+                    </label>
+                    <input
+                      type="number"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
+                  <button
+                    type="button"
+                    onClick={() => setActiveEdit(false)}
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                  >
+                    Batal
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={isLoadingSubmit}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    {isLoadingSubmit ? "Mengedit..." : "Edit"}
+                  </button>
+                </div>
+              </form>
+
             </div>
           </div>
         )}
@@ -1185,6 +1340,9 @@ export default function Dsbd({ onLogout }) {
           </div>
         </div>
       )}
+      <footer className="w-full flex justify-center">
+        <p>&copy; {tahunIni}</p>
+      </footer>
     </div>
   );
 }
