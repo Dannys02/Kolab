@@ -9,6 +9,7 @@ class DashboardController extends Controller
 {
     public function biodataIndex() {
         $data = Biodata::all();
+        
         return response()->json([
         'status' => 'sukses',
         'pesan' => 'Data siswa berhasil diambil',

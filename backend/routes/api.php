@@ -58,4 +58,6 @@ Route::prefix('transaksi')->group(function () {
 });
 
 
-Route::get('/total', [TotalKasController::class, 'index']);
+// ...
+// Route TotalKas perlu dilindungi dengan Sanctum
+Route::middleware('auth:sanctum')->get('/total', [TotalKasController::class, 'index']);

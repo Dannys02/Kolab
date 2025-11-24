@@ -16,7 +16,7 @@ return new class extends Migration
         $table->foreignId('biodata_id')->constrained('biodatas')->onDelete('cascade');
         $table->string('judul'); // Contoh: "Uang Pangkal", "SPP Maret"
         $table->decimal('jumlah', 10, 2); // Contoh: 2500000.00
-        $table->string('status')->default('Belum Lunas'); // Lunas / Belum Lunas
+        $table->string('status')->default('Belum Lunas')->nullable(); // Lunas / Belum Lunas
         $table->date('jatuh_tempo');
             $table->timestamps();
         });
