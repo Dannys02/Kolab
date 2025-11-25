@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import Logo from '../assets/logosmks.png';
 
 export default function Dsbd({ onLogout }) {
     const tahunIni = new Date().getFullYear();
@@ -15,6 +16,18 @@ export default function Dsbd({ onLogout }) {
     const [loading, setLoading] = useState(true);
 
     const [editData, setEditData] = useState(null);
+
+    const initialForm = {
+        nama_lengkap: "",
+        email: "",
+        phone: "",
+        tanggal_lahir: "",
+        alamat: "",
+        posisi: "",
+        status: "Aktif"
+    };
+
+    const [addForm, setAddForm] = useState(initialForm);
 
     // --- STATE MODAL TAMBAH PEMAIN ---
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -336,33 +349,33 @@ export default function Dsbd({ onLogout }) {
 
             {/* Sidebar */}
             <aside
-                className={`min-h-screen w-64 fixed left-0 p-6 bg-gradient-to-b from-green-600 to-blue-600 shadow-2xl transform transition-transform duration-300 z-40 ${
-                    sidebarOpen
-                        ? "translate-x-0"
-                        : "-translate-x-full lg:translate-x-0"
-                }`}
+                className={`min-h-screen w-64 fixed left-0 p-6 bg-gradient-to-b from-green-600 to-blue-600 shadow-2xl transform transition-transform duration-300 z-40 ${sidebarOpen
+                    ? "translate-x-0"
+                    : "-translate-x-full lg:translate-x-0"
+                    }`}
             >
                 <div className="flex items-center justify-center mb-8 pt-4">
                     <div className="bg-white rounded-full p-3 shadow-lg">
-                        <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-lg">
-                                ⚽
-                            </span>
+                        <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center">
+                            <img
+                                src={Logo}
+                                alt="Logo"
+                                className="w-full h-full "
+                            />
                         </div>
                     </div>
                     <h1 className="ml-3 text-white text-xl font-bold">
-                        Football Academy
+                        Sepak Bola SMEMSA
                     </h1>
                 </div>
 
                 <nav className="space-y-2">
                     <button
                         onClick={() => setActivePage("dashboard")}
-                        className={`w-full flex items-center px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${
-                            activePage === "dashboard"
-                                ? "bg-white bg-opacity-20"
-                                : "bg-white bg-opacity-10"
-                        }`}
+                        className={`w-full flex items-center px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${activePage === "dashboard"
+                            ? "bg-white bg-opacity-20"
+                            : "bg-white bg-opacity-10"
+                            }`}
                     >
                         <svg
                             className="w-5 h-5 mr-3"
@@ -384,13 +397,12 @@ export default function Dsbd({ onLogout }) {
                     <div className="relative">
                         <button
                             onClick={() => toggleDropdown("transaksi")}
-                            className={`w-full flex items-center justify-between px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${
-                                ["pemasukan", "pengeluaran"].includes(
-                                    activePage
-                                )
-                                    ? "bg-white bg-opacity-20"
-                                    : "bg-white bg-opacity-10"
-                            }`}
+                            className={`w-full flex items-center justify-between px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${["pemasukan", "pengeluaran"].includes(
+                                activePage
+                            )
+                                ? "bg-white bg-opacity-20"
+                                : "bg-white bg-opacity-10"
+                                }`}
                         >
                             <div className="flex items-center">
                                 <svg
@@ -409,11 +421,10 @@ export default function Dsbd({ onLogout }) {
                                 <span className="font-medium">Transaksi</span>
                             </div>
                             <svg
-                                className={`w-4 h-4 transform transition-transform ${
-                                    activeDropdown === "transaksi"
-                                        ? "rotate-180"
-                                        : ""
-                                }`}
+                                className={`w-4 h-4 transform transition-transform ${activeDropdown === "transaksi"
+                                    ? "rotate-180"
+                                    : ""
+                                    }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -430,21 +441,19 @@ export default function Dsbd({ onLogout }) {
                             <div className="ml-6 mt-2 space-y-1 border-l-2 border-white border-opacity-20 pl-4">
                                 <button
                                     onClick={() => setActivePage("pemasukan")}
-                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
-                                        activePage === "pemasukan"
-                                            ? "bg-white bg-opacity-20"
-                                            : "bg-white bg-opacity-5"
-                                    }`}
+                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "pemasukan"
+                                        ? "bg-white bg-opacity-20"
+                                        : "bg-white bg-opacity-5"
+                                        }`}
                                 >
                                     Pemasukan
                                 </button>
                                 <button
                                     onClick={() => setActivePage("pengeluaran")}
-                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
-                                        activePage === "pengeluaran"
-                                            ? "bg-white bg-opacity-20"
-                                            : "bg-white bg-opacity-5"
-                                    }`}
+                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "pengeluaran"
+                                        ? "bg-white bg-opacity-20"
+                                        : "bg-white bg-opacity-5"
+                                        }`}
                                 >
                                     Pengeluaran
                                 </button>
@@ -456,13 +465,12 @@ export default function Dsbd({ onLogout }) {
                     <div className="relative">
                         <button
                             onClick={() => toggleDropdown("inventaris")}
-                            className={`w-full flex items-center justify-between px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${
-                                ["barang-masuk", "barang-keluar"].includes(
-                                    activePage
-                                )
-                                    ? "bg-white bg-opacity-20"
-                                    : "bg-white bg-opacity-10"
-                            }`}
+                            className={`w-full flex items-center justify-between px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${["barang-masuk", "barang-keluar"].includes(
+                                activePage
+                            )
+                                ? "bg-white bg-opacity-20"
+                                : "bg-white bg-opacity-10"
+                                }`}
                         >
                             <div className="flex items-center">
                                 <svg
@@ -481,11 +489,10 @@ export default function Dsbd({ onLogout }) {
                                 <span className="font-medium">Inventaris</span>
                             </div>
                             <svg
-                                className={`w-4 h-4 transform transition-transform ${
-                                    activeDropdown === "inventaris"
-                                        ? "rotate-180"
-                                        : ""
-                                }`}
+                                className={`w-4 h-4 transform transition-transform ${activeDropdown === "inventaris"
+                                    ? "rotate-180"
+                                    : ""
+                                    }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -504,11 +511,10 @@ export default function Dsbd({ onLogout }) {
                                     onClick={() =>
                                         setActivePage("barang-masuk")
                                     }
-                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
-                                        activePage === "barang-masuk"
-                                            ? "bg-white bg-opacity-20"
-                                            : "bg-white bg-opacity-5"
-                                    }`}
+                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "barang-masuk"
+                                        ? "bg-white bg-opacity-20"
+                                        : "bg-white bg-opacity-5"
+                                        }`}
                                 >
                                     Barang Masuk
                                 </button>
@@ -516,11 +522,10 @@ export default function Dsbd({ onLogout }) {
                                     onClick={() =>
                                         setActivePage("barang-keluar")
                                     }
-                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
-                                        activePage === "barang-keluar"
-                                            ? "bg-white bg-opacity-20"
-                                            : "bg-white bg-opacity-5"
-                                    }`}
+                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "barang-keluar"
+                                        ? "bg-white bg-opacity-20"
+                                        : "bg-white bg-opacity-5"
+                                        }`}
                                 >
                                     Barang Keluar
                                 </button>
@@ -704,7 +709,19 @@ export default function Dsbd({ onLogout }) {
                                         Daftar Pemain Terbaru
                                     </h3>
                                     <button
-                                        onClick={() => setIsModalOpen(true)}
+                                        onClick={() => {
+                                            setFormData({
+                                                nama_lengkap: "",
+                                                email: "",
+                                                phone: "",
+                                                tanggal_lahir: "",
+                                                alamat: "",
+                                                posisi: "",
+                                                status: "Aktif"
+                                            });
+                                            setIsModalOpen(true);
+                                        }}
+
                                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm"
                                     >
                                         + Tambah Pemain
@@ -921,11 +938,10 @@ export default function Dsbd({ onLogout }) {
                                         ? setIsPemasukan(true)
                                         : setIsPengeluaran(true)
                                 }
-                                className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm text-white transition-colors ${
-                                    activePage === "pemasukan"
-                                        ? "bg-green-600 hover:bg-green-700"
-                                        : "bg-red-600 hover:bg-red-700"
-                                }`}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm text-white transition-colors ${activePage === "pemasukan"
+                                    ? "bg-green-600 hover:bg-green-700"
+                                    : "bg-red-600 hover:bg-red-700"
+                                    }`}
                             >
                                 + Input {activePage}
                             </button>
@@ -964,7 +980,7 @@ export default function Dsbd({ onLogout }) {
                                                     item.tipe === "pemasukan"
                                                         ? "text-green-600"
                                                         : "text-red-600"
-                                                }`}
+                                                    }`}
                                             >
                                                 {/* Sesuaikan field database: jumlah */}
                                                 {formatRupiah(item.jumlah)}
@@ -998,7 +1014,9 @@ export default function Dsbd({ onLogout }) {
                                 </h3>
 
                                 <button
-                                    onClick={() => setActiveEdit(false)}
+                                    onClick={() => {
+                                        setActiveEdit(false);
+                                    }}
                                     className="text-white hover:text-gray-200"
                                 >
                                     <svg
