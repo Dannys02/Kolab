@@ -1,8 +1,5 @@
 import { useState } from "react";
 import { Search, Calendar, User, ArrowRight } from "lucide-react";
-import articleCoaching from "../assets/article-coaching.jpg";
-import programYouth from "../assets/program-youth.jpg";
-import programElite from "../assets/program-elite.jpg";
 
 export default function Artikel() {
     const [search, setSearch] = useState("");
@@ -12,7 +9,7 @@ export default function Artikel() {
         title: "5 Tips Meningkatkan Teknik Dribbling untuk Pemain Muda",
         excerpt:
             "Dribbling adalah salah satu keterampilan fundamental dalam sepak bola. Pelajari teknik-teknik dasar yang akan membantu meningkatkan kontrol bola dan kepercayaan diri di lapangan.",
-        image: articleCoaching,
+        image: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhfZSB2NfLNl1KjexAuVNA4pxFgOuXp9QF6oriCJVCV_sXPuNaeWQbO1T77I7cFP7XI2yydAtLg-U8nJL73l3JHggkqUvOWaeQDFBZxwQc5nE6c_avgPTcpEdxR3tRxzxtGH0GMmCK00oiQ9h9PHXVZHk9lPRN4MofXHK3jNxGur4zWEIp-7G_5S5VC/s800/dribbling.jpg",
         category: "Tutorial",
         author: "Coach Ahmad",
         date: "15 Mei 2024",
@@ -24,7 +21,7 @@ export default function Artikel() {
             title: "Pentingnya Nutrisi dalam Performa Pemain Sepak Bola",
             excerpt:
                 "Nutrisi yang tepat adalah kunci untuk performa optimal. Ketahui makanan dan pola makan yang disarankan untuk atlet muda.",
-            image: programYouth,
+            image: "https://doktersehat.com/wp-content/uploads/2019/02/menu-makanan-pemain-sepak-bola-doktersehat-700x459.png",
             category: "Kesehatan",
             author: "Dr. Budi Santoso",
             date: "12 Mei 2024",
@@ -34,7 +31,7 @@ export default function Artikel() {
             title: "Mental Juara: Membangun Kepercayaan Diri di Lapangan",
             excerpt:
                 "Aspek mental sama pentingnya dengan teknik fisik. Pelajari cara membangun mental yang kuat untuk menghadapi tekanan kompetisi.",
-            image: programElite,
+            image: "https://i.ytimg.com/vi/JoSPpHRcUeg/maxresdefault.jpg",
             category: "Psikologi",
             author: "Coach Rina",
             date: "10 Mei 2024",
@@ -44,7 +41,7 @@ export default function Artikel() {
             title: "Strategi Passing Modern dalam Sepak Bola Kontemporer",
             excerpt:
                 "Passing bukan hanya tentang mengoper bola. Pelajari strategi passing modern yang digunakan club-club top Eropa.",
-            image: articleCoaching,
+            image: "https://1.bp.blogspot.com/-y-xxkNBCHAs/WjaGkSrLV3I/AAAAAAAAFlg/Ih2TzEdUwvsJPCUP-2w-Sw8x7uPi1xedACLcBGAs/s1600/Strategi%2BPressing.jpg",
             category: "Taktik",
             author: "Coach Dedi",
             date: "8 Mei 2024",

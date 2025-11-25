@@ -569,11 +569,11 @@ export default function Dsbd({ onLogout }) {
                         <div>
                             <h1 className="text-2xl font-bold text-gray-800 capitalize">
                                 {activePage === "dashboard"
-                                    ? "Dashboard Academy"
+                                    ? "Dashboard Sepak Bola SMKS MUHAMMADIYAH 1 GENTENG"
                                     : `Data ${activePage.replace("-", " ")}`}
                             </h1>
                             <p className="text-gray-600">
-                                Sistem manajemen football academy
+                                Sistem manajemen Sepak Bola  Smks Muhammadiyah 1 Genteng
                             </p>
                         </div>
                         <div className="text-right hidden sm:block">

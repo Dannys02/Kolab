@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 export default function MemberDashboard({onLogout}) {
-    // --- 1. STATE (PENAMPUNG DATA) ---
     const [activeTab, setActiveTab] = useState('biodata');
     
     // State Biodata                       
@@ -29,14 +28,12 @@ export default function MemberDashboard({onLogout}) {
         jatuh_tempo: ''
     });
 
-    // --- 2. EFFECT (JALAN OTOMATIS) ---
     useEffect(() => {
         if (activeTab === 'tagihan') {
             fetchDataKeuangan();
         }
     }, [activeTab]);
 
-    // --- 3. FUNGSI-FUNGSI (LOGIC) ---
     
     // Ambil Data Keuangan
     const fetchDataKeuangan = async () => {
@@ -160,7 +157,6 @@ export default function MemberDashboard({onLogout}) {
         }
     };
 
-    // --- 4. TAMPILAN (JSX) ---
     return (
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
             
@@ -247,58 +243,6 @@ export default function MemberDashboard({onLogout}) {
                     {/* TAB 4: Cek Tagihan (YANG KAMU TANYAKAN) */}
                     {activeTab === 'tagihan' && (
                         <div className="space-y-8">
-                            
-                            {/* 1. FORM TAMBAH TAGIHAN (BARU) */}
-                            <div className="bg-white border border-orange-200 rounded-xl p-6 shadow-sm">
-                                <h3 className="text-lg font-bold text-orange-600 mb-4 flex items-center">
-                                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                                    Buat Tagihan Baru
-                                </h3>
-                                <form onSubmit={handleAddTagihan} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-500 mb-1">Judul Tagihan</label>
-                                        <input 
-                                            type="text" 
-                                            placeholder="Cth: Uang Seragam"
-                                            className="w-full p-2 border rounded-lg text-sm"
-                                            value={newTagihan.judul}
-                                            onChange={(e) => setNewTagihan({...newTagihan, judul: e.target.value})}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-500 mb-1">Jumlah (Rp)</label>
-                                        <input 
-                                            type="number" 
-                                            placeholder="Cth: 150000"
-                                            className="w-full p-2 border rounded-lg text-sm"
-                                            value={newTagihan.jumlah}
-                                            onChange={(e) => setNewTagihan({...newTagihan, jumlah: e.target.value})}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-500 mb-1">Jatuh Tempo</label>
-                                        <input 
-                                            type="date" 
-                                            className="w-full p-2 border rounded-lg text-sm"
-                                            value={newTagihan.jatuh_tempo}
-                                            onChange={(e) => setNewTagihan({...newTagihan, jatuh_tempo: e.target.value})}
-                                            required
-                                        />
-                                    </div>
-                                    <button 
-                                        type="submit" 
-                                        disabled={isLoading}
-                                        className="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-lg text-sm font-medium transition-colors"
-                                    >
-                                        + Tambah
-                                    </button>
-                                </form>
-                            </div>
-
-                            <hr className="border-gray-200" />
-
                             {/* 2. INFO TAGIHAN & RIWAYAT (LAMA) */}
                             <h3 className="text-lg font-semibold text-gray-900">Cek Total Tagihan</h3>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

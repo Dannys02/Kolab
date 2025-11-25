@@ -97,28 +97,6 @@ export default function Beranda() {
 
                 </div>
 
-                <div className="bg-white py-16">
-
-                    <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 text-center gap-8">
-
-                        {stats.map((s, i) => (
-                            <div key={i}>
-
-                                <p className="text-3xl font-bold text-green-600">
-                                    {s.number}
-                                </p>
-
-                                <p className="text-gray-500 text-sm mt-2">
-                                    {s.label}
-                                </p>
-
-                            </div>
-                        ))}
-
-                    </div>
-
-                </div>
-
                 <div className="bg-gradient-to-r from-green-500 to-green-600 text-white text-center py-16 px-4">
 
                     <h2 className="text-2xl md:text-3xl font-bold">

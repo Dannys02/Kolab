@@ -105,7 +105,7 @@ export default function Login({ setToken, setUserRole }) {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 transition-colors"
+                  className="outline-none block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 transition-colors"
                   placeholder="Masukkan Akun Anda"
                 />
               </div>
@@ -118,7 +118,7 @@ export default function Login({ setToken, setUserRole }) {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 transition-colors"
+                  className="outline-none block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 transition-colors"
                   placeholder="Masukkan Password Anda"
                 />
               </div>
