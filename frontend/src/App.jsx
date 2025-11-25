@@ -12,7 +12,8 @@ import Galeri from "./pages/Galeri";
 import Artikel from "./pages/Artikel";
 import Kontak from "./pages/Kontak";
 import Login from "./pages/Login";
-import Register from "./pages/Register"; 
+import Register from "./pages/Register";
+import NotFound from './pages/NotFound';
 
 // Dashboard
 import Dashboard from "./pages/Dashboard";
@@ -51,62 +52,51 @@ function App() {
     setUserRole(null);
   };
 
-  // Logic menyembunyikan Navbar/Footer
+  // Logic menyembunyikan Navbar/Footer - DIPERBAIKI
   const noLayoutRoutes = [
     "/admin",
     "/dashboard",
-    "/portal",
+    "/portal", 
     "/login",
     "/register",
   ];
+  
   const hideLayout = noLayoutRoutes.some((route) =>
     location.pathname.startsWith(route)
   );
+
+  // ✅ TAMBAHKAN: Logic khusus untuk halaman 404
+  const isNotFoundPage = ![
+    "/", "/program", "/galeri", "/artikel", "/kontak", 
+    "/login", "/register", "/admin", "/dashboard", "/portal"
+  ].some(route => location.pathname === route) && 
+  !location.pathname.startsWith("/dashboard") && 
+  !location.pathname.startsWith("/portal");
 
   // --- COMPONENT GUARD (PELINDUNG ROUTE) ---
 
   // 1. Guard Khusus Admin
   const AdminRoute = ({ children }) => {
-    // Jika tidak ada token, jelas harus login
     if (!token) return <Navigate to="/login" replace />;
-
-    // [FIX PENTING] Jika userRole masih null (belum ke-load dari state/localStorage), 
-    // jangan lakukan apa-apa dulu (return null) atau tampilkan Loading, 
-    // supaya tidak mental ke Redirect di bawah.
-    if (!userRole) return null; 
-
-    // Jika Admin, silakan masuk
+    if (!userRole) return null;
     if (userRole === "admin") return children;
-
-    // Jika User biasa coba masuk Admin, lempar ke portal mereka
     if (userRole === "user") return <Navigate to="/portal/dashboard" replace />;
-
-    // Default: Lempar ke login
     return <Navigate to="/login" replace />;
   };
 
   // 2. Guard Khusus Member/User
   const MemberRoute = ({ children }) => {
-    // Jika tidak ada token, tendang ke login
     if (!token) return <Navigate to="/login" replace />;
-
-    // [FIX PENTING] Tunggu role ada isinya agar tidak mental
     if (!userRole) return null;
-
-    // Jika User, silakan masuk
     if (userRole === "user") return children;
-
-    // Jika Admin coba masuk Portal User, lempar ke Dashboard Admin
     if (userRole === "admin") return <Navigate to="/dashboard" replace />;
-
-    // Default
     return <Navigate to="/login" replace />;
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navbar muncul hanya di halaman publik */}
-      {!hideLayout && <Navbar />}
+      {/* ✅ PERBAIKAN: Navbar disembunyikan untuk halaman 404 */}
+      {!hideLayout && !isNotFoundPage && <Navbar />}
 
       <Routes>
         {/* --- ROUTE PUBLIK --- */}
@@ -119,20 +109,17 @@ function App() {
         <Route
           path="/register"
           element={
-            // Kirim props setToken & setUserRole
             <Register setToken={setToken} setUserRole={setUserRole} />
           }
         />
-        
+
         {/* --- ROUTE LOGIN --- */}
         <Route
           path="/login"
           element={
             !token ? (
-              // Belum login? Tampilkan Form Login
               <Login setToken={setToken} setUserRole={setUserRole} />
             ) : (
-              // Sudah login? Cek Role
               <Navigate
                 to={userRole === "admin" ? "/dashboard" : "/portal/dashboard"}
                 replace
@@ -163,10 +150,13 @@ function App() {
             </MemberRoute>
           }
         />
+
+        {/* ✅ Route 404 - TIDAK AKAN MENAMPILKAN NAVBAR/FOOTER */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {/* Footer muncul hanya di halaman publik */}
-      {!hideLayout && <Footer />}
+      {/* ✅ PERBAIKAN: Footer disembunyikan untuk halaman 404 */}
+      {!hideLayout && !isNotFoundPage && <Footer />}
     </div>
   );
 }
