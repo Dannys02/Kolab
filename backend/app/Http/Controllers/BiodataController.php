@@ -7,27 +7,52 @@ use Illuminate\Http\Request;
 
 class BiodataController extends Controller
 {
-    public function store(Request $request)
-    {
-        $request->validate([
-            'nama_lengkap' => 'required|string',
-            'email' => 'required|email',
-            'phone' => 'required|numeric',
-            'alamat' => 'required|string',
-            'tanggal_lahir' => 'required|date'
-        ]);
+  public function store(Request $request)
+  {
+    $request->validate([
+      "nama_lengkap" => "required|string",
+      "email" => "required|email",
+      "phone" => "required|numeric",
+      "alamat" => "required|string",
+      "tanggal_lahir" => "required|date",
+    ]);
 
-        $biodata = Biodata::create([
-            'nama_lengkap' => $request->nama_lengkap,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'alamat' => $request->alamat,
-            'tanggal_lahir' => $request->tanggal_lahir
-        ]);
+    $biodata = Biodata::create($request->all());
 
-        return response()->json([
-            'message' => 'Pendaftaran Berhasil',
-            'data' => $biodata
-        ], 201);
-    }
+    return response()->json(
+      [
+        "message" => "Pendaftaran Berhasil",
+        "data" => $biodata,
+      ],
+      201
+    );
+  }
+
+  public function update(Request $request, $id)
+  {
+    $request->validate([
+      "nama_lengkap" => "required|string",
+      "email" => "required|email",
+      "phone" => "required|numeric",
+      "alamat" => "required|string",
+      "tanggal_lahir" => "required|date",
+    ]);
+
+    $biodata = Biodata::findOrFail($id);
+    $biodata->update($request->all());
+
+    return response()->json([
+      "message" => "Data Berhasil Diupdate",
+      "data" => $biodata,
+    ]);
+  }
+
+  public function destroy($id)
+  {
+    Biodata::findOrFail($id)->delete();
+
+    return response()->json([
+      "message" => "Data Berhasil Dihapus",
+    ]);
+  }
 }

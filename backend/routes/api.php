@@ -20,6 +20,11 @@ use App\Http\Controllers\Api\TransaksiController;
 Route::post('/login', [AuthController::class, 'login']);
 // Ini menggunakan token Login Admin (Otomatis aman)
 Route::middleware('auth:sanctum')->post('/biodata', [BiodataController::class, 'store']);
+
+Route::put('/biodata/{id}', [BiodataController::class, 'update']);
+
+Route::delete('/biodata/{id}', [BiodataController::class, 'destroy']);
+
 // regster
 Route::post('/register', [AuthController::class, 'register']);
 
