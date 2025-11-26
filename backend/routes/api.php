@@ -58,6 +58,8 @@ Route::get('/dashboard/index', [DashboardController::class, 'biodataIndex']);
 Route::prefix('transaksi')->group(function () {
     Route::get('/', [TransaksiController::class, 'index']);
     Route::get('/pemasukan', [TransaksiController::class, 'pemasukan']);
+    Route::put('/pemasukan/update/{id}', [TransaksiController::class, 'update']);
+    Route::delete('/pemasukan/delete/{id}', [TransaksiController::class, 'destroy']);
     Route::get('/pengeluaran', [TransaksiController::class, 'pengeluaran']);
     Route::post('/', [TransaksiController::class, 'store']);
 });

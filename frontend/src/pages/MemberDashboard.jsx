@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-export default function MemberDashboard({onLogout}) {
+export default function MemberDashboard({ onLogout }) {
     const [activeTab, setActiveTab] = useState('biodata');
-    
+
+    const tahunIni = new Date().getFullYear();
+
     // State Biodata                       
     const [biodata, setBiodata] = useState({
         nama_lengkap: '', email: '', phone: '', alamat: '', tanggal_lahir: ''
@@ -14,7 +16,7 @@ export default function MemberDashboard({onLogout}) {
     const [isLoading, setIsLoading] = useState(false);
     const [files, setFiles] = useState([]);
     const [paymentAmount, setPaymentAmount] = useState('');
-    
+
     // State Keuangan (Data dari API)
     const [keuangan, setKeuangan] = useState({
         total_tagihan: 0,
@@ -34,7 +36,7 @@ export default function MemberDashboard({onLogout}) {
         }
     }, [activeTab]);
 
-    
+
     // Ambil Data Keuangan
     const fetchDataKeuangan = async () => {
         try {
@@ -46,7 +48,7 @@ export default function MemberDashboard({onLogout}) {
     };
 
     // [BARU] Fungsi Tambah Tagihan
-   const handleAddTagihan = async (e) => {
+    const handleAddTagihan = async (e) => {
         e.preventDefault();
         setIsLoading(true);
 
@@ -84,7 +86,7 @@ export default function MemberDashboard({onLogout}) {
     const token = localStorage.getItem('token');
     // Fungsi Submit Biodata
     const handleSubmit = async (e) => {
-        e.preventDefault(); 
+        e.preventDefault();
         setIsLoading(true);
         setMessage({ type: '', text: '' });
 
@@ -103,7 +105,7 @@ export default function MemberDashboard({onLogout}) {
             // ... kode error handling (tetap sama) ...
             if (error.response && error.response.status === 403) {
                 // Tangkap error spesifik 403 Forbidden
-                 setMessage({ type: 'error', text: 'Gagal: Akses Ditolak! Token Rahasia Salah.' });
+                setMessage({ type: 'error', text: 'Gagal: Akses Ditolak! Token Rahasia Salah.' });
             } else if (error.response && error.response.data.message) {
                 setMessage({ type: 'error', text: 'Gagal: ' + error.response.data.message });
             } else {
@@ -118,7 +120,7 @@ export default function MemberDashboard({onLogout}) {
     const handleBiodataChange = (e) => setBiodata({ ...biodata, [e.target.name]: e.target.value });
     const handleFileUpload = (e) => setFiles(prev => [...prev, ...Array.from(e.target.files)]);
     const removeFile = (index) => setFiles(prev => prev.filter((_, i) => i !== index));
-    
+
     const handlePayment = async () => {
         if (!paymentAmount || paymentAmount <= 0) {
             alert("Masukkan jumlah pembayaran yang valid.");
@@ -145,9 +147,9 @@ export default function MemberDashboard({onLogout}) {
 
             alert(`Pembayaran Berhasil!`);
             setPaymentAmount(''); // Kosongkan input
-            
+
             // [PENTING] Refresh data agar "Sisa Tagihan" dan "Riwayat" langsung update
-            fetchDataKeuangan(); 
+            fetchDataKeuangan();
 
         } catch (error) {
             console.error("Gagal bayar", error);
@@ -159,7 +161,7 @@ export default function MemberDashboard({onLogout}) {
 
     return (
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-            
+
             {/* Tabs Header */}
             <div className="bg-white rounded-xl shadow-sm border mb-8">
                 <div className="border-b">
@@ -167,7 +169,6 @@ export default function MemberDashboard({onLogout}) {
                         {[
                             { id: 'biodata', name: 'Input Biodata', icon: '👤' },
                             { id: 'berkas', name: 'Upload Berkas', icon: '📁' },
-                            { id: 'pembayaran', name: 'Pembayaran Cash', icon: '💰' },
                             { id: 'tagihan', name: 'Cek Tagihan', icon: '🧾' }
                         ].map((tab) => (
                             <button
@@ -180,7 +181,7 @@ export default function MemberDashboard({onLogout}) {
                         ))}
                     </nav>
                 </div>
-                        
+
                 <div className="p-6">
                     {/* Notifikasi */}
                     {message.text && (
@@ -189,7 +190,7 @@ export default function MemberDashboard({onLogout}) {
                         </div>
                     )}
 
-                    {/* TAB 1: Biodata */}
+                    {/* Biodata */}
                     {activeTab === 'biodata' && (
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <h3 className="text-lg font-semibold text-gray-900">Input Biodata</h3>
@@ -211,7 +212,7 @@ export default function MemberDashboard({onLogout}) {
                         </form>
                     )}
 
-                    {/* TAB 2: Berkas */}
+                    {/* Berkas */}
                     {activeTab === 'berkas' && (
                         <div className="text-center p-8 border-2 border-dashed rounded-xl">
                             <input type="file" multiple onChange={handleFileUpload} className="hidden" id="file-upload" />
@@ -227,26 +228,13 @@ export default function MemberDashboard({onLogout}) {
                         </div>
                     )}
 
-                    {/* TAB 3: Pembayaran */}
-                    {activeTab === 'pembayaran' && (
-                        <div className="max-w-md space-y-4">
-                            <h3 className="text-lg font-semibold">Pembayaran Cash</h3>
-                            <input type="number" value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} className="w-full px-4 py-3 border rounded-lg" placeholder="Jumlah Bayar (Rp)" />
-                            <div className="p-4 bg-blue-50 rounded-lg flex justify-between">
-                                <span>Sisa Tagihan:</span>
-                                <span className="font-bold">Rp {(keuangan.total_tagihan - (paymentAmount || 0)).toLocaleString('id-ID')}</span>
-                            </div>
-                            <button onClick={handlePayment} className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700">Konfirmasi</button>
-                        </div>
-                    )}
-
-                    {/* TAB 4: Cek Tagihan (YANG KAMU TANYAKAN) */}
+                    {/* Cek Tagihan (YANG KAMU TANYAKAN) */}
                     {activeTab === 'tagihan' && (
                         <div className="space-y-8">
                             {/* 2. INFO TAGIHAN & RIWAYAT (LAMA) */}
                             <h3 className="text-lg font-semibold text-gray-900">Cek Total Tagihan</h3>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                
+
                                 {/* Kartu Biru */}
                                 <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
                                     <h4 className="font-semibold mb-4">Total Tagihan</h4>
@@ -255,40 +243,15 @@ export default function MemberDashboard({onLogout}) {
                                     </p>
                                     <p className="text-blue-100 text-sm">Sisa Kewajiban Pembayaran</p>
                                 </div>
-
-                                {/* Riwayat List */}
-                                <div className="md:col-span-2 bg-white border border-gray-200 rounded-xl p-6">
-                                    <h4 className="font-semibold text-gray-900 mb-4">Riwayat Pembayaran</h4>
-                                    <div className="space-y-4">
-                                        {keuangan.riwayat.length === 0 ? (
-                                            <p className="text-gray-500 italic">Belum ada data pembayaran.</p>
-                                        ) : (
-                                            keuangan.riwayat.map((payment, index) => (
-                                                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                                    <div>
-                                                        <p className="font-medium text-gray-900">
-                                                            {new Date(payment.tanggal_bayar).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                        </p>
-                                                        <p className="text-sm text-gray-500">Metode: {payment.metode}</p>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <p className="font-semibold text-gray-900">
-                                                            Rp {parseInt(payment.jumlah_bayar).toLocaleString('id-ID')}
-                                                        </p>
-                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                            {payment.status}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     )}
                 </div>
             </div>
+
+            <footer className="text-center py-4 text-gray-500">
+                <p>&copy; {tahunIni} Kolab. Hak cipta dilindungi.</p>
+            </footer>
         </main>
     );
 }

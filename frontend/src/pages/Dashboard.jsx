@@ -4,6 +4,7 @@ import Logo from '../assets/logosmks.png';
 export default function Dsbd({ onLogout }) {
     const tahunIni = new Date().getFullYear();
     const [activeEdit, setActiveEdit] = useState(false);
+    const [activeTransaksiEdit, setActiveTransaksiEdit] = useState(false);
     const [isPemasukan, setIsPemasukan] = useState(false);
     const [isPengeluaran, setIsPengeluaran] = useState(false);
     const [activePage, setActivePage] = useState("dashboard");
@@ -16,18 +17,6 @@ export default function Dsbd({ onLogout }) {
     const [loading, setLoading] = useState(true);
 
     const [editData, setEditData] = useState(null);
-
-    const initialForm = {
-        nama_lengkap: "",
-        email: "",
-        phone: "",
-        tanggal_lahir: "",
-        alamat: "",
-        posisi: "",
-        status: "Aktif"
-    };
-
-    const [addForm, setAddForm] = useState(initialForm);
 
     // --- STATE MODAL TAMBAH PEMAIN ---
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -140,6 +129,36 @@ export default function Dsbd({ onLogout }) {
         } catch (error) {
             console.error("Error fetching transaksi:", error);
         }
+    };
+
+    // PUT /api/transaksi/:id
+    const handleUpdateTransaksi = async () => {
+        await fetch(`http://localhost:8000/api/transaksi/pemasukan/update${editData.id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify(transaksiForm),
+        });
+
+        setActiveTransaksiEdit(false);
+        fetchDataKeuangan();
+        fetchDataTotalKas();
+    };
+
+
+    // DELETE /api/transaksi/:id
+    const handleDeleteTransaksi = async (id) => {
+        await fetch(`http://localhost:8000/api/transaksi/pemasukan/delete/${id}`, {
+            method: "DELETE",
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`
+            }
+        });
+
+        fetchDataKeuangan();
+        fetchDataTotalKas();
     };
 
     // 3. GET /api/total
@@ -666,10 +685,10 @@ export default function Dsbd({ onLogout }) {
                                 </div>
                                 <div>
                                     <p className="text-gray-500 text-sm">
-                                        Total Kas
+                                        Total Tim
                                     </p>
                                     <p className="text-2xl font-bold text-gray-800">
-                                        {formatRupiah(stats.totalKas)}
+                                        {stats.teams}
                                     </p>
                                 </div>
                             </div>
@@ -690,12 +709,14 @@ export default function Dsbd({ onLogout }) {
                                         />
                                     </svg>
                                 </div>
+
+
                                 <div>
                                     <p className="text-gray-500 text-sm">
-                                        Total Tim
+                                        Total Kas
                                     </p>
                                     <p className="text-2xl font-bold text-gray-800">
-                                        {stats.teams}
+                                        {formatRupiah(stats.totalKas)}
                                     </p>
                                 </div>
                             </div>
@@ -959,6 +980,10 @@ export default function Dsbd({ onLogout }) {
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
                                             Jumlah
                                         </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
+                                            Action
+                                        </th>
+
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
@@ -984,6 +1009,88 @@ export default function Dsbd({ onLogout }) {
                                             >
                                                 {/* Sesuaikan field database: jumlah */}
                                                 {formatRupiah(item.jumlah)}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex justify-center items-center gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setEditData(item);
+                                                            setTransaksiForm({
+                                                                tanggal: item.tanggal,
+                                                                deskripsi: item.deskripsi,
+                                                                jumlah: item.jumlah
+                                                            });
+                                                            setActiveTransaksiEdit(true);
+                                                        }}
+
+                                                        className="
+                              inline-flex items-center gap-1
+                              px-2.5 py-1.5 text-sm font-medium
+                              rounded-md
+                              bg-transparent
+                              hover:bg-yellow-500 hover:text-white
+                              focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-yellow-300
+                              transition transform duration-150
+                              shadow-sm
+                            "
+                                                    >
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            className="h-4 w-4"
+                                                            fill="none"
+                                                            viewBox="0 0 24 24"
+                                                            stroke="currentColor"
+                                                            strokeWidth="2"
+                                                            aria-hidden="true"
+                                                        >
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                d="M11 5h6M4 20l7-7 3 3 7-7a2.828 2.828 0 10-4-4l-7 7-3-3-7 7v4h4z"
+                                                            />
+                                                        </svg>
+                                                        <span className="leading-none">
+                                                            {" "}
+                                                            Edit
+                                                        </span>
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => handleDeleteTransaksi(item.id)}
+                                                        type="button"
+                                                        aria-label="Delete"
+                                                        className="
+                              inline-flex items-center gap-1
+                              px-2.5 py-1.5 text-sm font-medium
+                              rounded-md
+                              bg-transparent
+                              hover:bg-red-600 hover:text-white
+                              focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-400
+                              transition transform duration-150
+                              shadow-sm
+                            "
+                                                    >
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            className="h-4 w-4"
+                                                            fill="none"
+                                                            viewBox="0 0 24 24"
+                                                            stroke="currentColor"
+                                                            strokeWidth="2"
+                                                            aria-hidden="true"
+                                                        >
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4m-7 4h10"
+                                                            />
+                                                        </svg>
+                                                        <span className="leading-none">
+                                                            Delete
+                                                        </span>
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -1122,6 +1229,120 @@ export default function Dsbd({ onLogout }) {
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                )}
+
+                {activeTransaksiEdit && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm">
+                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
+                            <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-500 flex justify-between items-center">
+                                <h3 className="text-lg font-bold text-white">
+                                    Edit Data Pemasukan
+                                </h3>
+
+                                <button
+                                    onClick={() => {
+                                        setActiveTransaksiEdit(false);
+                                    }}
+                                    className="text-white hover:text-gray-200"
+                                >
+                                    <svg
+                                        className="w-6 h-6"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M6 18L18 6M6 6l12 12"
+                                        />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <form
+                                className="space-y-6 p-6"
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    handleUpdateTransaksi();
+                                }}
+                            >
+                                {/* TANGGAL */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Tanggal <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="date"
+                                        name="tanggal"
+                                        value={transaksiForm.tanggal}
+                                        onChange={handleTransaksiChange}
+                                        required
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none"
+                                    />
+                                </div>
+
+                                {/* DESKRIPSI */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Keterangan <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="deskripsi"
+                                        value={transaksiForm.deskripsi}
+                                        onChange={handleTransaksiChange}
+                                        required
+                                        placeholder="Contoh: Iuran Bulanan"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none"
+                                    />
+                                </div>
+
+                                {/* JUMLAH */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Jumlah <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
+                                            Rp
+                                        </span>
+                                        <input
+                                            type="number"
+                                            name="jumlah"
+                                            value={transaksiForm.jumlah}
+                                            onChange={handleTransaksiChange}
+                                            required
+                                            placeholder="0"
+                                            min="0"
+                                            className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* BUTTON */}
+                                <div className="flex space-x-3 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTransaksiEdit(false)}
+                                        className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-all duration-200 border border-gray-300"
+                                    >
+                                        Batal
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        disabled={isLoadingSubmit}
+                                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+                                    >
+                                        {isLoadingSubmit ? "Mengedit..." : "Edit"}
+                                    </button>
+                                </div>
+                            </form>
+
                         </div>
                     </div>
                 )}
