@@ -13,9 +13,9 @@ export default function Footer() {
     ];
 
     return (
-        <footer className="border-t border-gray-200 py-8 px-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 mx-auto max-w-6xl">
-                <div className=" md:col-span-1  ">
+        <footer className="border-t border-gray-200 w-full py-8 px-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 mx-auto w-fit">
+                <div className="md:col-span-1">
                     <div className="flex items-center mb-4">
                         <div className="w-8 h-8 rounded-full flex items-center justify-center mr-2">
                             <img src={Logo} alt="Logo SMKS MUHAMMADIYAH 1 GENTENG" />
@@ -47,7 +47,7 @@ export default function Footer() {
                     </div>
                 </div>
 
-                <div className=" ">
+                <div className="w-fit">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
                         Kontak
                     </h3>
@@ -79,7 +79,7 @@ export default function Footer() {
                     </div>
                 </div>
 
-                <div className="md:col-span-1">
+                <div className="md:col-span-1 w-fit">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
                         Ikuti Kami
                     </h3>

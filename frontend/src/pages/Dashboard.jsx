@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Logo from '../assets/logosmks.png';
+import Logo from "../assets/logosmks.png";
 
 export default function Dsbd({ onLogout }) {
     const tahunIni = new Date().getFullYear();
@@ -133,29 +133,34 @@ export default function Dsbd({ onLogout }) {
 
     // PUT /api/transaksi/:id
     const handleUpdateTransaksi = async () => {
-        await fetch(`http://localhost:8000/api/transaksi/pemasukan/update${editData.id}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: JSON.stringify(transaksiForm),
-        });
+        await fetch(
+            `http://localhost:8000/api/transaksi/pemasukan/update/${editData.id}`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+                },
+                body: JSON.stringify(transaksiForm)
+            }
+        );
 
         setActiveTransaksiEdit(false);
         fetchDataKeuangan();
         fetchDataTotalKas();
     };
 
-
     // DELETE /api/transaksi/:id
-    const handleDeleteTransaksi = async (id) => {
-        await fetch(`http://localhost:8000/api/transaksi/pemasukan/delete/${id}`, {
-            method: "DELETE",
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`
+    const handleDeleteTransaksi = async id => {
+        await fetch(
+            `http://localhost:8000/api/transaksi/pemasukan/delete/${id}`,
+            {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+                }
             }
-        });
+        );
 
         fetchDataKeuangan();
         fetchDataTotalKas();
@@ -368,10 +373,11 @@ export default function Dsbd({ onLogout }) {
 
             {/* Sidebar */}
             <aside
-                className={`min-h-screen w-64 fixed left-0 p-6 bg-gradient-to-b from-green-600 to-blue-600 shadow-2xl transform transition-transform duration-300 z-40 ${sidebarOpen
-                    ? "translate-x-0"
-                    : "-translate-x-full lg:translate-x-0"
-                    }`}
+                className={`min-h-screen w-64 fixed left-0 p-6 bg-gradient-to-b from-green-600 to-blue-600 shadow-2xl transform transition-transform duration-300 z-40 ${
+                    sidebarOpen
+                        ? "translate-x-0"
+                        : "-translate-x-full lg:translate-x-0"
+                }`}
             >
                 <div className="flex items-center justify-center mb-8 pt-4">
                     <div className="bg-white rounded-full p-3 shadow-lg">
@@ -391,10 +397,11 @@ export default function Dsbd({ onLogout }) {
                 <nav className="space-y-2">
                     <button
                         onClick={() => setActivePage("dashboard")}
-                        className={`w-full flex items-center px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${activePage === "dashboard"
-                            ? "bg-white bg-opacity-20"
-                            : "bg-white bg-opacity-10"
-                            }`}
+                        className={`w-full flex items-center px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${
+                            activePage === "dashboard"
+                                ? "bg-white bg-opacity-20"
+                                : "bg-white bg-opacity-10"
+                        }`}
                     >
                         <svg
                             className="w-5 h-5 mr-3"
@@ -416,12 +423,13 @@ export default function Dsbd({ onLogout }) {
                     <div className="relative">
                         <button
                             onClick={() => toggleDropdown("transaksi")}
-                            className={`w-full flex items-center justify-between px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${["pemasukan", "pengeluaran"].includes(
-                                activePage
-                            )
-                                ? "bg-white bg-opacity-20"
-                                : "bg-white bg-opacity-10"
-                                }`}
+                            className={`w-full flex items-center justify-between px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${
+                                ["pemasukan", "pengeluaran"].includes(
+                                    activePage
+                                )
+                                    ? "bg-white bg-opacity-20"
+                                    : "bg-white bg-opacity-10"
+                            }`}
                         >
                             <div className="flex items-center">
                                 <svg
@@ -440,10 +448,11 @@ export default function Dsbd({ onLogout }) {
                                 <span className="font-medium">Transaksi</span>
                             </div>
                             <svg
-                                className={`w-4 h-4 transform transition-transform ${activeDropdown === "transaksi"
-                                    ? "rotate-180"
-                                    : ""
-                                    }`}
+                                className={`w-4 h-4 transform transition-transform ${
+                                    activeDropdown === "transaksi"
+                                        ? "rotate-180"
+                                        : ""
+                                }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -460,19 +469,21 @@ export default function Dsbd({ onLogout }) {
                             <div className="ml-6 mt-2 space-y-1 border-l-2 border-white border-opacity-20 pl-4">
                                 <button
                                     onClick={() => setActivePage("pemasukan")}
-                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "pemasukan"
-                                        ? "bg-white bg-opacity-20"
-                                        : "bg-white bg-opacity-5"
-                                        }`}
+                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
+                                        activePage === "pemasukan"
+                                            ? "bg-white bg-opacity-20"
+                                            : "bg-white bg-opacity-5"
+                                    }`}
                                 >
                                     Pemasukan
                                 </button>
                                 <button
                                     onClick={() => setActivePage("pengeluaran")}
-                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "pengeluaran"
-                                        ? "bg-white bg-opacity-20"
-                                        : "bg-white bg-opacity-5"
-                                        }`}
+                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
+                                        activePage === "pengeluaran"
+                                            ? "bg-white bg-opacity-20"
+                                            : "bg-white bg-opacity-5"
+                                    }`}
                                 >
                                     Pengeluaran
                                 </button>
@@ -484,12 +495,13 @@ export default function Dsbd({ onLogout }) {
                     <div className="relative">
                         <button
                             onClick={() => toggleDropdown("inventaris")}
-                            className={`w-full flex items-center justify-between px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${["barang-masuk", "barang-keluar"].includes(
-                                activePage
-                            )
-                                ? "bg-white bg-opacity-20"
-                                : "bg-white bg-opacity-10"
-                                }`}
+                            className={`w-full flex items-center justify-between px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${
+                                ["barang-masuk", "barang-keluar"].includes(
+                                    activePage
+                                )
+                                    ? "bg-white bg-opacity-20"
+                                    : "bg-white bg-opacity-10"
+                            }`}
                         >
                             <div className="flex items-center">
                                 <svg
@@ -508,10 +520,11 @@ export default function Dsbd({ onLogout }) {
                                 <span className="font-medium">Inventaris</span>
                             </div>
                             <svg
-                                className={`w-4 h-4 transform transition-transform ${activeDropdown === "inventaris"
-                                    ? "rotate-180"
-                                    : ""
-                                    }`}
+                                className={`w-4 h-4 transform transition-transform ${
+                                    activeDropdown === "inventaris"
+                                        ? "rotate-180"
+                                        : ""
+                                }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -530,10 +543,11 @@ export default function Dsbd({ onLogout }) {
                                     onClick={() =>
                                         setActivePage("barang-masuk")
                                     }
-                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "barang-masuk"
-                                        ? "bg-white bg-opacity-20"
-                                        : "bg-white bg-opacity-5"
-                                        }`}
+                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
+                                        activePage === "barang-masuk"
+                                            ? "bg-white bg-opacity-20"
+                                            : "bg-white bg-opacity-5"
+                                    }`}
                                 >
                                     Barang Masuk
                                 </button>
@@ -541,10 +555,11 @@ export default function Dsbd({ onLogout }) {
                                     onClick={() =>
                                         setActivePage("barang-keluar")
                                     }
-                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "barang-keluar"
-                                        ? "bg-white bg-opacity-20"
-                                        : "bg-white bg-opacity-5"
-                                        }`}
+                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
+                                        activePage === "barang-keluar"
+                                            ? "bg-white bg-opacity-20"
+                                            : "bg-white bg-opacity-5"
+                                    }`}
                                 >
                                     Barang Keluar
                                 </button>
@@ -588,11 +603,12 @@ export default function Dsbd({ onLogout }) {
                         <div>
                             <h1 className="text-2xl font-bold text-gray-800 capitalize">
                                 {activePage === "dashboard"
-                                    ? "Dashboard Sepak Bola SMKS MUHAMMADIYAH 1 GENTENG"
+                                    ? "Sepak Bola SMKS MUHAMMADIYAH 1 GENTENG"
                                     : `Data ${activePage.replace("-", " ")}`}
                             </h1>
                             <p className="text-gray-600">
-                                Sistem manajemen Sepak Bola  Smks Muhammadiyah 1 Genteng
+                                Sistem manajemen Sepak Bola Smks Muhammadiyah 1
+                                Genteng
                             </p>
                         </div>
                         <div className="text-right hidden sm:block">
@@ -710,7 +726,6 @@ export default function Dsbd({ onLogout }) {
                                     </svg>
                                 </div>
 
-
                                 <div>
                                     <p className="text-gray-500 text-sm">
                                         Total Kas
@@ -742,7 +757,6 @@ export default function Dsbd({ onLogout }) {
                                             });
                                             setIsModalOpen(true);
                                         }}
-
                                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm"
                                     >
                                         + Tambah Pemain
@@ -954,20 +968,27 @@ export default function Dsbd({ onLogout }) {
                                 Tabel {activePage}
                             </h3>
                             <button
-                                onClick={() =>
+                                onClick={() => {
+                                    setTransaksiForm({
+                                        tanggal: "",
+                                        deskripsi: "",
+                                        jumlah: ""
+                                    });
+                                    setIsPemasukan(activePage === "pemasukan");
+                                    setIsPengeluaran(
+                                        activePage === "pengeluaran"
+                                    );
+                                }}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm text-white transition-colors ${
                                     activePage === "pemasukan"
-                                        ? setIsPemasukan(true)
-                                        : setIsPengeluaran(true)
-                                }
-                                className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm text-white transition-colors ${activePage === "pemasukan"
-                                    ? "bg-green-600 hover:bg-green-700"
-                                    : "bg-red-600 hover:bg-red-700"
-                                    }`}
+                                        ? "bg-green-600 hover:bg-green-700"
+                                        : "bg-red-600 hover:bg-red-700"
+                                }`}
                             >
                                 + Input {activePage}
                             </button>
                         </div>
-                        <div className="overflow-x-auto">
+                        <div className="scroll-stylling overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
                                     <tr>
@@ -983,7 +1004,6 @@ export default function Dsbd({ onLogout }) {
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
                                             Action
                                         </th>
-
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
@@ -1005,7 +1025,7 @@ export default function Dsbd({ onLogout }) {
                                                     item.tipe === "pemasukan"
                                                         ? "text-green-600"
                                                         : "text-red-600"
-                                                    }`}
+                                                }`}
                                             >
                                                 {/* Sesuaikan field database: jumlah */}
                                                 {formatRupiah(item.jumlah)}
@@ -1017,13 +1037,16 @@ export default function Dsbd({ onLogout }) {
                                                         onClick={() => {
                                                             setEditData(item);
                                                             setTransaksiForm({
-                                                                tanggal: item.tanggal,
-                                                                deskripsi: item.deskripsi,
+                                                                tanggal:
+                                                                    item.tanggal,
+                                                                deskripsi:
+                                                                    item.deskripsi,
                                                                 jumlah: item.jumlah
                                                             });
-                                                            setActiveTransaksiEdit(true);
+                                                            setActiveTransaksiEdit(
+                                                                true
+                                                            );
                                                         }}
-
                                                         className="
                               inline-flex items-center gap-1
                               px-2.5 py-1.5 text-sm font-medium
@@ -1057,7 +1080,11 @@ export default function Dsbd({ onLogout }) {
                                                     </button>
 
                                                     <button
-                                                        onClick={() => handleDeleteTransaksi(item.id)}
+                                                        onClick={() =>
+                                                            handleDeleteTransaksi(
+                                                                item.id
+                                                            )
+                                                        }
                                                         type="button"
                                                         aria-label="Delete"
                                                         className="
@@ -1236,7 +1263,7 @@ export default function Dsbd({ onLogout }) {
                 {activeTransaksiEdit && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm">
                         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
-                            <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-500 flex justify-between items-center">
+                            <div className="px-6 py-4 bg-gradient-to-r from-green-600 to-green-500 flex justify-between items-center">
                                 <h3 className="text-lg font-bold text-white">
                                     Edit Data Pemasukan
                                 </h3>
@@ -1265,7 +1292,7 @@ export default function Dsbd({ onLogout }) {
 
                             <form
                                 className="space-y-6 p-6"
-                                onSubmit={(e) => {
+                                onSubmit={e => {
                                     e.preventDefault();
                                     handleUpdateTransaksi();
                                 }}
@@ -1273,7 +1300,8 @@ export default function Dsbd({ onLogout }) {
                                 {/* TANGGAL */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Tanggal <span className="text-red-500">*</span>
+                                        Tanggal{" "}
+                                        <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                         type="date"
@@ -1288,7 +1316,8 @@ export default function Dsbd({ onLogout }) {
                                 {/* DESKRIPSI */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Keterangan <span className="text-red-500">*</span>
+                                        Keterangan{" "}
+                                        <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                         type="text"
@@ -1304,7 +1333,8 @@ export default function Dsbd({ onLogout }) {
                                 {/* JUMLAH */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Jumlah <span className="text-red-500">*</span>
+                                        Jumlah{" "}
+                                        <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative">
                                         <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
@@ -1327,7 +1357,9 @@ export default function Dsbd({ onLogout }) {
                                 <div className="flex space-x-3 pt-4">
                                     <button
                                         type="button"
-                                        onClick={() => setActiveTransaksiEdit(false)}
+                                        onClick={() =>
+                                            setActiveTransaksiEdit(false)
+                                        }
                                         className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-all duration-200 border border-gray-300"
                                     >
                                         Batal
@@ -1336,13 +1368,14 @@ export default function Dsbd({ onLogout }) {
                                     <button
                                         type="submit"
                                         disabled={isLoadingSubmit}
-                                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+                                        className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
                                     >
-                                        {isLoadingSubmit ? "Mengedit..." : "Edit"}
+                                        {isLoadingSubmit
+                                            ? "Mengedit..."
+                                            : "Edit"}
                                     </button>
                                 </div>
                             </form>
-
                         </div>
                     </div>
                 )}
