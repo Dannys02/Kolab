@@ -18,6 +18,7 @@ import NotFound from './pages/NotFound';
 // Dashboard
 import Dashboard from "./pages/Dashboard";
 import MemberDashboard from "./pages/MemberDashboard";
+import DashboardUser from './pages/DashboardUser';
 
 function App() {
   // 1. AMBIL TOKEN & ROLE DARI LOCAL STORAGE
@@ -59,6 +60,7 @@ function App() {
     "/portal", 
     "/login",
     "/register",
+    "/dashboard-user",
   ];
   
   const hideLayout = noLayoutRoutes.some((route) =>
@@ -68,7 +70,7 @@ function App() {
   // ✅ TAMBAHKAN: Logic khusus untuk halaman 404
   const isNotFoundPage = ![
     "/", "/program", "/galeri", "/artikel", "/kontak", 
-    "/login", "/register", "/admin", "/dashboard", "/portal"
+    "/login", "/register", "/admin", "/dashboard", "/portal", "/dashboard-user",
   ].some(route => location.pathname === route) && 
   !location.pathname.startsWith("/dashboard") && 
   !location.pathname.startsWith("/portal");
@@ -105,6 +107,7 @@ function App() {
         <Route path="/galeri" element={<Galeri />} />
         <Route path="/artikel" element={<Artikel />} />
         <Route path="/kontak" element={<Kontak />} />
+        <Route path="/dashboard/user" element={<DashboardUser />} />
 
         <Route
           path="/register"
