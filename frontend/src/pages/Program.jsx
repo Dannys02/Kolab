@@ -1,16 +1,12 @@
 import { Link } from "react-router-dom";
 import { Clock, Users, Calendar, CheckCircle } from "lucide-react";
 
-import programYouth from "../assets/program-youth.jpg";
-import programGoalkeeper from "../assets/program-goalkeeper.jpg";
-import programElite from "../assets/program-elite.jpg";
-
 export default function Program() {
     const programs = [
         {
             title: "Program Usia Dini (U-8 & U-10)",
             description: "Pengenalan dasar sepak bola dengan metode fun learning untuk membangun fondasi keterampilan",
-            image: programYouth,
+            image: "https://www.lines.id/wp-content/uploads/2022/11/FORSGI-Telainaipura-1536x864.jpeg",
             age: "6-10 Tahun",
             duration: "2x seminggu",
             participants: "15-20 siswa",
@@ -26,7 +22,7 @@ export default function Program() {
         {
             title: "Program Remaja (U-12 & U-14)",
             description: "Pengembangan teknik lanjutan dan pemahaman taktik permainan modern",
-            image: programElite,
+            image: "https://cdn.antarafoto.com/cache/1200x802/2014/12/13/sepak-bola-pon-remaja-9w2x-dom.jpg",
             age: "10-14 Tahun",
             duration: "3x seminggu",
             participants: "18-22 siswa",
@@ -42,7 +38,7 @@ export default function Program() {
         {
             title: "Program Elite (U-16 & U-18)",
             description: "Persiapan intensif untuk kompetisi tingkat tinggi dan karir profesional",
-            image: programElite,
+            image: "https://assetd.kompas.id/v90sYaDmlyOixHMdd7ylusphaMY=/fit-in/1980x871/filters:format(webp):quality(80):watermark(https://cdn-content.kompas.id/umum/kompas_main_logo.png,-16p,-13p,0)/https://asset.kgnewsroom.com/photo/pre/2025/06/09/ef1a4f18-e059-468d-9748-e18dd24ad81b_jpg.jpg",
             age: "14-18 Tahun",
             duration: "4x seminggu",
             participants: "20-25 siswa",
@@ -58,7 +54,7 @@ export default function Program() {
         {
             title: "Program Penjaga Gawang",
             description: "Spesialisasi khusus untuk calon kiper dengan teknik dan mental terbaik",
-            image: programGoalkeeper,
+            image: "https://media.istockphoto.com/id/1444938119/id/foto/sepak-bola-olahraga-dan-pelatihan-penjaga-gawang-di-lapangan-untuk-kompetisi-profesional-atlet.jpg?s=170667a&w=0&k=20&c=AEPLtpvF1GW49Aj63dpYG6eJP-9r4rM_t8EJ2dGYQKw=",
             age: "10-18 Tahun",
             duration: "2x seminggu",
             participants: "8-12 siswa",
@@ -141,7 +137,7 @@ export default function Program() {
                                         <p className="text-2xl font-bold text-green-500">{program.price}</p>
                                     </div>
 
-                                    <Link to="/kontak" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-600/80 transition">
+                                    <Link to="/register" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-600/80 transition">
                                         Daftar Program
                                     </Link>
                                 </div>

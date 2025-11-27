@@ -13,6 +13,6 @@ class TotalKasSeeder extends Seeder
      */
     public function run(): void
     {
-        TotalKas::create(['amount' => 100000]);
+        TotalKas::create(['amount' => 5000]);
     }
 }

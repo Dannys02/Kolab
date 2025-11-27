@@ -1,61 +1,65 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\BiodataController;
-use App\Http\Controllers\TotalKasController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\KeuanganController;
 use App\Http\Controllers\Api\TransaksiController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BiodataController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\TotalKasController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
-*/
+ */
 
-// 1. Route Public (Bisa diakses tanpa login)
+// --- PUBLIC ROUTES ---
 Route::post('/login', [AuthController::class, 'login']);
-// Ini menggunakan token Login Admin (Otomatis aman)
-Route::middleware('auth:sanctum')->post('/biodata', [BiodataController::class, 'store']);
-// regster
 Route::post('/register', [AuthController::class, 'register']);
 
-// 2. Route Protected (Harus login/punya token)
+// --- PROTECTED ROUTES (BUTUH LOGIN) ---
 Route::middleware('auth:sanctum')->group(function () {
+
+    // User & Dashboard
+    Route::get('/user', function (Request $request) {return $request->user();});
     Route::get('/dashboard-data', [DashboardController::class, 'index']);
-
-    // Optional: Route untuk cek user yang sedang login
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
-});
-
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/pembayaran', [KeuanganController::class, 'storePembayaran']);
-});
-
-Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Biodata (Admin)
+    Route::post('/biodata', [BiodataController::class, 'store']);
+    Route::put('/biodata/{id}', [BiodataController::class, 'update']);
+    Route::delete('/biodata/{id}', [BiodataController::class, 'destroy']);
+
+    // --- FITUR KEUANGAN & TAGIHAN ---
+
+    // 1. [ADMIN] Lihat Keuangan Siswa Tertentu (via ?biodata_id=X)
+    Route::get('/keuangan', [KeuanganController::class, 'index']);
+
+    // 2. [SISWA] Lihat Tagihan Saya Sendiri (Otomatis deteksi login)
+    Route::get('/tagihan-siswa', [KeuanganController::class, 'getTagihanSiswa']); // <-- ROUTE BARU
+
+    // 3. [ADMIN] Buat Tagihan Baru
+    Route::post('/tagihan', [KeuanganController::class, 'store']);
+
+    // 4. [ADMIN/SISWA] Bayar Tagihan
+    Route::post('/pembayaran', [KeuanganController::class, 'storePembayaran']);
+
+    // Total Kas (Admin Dashboard)
+    Route::get('/total', [TotalKasController::class, 'index']);
 });
 
-Route::get('/keuangan', [KeuanganController::class, 'index']);
-
-Route::post('/tagihan', [KeuanganController::class, 'store']);
-
+// --- ROUTES LAINNYA ---
 Route::post('/contact', [ContactController::class, 'store']);
-
 Route::get('/dashboard/index', [DashboardController::class, 'biodataIndex']);
-
 
 Route::prefix('transaksi')->group(function () {
     Route::get('/', [TransaksiController::class, 'index']);
     Route::get('/pemasukan', [TransaksiController::class, 'pemasukan']);
+    Route::put('/pemasukan/update/{id}', [TransaksiController::class, 'update']);
+    Route::delete('/pemasukan/delete/{id}', [TransaksiController::class, 'destroy']);
     Route::get('/pengeluaran', [TransaksiController::class, 'pengeluaran']);
     Route::post('/', [TransaksiController::class, 'store']);
 });
-
-
-Route::get('/total', [TotalKasController::class, 'index']);

@@ -15,7 +15,7 @@ return new class extends Migration
         $table->id();
         $table->string('nama_lengkap');
         $table->string('email')->unique();
-        $table->string('phone'); // [FIX] Ganti integer jadi string
+        $table->string('phone')->unique(); // [FIX] Ganti integer jadi string
         $table->date('tanggal_lahir'); // [FIX] Tambahkan ini agar sinkron dengan React
         $table->text('alamat'); // [FIX] String -> text agar muat banyak
         $table->timestamps();

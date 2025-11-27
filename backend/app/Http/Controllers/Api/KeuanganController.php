@@ -3,91 +3,139 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Tagihan;
-use App\Models\Pembayaran;
 use App\Models\Biodata;
+use App\Models\Pembayaran;
+use App\Models\Tagihan;
+use App\Models\Transaksi;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+// [Tambahan]
 
 class KeuanganController extends Controller
 {
-    // Ambil data keuangan berdasarkan ID Biodata Siswa
+    // [ADMIN] Ambil data keuangan berdasarkan ID Biodata Siswa (Query Param)
     public function index(Request $request)
     {
-        // Nanti id ini bisa diambil dari request atau user yg login
-        // Untuk testing, kita hardcode ambil siswa pertama dulu atau dari parameter
         $biodataId = $request->query('biodata_id');
 
-        if(!$biodataId) {
-             return response()->json(['message' => 'Biodata ID diperlukan'], 400);
+        if (!$biodataId) {
+            return response()->json(['message' => 'Biodata ID diperlukan'], 400);
         }
 
-        // 1. Hitung Total Tagihan (Hutang)
-        $totalTagihan = Tagihan::where('biodata_id', $biodataId)->sum('jumlah');
+        return $this->getDataKeuangan($biodataId);
+    }
 
-        // 2. Hitung Total yang Sudah Dibayar
+    // [SISWA] Ambil data tagihan untuk User yang sedang login
+    public function getTagihanSiswa(Request $request)
+    {
+        $user = Auth::user(); // Ambil user dari token
+
+        // Cari Biodata berdasarkan email user yang login
+        $biodata = Biodata::where('email', $user->email)->first();
+
+        if (!$biodata) {
+            return response()->json([
+                'message' => 'Data biodata siswa tidak ditemukan untuk akun ini.',
+                'total_tagihan' => 0,
+                'riwayat' => [],
+            ], 404);
+        }
+
+        return $this->getDataKeuangan($biodata->id);
+    }
+
+    // [HELPER] Fungsi Logika Utama Hitung Keuangan (Private)
+    private function getDataKeuangan($biodataId)
+    {
+        // 1. Ambil Semua Tagihan (Detail)
+        $listTagihan = Tagihan::where('biodata_id', $biodataId)
+            ->orderBy('jatuh_tempo', 'desc')
+            ->get();
+
+        // 2. Hitung Total Tagihan (Hutang)
+        $totalTagihan = $listTagihan->sum('jumlah');
+
+        // 3. Hitung Total yang Sudah Dibayar
         $totalTerbayar = Pembayaran::where('biodata_id', $biodataId)->sum('jumlah_bayar');
 
-        // 3. Sisa Tagihan (Yang ditampilkan di kartu biru dashboard)
+        // 4. Sisa Tagihan (Yang harus dibayar)
         $sisaTagihan = $totalTagihan - $totalTerbayar;
 
-        // 4. Ambil Riwayat Pembayaran (List kanan dashboard)
+        // 5. Ambil Riwayat Pembayaran
         $riwayat = Pembayaran::where('biodata_id', $biodataId)
-                    ->orderBy('tanggal_bayar', 'desc')
-                    ->take(5) // Ambil 5 terakhir
-                    ->get();
+            ->orderBy('tanggal_bayar', 'desc')
+            ->take(10)
+            ->get();
 
         return response()->json([
-            'total_tagihan' => $sisaTagihan, // Angka besar di kartu biru
-            'riwayat' => $riwayat // List di kanan
+            'biodata_id' => $biodataId,
+            'total_tagihan' => $sisaTagihan, // Sisa yang harus dibayar
+            'total_sudah_bayar' => $totalTerbayar,
+            'list_tagihan' => $listTagihan, // Daftar tagihan lengkap (SPP, Gedung, dll)
+            'riwayat' => $riwayat, // History pembayaran
         ]);
     }
 
+    // [ADMIN] Buat Tagihan Baru
     public function store(Request $request)
     {
-        // 1. Validasi Input
         $request->validate([
-            'biodata_id' => 'required|exists:biodatas,id', // Pastikan siswa ada
-            'judul'      => 'required|string',             // Contoh: "SPP Mei"
-            'jumlah'     => 'required|numeric',            // Contoh: 500000
-            'jatuh_tempo'=> 'required|date',               // Contoh: 2024-05-20
+            'biodata_id' => 'required|exists:biodatas,id',
+            'judul' => 'required|string',
+            'jumlah' => 'required|numeric',
+            'jatuh_tempo' => 'required|date',
         ]);
 
-        // 2. Simpan ke Database
         $tagihan = Tagihan::create([
-            'biodata_id'  => $request->biodata_id,
-            'judul'       => $request->judul,
-            'jumlah'      => $request->jumlah,
+            'biodata_id' => $request->biodata_id,
+            'judul' => $request->judul,
+            'jumlah' => $request->jumlah,
             'jatuh_tempo' => $request->jatuh_tempo,
-            'status'      => 'Belum Lunas' // Default status
+            'status' => 'Belum Lunas',
         ]);
 
         return response()->json([
             'message' => 'Tagihan berhasil dibuat!',
-            'data'    => $tagihan
+            'data' => $tagihan,
         ], 201);
     }
 
-     // [2] TAMBAHKAN FUNGSI INI DI PALING BAWAH CLASS
+    // [ADMIN/SISWA] Catat Pembayaran
     public function storePembayaran(Request $request)
     {
-        // Validasi input
         $request->validate([
-            'biodata_id'   => 'required|exists:biodatas,id',
+            'biodata_id' => 'required|exists:biodatas,id',
             'jumlah_bayar' => 'required|numeric|min:1000',
         ]);
 
-        // Simpan ke database
         $pembayaran = Pembayaran::create([
-            'biodata_id'   => $request->biodata_id,
+            'biodata_id' => $request->biodata_id,
             'jumlah_bayar' => $request->jumlah_bayar,
-            'tanggal_bayar'=> now()->toDateString(), // Otomatis ambil tanggal hari ini
-            'metode'       => 'Cash',
-            'status'       => 'Lunas'
+            'tanggal_bayar' => now()->toDateString(),
+            'metode' => 'Transfer/Cash', // Bisa diubah sesuai input
+            'status' => 'Lunas',
+        ]);
+
+        // Opsional: Cek apakah tagihan lunas (Logic sederhana)
+        // Disini kita hanya mencatat uang masuk, logika pelunasan per item tagihan
+        // bisa ditambahkan jika sistemnya lebih kompleks.
+
+        $siswa = Biodata::find($request->biodata_id);
+        $namaSiswa = $siswa ? $siswa->nama_lengkap : 'Siswa';
+
+// 3. [BARU] Otomatis Masukkan ke Tabel Transaksi Admin (Sebagai Pemasukan)
+        Transaksi::create([
+            'tipe' => 'pemasukan',
+            'deskripsi' => "{$namaSiswa} telah membayar kas", // Format: "Arya telah membayar kas"
+            'status' => $request->status,
+            'jumlah' => $request->jumlah_bayar,
+            'tanggal' => now()->toDateString(),
         ]);
 
         return response()->json([
             'message' => 'Pembayaran berhasil dicatat!',
-            'data' => $pembayaran
+            'data' => $pembayaran,
         ], 201);
     }
 }

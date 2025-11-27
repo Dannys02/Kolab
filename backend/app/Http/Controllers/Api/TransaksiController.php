@@ -34,4 +34,23 @@ class TransaksiController extends Controller
 
         return Transaksi::create($request->all());
     }
+
+    public function update(Request $request, $id)
+    {
+        $transaksi = Transaksi::findOrFail($id);
+        $transaksi->update([
+            'tanggal' => $request->tanggal,
+            'deskripsi' => $request->deskripsi,
+            'jumlah' => $request->jumlah,
+        ]);
+
+        return response()->json(['message' => 'updated']);
+    }
+
+    public function destroy($id)
+    {
+        $transaksi = Transaksi::findOrFail($id);
+        $transaksi->delete();
+        return response()->noContent();
+    }
 }

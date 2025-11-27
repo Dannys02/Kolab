@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-export default function MemberDashboard({onLogout}) {
-    // --- 1. STATE (PENAMPUNG DATA) ---
+export default function MemberDashboard({ onLogout }) {
     const [activeTab, setActiveTab] = useState('biodata');
-    
-    // State Biodata                       
+    const tahunIni = new Date().getFullYear();
+
+    // State Biodata
     const [biodata, setBiodata] = useState({
         nama_lengkap: '', email: '', phone: '', alamat: '', tanggal_lahir: ''
     });
@@ -15,100 +15,51 @@ export default function MemberDashboard({onLogout}) {
     const [isLoading, setIsLoading] = useState(false);
     const [files, setFiles] = useState([]);
     const [paymentAmount, setPaymentAmount] = useState('');
-    
+
     // State Keuangan (Data dari API)
     const [keuangan, setKeuangan] = useState({
         total_tagihan: 0,
-        riwayat: []
+        riwayat: [],
+        list_tagihan: [] // [BARU] Menyimpan daftar item tagihan
     });
 
-    // [BARU] State untuk Form Tambah Tagihan
-    const [newTagihan, setNewTagihan] = useState({
-        judul: '',
-        jumlah: '',
-        jatuh_tempo: ''
-    });
+    const token = localStorage.getItem('token');
 
-    // --- 2. EFFECT (JALAN OTOMATIS) ---
     useEffect(() => {
         if (activeTab === 'tagihan') {
             fetchDataKeuangan();
         }
     }, [activeTab]);
 
-    // --- 3. FUNGSI-FUNGSI (LOGIC) ---
-    
-    // Ambil Data Keuangan
+    // [PERUBAHAN] Ambil Data Keuangan (Tagihan Siswa Login)
     const fetchDataKeuangan = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/api/keuangan?biodata_id=1');
+            // Gunakan endpoint baru '/api/tagihan-siswa'
+            const response = await axios.get('http://localhost:8000/api/tagihan-siswa', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             setKeuangan(response.data);
         } catch (error) {
             console.error("Gagal mengambil data keuangan:", error);
         }
     };
 
-    // [BARU] Fungsi Tambah Tagihan
-   const handleAddTagihan = async (e) => {
+    // Fungsi Submit Biodata (Tetap sama)
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-
-        try {
-            // Kirim data ke Laravel
-            // [FIX] Menambahkan parameter ke-3 yaitu HEADERS (Token)
-            await axios.post('http://localhost:8000/api/tagihan', {
-                biodata_id: 1, // Pastikan ID 1 ada di database biodatas
-                judul: newTagihan.judul,
-                jumlah: newTagihan.jumlah,
-                jatuh_tempo: newTagihan.jatuh_tempo
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${token}` // Token WAJIB ada
-                }
-            });
-
-            alert("Tagihan Berhasil Ditambahkan!");
-            setNewTagihan({ judul: '', jumlah: '', jatuh_tempo: '' }); // Reset form
-            fetchDataKeuangan(); // Refresh data agar angka berubah
-
-        } catch (error) {
-            console.error("Gagal nambah tagihan", error);
-            // Tampilkan pesan error dari server jika ada
-            if (error.response) {
-                alert(`Gagal: ${error.response.data.message || 'Server Error'}`);
-            } else {
-                alert("Gagal menambah tagihan. Cek koneksi server.");
-            }
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const token = localStorage.getItem('token');
-    // Fungsi Submit Biodata
-    const handleSubmit = async (e) => {
-        e.preventDefault(); 
-        setIsLoading(true);
         setMessage({ type: '', text: '' });
-
         try {
-            // [PERBAIKAN DI SINI] Tambahkan parameter ke-3 untuk headers
             const response = await axios.post('http://localhost:8000/api/biodata', biodata, {
-                headers: {
-                    // Token ini HARUS SAMA PERSIS dengan yang ada di file .env Laravel Anda
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
-
             setMessage({ type: 'success', text: 'Sukses: ' + response.data.message });
             setBiodata({ nama_lengkap: '', email: '', phone: '', alamat: '', tanggal_lahir: '' });
         } catch (error) {
-            // ... kode error handling (tetap sama) ...
             if (error.response && error.response.status === 403) {
-                // Tangkap error spesifik 403 Forbidden
-                 setMessage({ type: 'error', text: 'Gagal: Akses Ditolak! Token Rahasia Salah.' });
-            } else if (error.response && error.response.data.message) {
-                setMessage({ type: 'error', text: 'Gagal: ' + error.response.data.message });
+                setMessage({ type: 'error', text: 'Gagal: Akses Ditolak!' });
             } else {
                 setMessage({ type: 'error', text: 'Terjadi kesalahan koneksi.' });
             }
@@ -117,83 +68,66 @@ export default function MemberDashboard({onLogout}) {
         }
     };
 
-    // Fungsi Helper lain
     const handleBiodataChange = (e) => setBiodata({ ...biodata, [e.target.name]: e.target.value });
     const handleFileUpload = (e) => setFiles(prev => [...prev, ...Array.from(e.target.files)]);
     const removeFile = (index) => setFiles(prev => prev.filter((_, i) => i !== index));
-    
+
     const handlePayment = async () => {
         if (!paymentAmount || paymentAmount <= 0) {
             alert("Masukkan jumlah pembayaran yang valid.");
             return;
         }
+        if (!window.confirm(`Yakin input pembayaran sebesar Rp ${parseInt(paymentAmount).toLocaleString()}?`)) return;
 
-        // Konfirmasi user sebelum kirim
-        if (!window.confirm(`Yakin input pembayaran sebesar Rp ${parseInt(paymentAmount).toLocaleString()}?`)) {
-            return;
-        }
-
-        setIsLoading(true); // Aktifkan loading
-
+        setIsLoading(true);
         try {
             // Kirim ke API Laravel
+            // Butuh biodata_id yang didapat dari fetchKeuangan
+            if (!keuangan.biodata_id) {
+                alert("Gagal identifikasi siswa. Refresh halaman.");
+                return;
+            }
+
             await axios.post('http://localhost:8000/api/pembayaran', {
-                biodata_id: 1, // Hardcode ID 1 (Nanti diganti dinamis sesuai user)
+                biodata_id: keuangan.biodata_id,
                 jumlah_bayar: paymentAmount
             }, {
-                headers: {
-                    'Authorization': `Bearer ${token}` // Wajib bawa token
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             alert(`Pembayaran Berhasil!`);
-            setPaymentAmount(''); // Kosongkan input
-            
-            // [PENTING] Refresh data agar "Sisa Tagihan" dan "Riwayat" langsung update
-            fetchDataKeuangan(); 
-
+            setPaymentAmount('');
+            fetchDataKeuangan(); // Refresh data
         } catch (error) {
             console.error("Gagal bayar", error);
-            alert("Gagal memproses pembayaran. Cek koneksi.");
+            alert("Gagal memproses pembayaran.");
         } finally {
-            setIsLoading(false); // Matikan loading
+            setIsLoading(false);
         }
     };
 
-    // --- 4. TAMPILAN (JSX) ---
     return (
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-            
             {/* Tabs Header */}
             <div className="bg-white rounded-xl shadow-sm border mb-8">
                 <div className="border-b">
                     <nav className="flex space-x-8 px-6 overflow-x-auto">
                         {[
-                            { id: 'biodata', name: 'Input Biodata', icon: '👤' },
-                            { id: 'berkas', name: 'Upload Berkas', icon: '📁' },
-                            { id: 'pembayaran', name: 'Pembayaran Cash', icon: '💰' },
-                            { id: 'tagihan', name: 'Cek Tagihan', icon: '🧾' }
+                            { id: 'biodata', name: 'Input Biodata', icon: '?' },
+                            { id: 'berkas', name: 'Upload Berkas', icon: '?' },
+                            { id: 'tagihan', name: 'Cek Tagihan', icon: '?' }
                         ].map((tab) => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors duration-200 whitespace-nowrap ${activeTab === tab.id ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-                            >
+                            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors duration-200 whitespace-nowrap ${activeTab === tab.id ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
                                 <span>{tab.icon}</span><span>{tab.name}</span>
                             </button>
                         ))}
                     </nav>
                 </div>
-                        
-                <div className="p-6">
-                    {/* Notifikasi */}
-                    {message.text && (
-                        <div className={`mb-4 p-4 rounded-lg ${message.type === 'success' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>
-                            {message.text}
-                        </div>
-                    )}
 
-                    {/* TAB 1: Biodata */}
+                <div className="p-6">
+                    {message.text && ( <div className={`mb-4 p-4 rounded-lg ${message.type === 'success' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>{message.text}</div> )}
+
+                    {/* Biodata */}
                     {activeTab === 'biodata' && (
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <h3 className="text-lg font-semibold text-gray-900">Input Biodata</h3>
@@ -205,139 +139,79 @@ export default function MemberDashboard({onLogout}) {
                                 <textarea name="alamat" value={biodata.alamat} onChange={handleBiodataChange} rows="3" className="w-full px-4 py-3 border rounded-lg md:col-span-2" placeholder="Alamat" required />
                             </div>
                             <div className="flex justify-end gap-2">
-                                <button type="submit" disabled={isLoading} className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400">
-                                    {isLoading ? 'Menyimpan...' : 'Simpan Biodata'}
-                                </button>
-                                <button onClick={onLogout} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center">
-                                    Logout
-                                </button>
+                                <button type="submit" disabled={isLoading} className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400">{isLoading ? 'Menyimpan...' : 'Simpan Biodata'}</button>
+                                <button onClick={onLogout} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center">Logout</button>
                             </div>
                         </form>
                     )}
 
-                    {/* TAB 2: Berkas */}
+                    {/* Berkas */}
                     {activeTab === 'berkas' && (
                         <div className="text-center p-8 border-2 border-dashed rounded-xl">
                             <input type="file" multiple onChange={handleFileUpload} className="hidden" id="file-upload" />
                             <label htmlFor="file-upload" className="cursor-pointer text-blue-600 font-semibold">Klik untuk upload berkas</label>
                             <div className="mt-4 space-y-2">
-                                {files.map((f, i) => (
-                                    <div key={i} className="flex justify-between p-2 bg-gray-50 rounded border">
-                                        <span>{f.name}</span>
-                                        <button onClick={() => removeFile(i)} className="text-red-600">Hapus</button>
-                                    </div>
-                                ))}
+                                {files.map((f, i) => ( <div key={i} className="flex justify-between p-2 bg-gray-50 rounded border"><span>{f.name}</span><button onClick={() => removeFile(i)} className="text-red-600">Hapus</button></div> ))}
                             </div>
                         </div>
                     )}
 
-                    {/* TAB 3: Pembayaran */}
-                    {activeTab === 'pembayaran' && (
-                        <div className="max-w-md space-y-4">
-                            <h3 className="text-lg font-semibold">Pembayaran Cash</h3>
-                            <input type="number" value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} className="w-full px-4 py-3 border rounded-lg" placeholder="Jumlah Bayar (Rp)" />
-                            <div className="p-4 bg-blue-50 rounded-lg flex justify-between">
-                                <span>Sisa Tagihan:</span>
-                                <span className="font-bold">Rp {(keuangan.total_tagihan - (paymentAmount || 0)).toLocaleString('id-ID')}</span>
-                            </div>
-                            <button onClick={handlePayment} className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700">Konfirmasi</button>
-                        </div>
-                    )}
-
-                    {/* TAB 4: Cek Tagihan (YANG KAMU TANYAKAN) */}
+                    {/* Cek Tagihan (FITUR BARU) */}
                     {activeTab === 'tagihan' && (
                         <div className="space-y-8">
-                            
-                            {/* 1. FORM TAMBAH TAGIHAN (BARU) */}
-                            <div className="bg-white border border-orange-200 rounded-xl p-6 shadow-sm">
-                                <h3 className="text-lg font-bold text-orange-600 mb-4 flex items-center">
-                                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                                    Buat Tagihan Baru
-                                </h3>
-                                <form onSubmit={handleAddTagihan} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-500 mb-1">Judul Tagihan</label>
-                                        <input 
-                                            type="text" 
-                                            placeholder="Cth: Uang Seragam"
-                                            className="w-full p-2 border rounded-lg text-sm"
-                                            value={newTagihan.judul}
-                                            onChange={(e) => setNewTagihan({...newTagihan, judul: e.target.value})}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-500 mb-1">Jumlah (Rp)</label>
-                                        <input 
-                                            type="number" 
-                                            placeholder="Cth: 150000"
-                                            className="w-full p-2 border rounded-lg text-sm"
-                                            value={newTagihan.jumlah}
-                                            onChange={(e) => setNewTagihan({...newTagihan, jumlah: e.target.value})}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-500 mb-1">Jatuh Tempo</label>
-                                        <input 
-                                            type="date" 
-                                            className="w-full p-2 border rounded-lg text-sm"
-                                            value={newTagihan.jatuh_tempo}
-                                            onChange={(e) => setNewTagihan({...newTagihan, jatuh_tempo: e.target.value})}
-                                            required
-                                        />
-                                    </div>
-                                    <button 
-                                        type="submit" 
-                                        disabled={isLoading}
-                                        className="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-lg text-sm font-medium transition-colors"
-                                    >
-                                        + Tambah
-                                    </button>
-                                </form>
+                            <h3 className="text-lg font-semibold text-gray-900">Info Tagihan Anda</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {/* Kartu Total Tagihan (Hutang) */}
+                                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+                                    <h4 className="font-semibold mb-4">Sisa Tagihan</h4>
+                                    <p className="text-3xl font-bold mb-2">Rp {parseInt(keuangan.total_tagihan).toLocaleString('id-ID')}</p>
+                                    <p className="text-blue-100 text-sm">Segera selesaikan pembayaran.</p>
+                                </div>
                             </div>
 
-                            <hr className="border-gray-200" />
-
-                            {/* 2. INFO TAGIHAN & RIWAYAT (LAMA) */}
-                            <h3 className="text-lg font-semibold text-gray-900">Cek Total Tagihan</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                
-                                {/* Kartu Biru */}
-                                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
-                                    <h4 className="font-semibold mb-4">Total Tagihan</h4>
-                                    <p className="text-3xl font-bold mb-2">
-                                        Rp {parseInt(keuangan.total_tagihan).toLocaleString('id-ID')}
-                                    </p>
-                                    <p className="text-blue-100 text-sm">Sisa Kewajiban Pembayaran</p>
-                                </div>
-
-                                {/* Riwayat List */}
-                                <div className="md:col-span-2 bg-white border border-gray-200 rounded-xl p-6">
-                                    <h4 className="font-semibold text-gray-900 mb-4">Riwayat Pembayaran</h4>
-                                    <div className="space-y-4">
-                                        {keuangan.riwayat.length === 0 ? (
-                                            <p className="text-gray-500 italic">Belum ada data pembayaran.</p>
-                                        ) : (
-                                            keuangan.riwayat.map((payment, index) => (
-                                                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                {/* LIST TAGIHAN */}
+                                <div className="border rounded-xl p-6 bg-gray-50">
+                                    <h4 className="font-bold text-gray-800 mb-4 border-b pb-2">Rincian Tagihan</h4>
+                                    {keuangan.list_tagihan && keuangan.list_tagihan.length > 0 ? (
+                                        <ul className="space-y-3">
+                                            {keuangan.list_tagihan.map((item) => (
+                                                <li key={item.id} className="bg-white p-3 rounded shadow-sm flex justify-between items-center">
                                                     <div>
-                                                        <p className="font-medium text-gray-900">
-                                                            {new Date(payment.tanggal_bayar).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                        </p>
-                                                        <p className="text-sm text-gray-500">Metode: {payment.metode}</p>
+                                                        <p className="font-medium text-gray-900">{item.judul}</p>
+                                                        <p className="text-xs text-gray-500">Tempo: {item.jatuh_tempo}</p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="font-semibold text-gray-900">
-                                                            Rp {parseInt(payment.jumlah_bayar).toLocaleString('id-ID')}
-                                                        </p>
-                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                            {payment.status}
-                                                        </span>
+                                                        <p className="font-bold text-gray-800">Rp {parseInt(item.jumlah).toLocaleString('id-ID')}</p>
+                                                        <span className={`text-xs px-2 py-1 rounded-full ${item.status === 'Lunas' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{item.status}</span>
                                                     </div>
-                                                </div>
-                                            ))
-                                        )}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : <p className="text-gray-500">Tidak ada tagihan aktif.</p>}
+                                </div>
+
+                                {/* FORM BAYAR & RIWAYAT */}
+                                <div className="space-y-6">
+                                    <div className="bg-white p-6 rounded-xl border shadow-sm">
+                                        <h4 className="font-bold text-gray-800 mb-3">Bayar Sekarang</h4>
+                                        <div className="flex gap-2">
+                                            <input type="number" placeholder="Jumlah (Rp)" value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} className="flex-1 border rounded-lg px-4 py-2" />
+                                            <button onClick={handlePayment} disabled={isLoading} className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:bg-gray-400">{isLoading ? '...' : 'Bayar'}</button>
+                                        </div>
+                                    </div>
+
+                                    <div className="border rounded-xl p-6">
+                                        <h4 className="font-bold text-gray-800 mb-4 border-b pb-2">Riwayat Pembayaran</h4>
+                                        <ul className="divide-y">
+                                            {keuangan.riwayat && keuangan.riwayat.map((item, idx) => (
+                                                <li key={idx} className="py-3 flex justify-between">
+                                                    <div><p className="text-sm font-medium">Pembayaran Masuk</p><p className="text-xs text-gray-500">{item.tanggal_bayar}</p></div>
+                                                    <p className="font-bold text-green-600">+ Rp {parseInt(item.jumlah_bayar).toLocaleString('id-ID')}</p>
+                                                </li>
+                                            ))}
+                                            {(!keuangan.riwayat || keuangan.riwayat.length === 0) && <p className="text-gray-500 text-sm">Belum ada riwayat.</p>}
+                                        </ul>
                                     </div>
                                 </div>
                             </div>
@@ -345,6 +219,7 @@ export default function MemberDashboard({onLogout}) {
                     )}
                 </div>
             </div>
+            <footer className="text-center py-4 text-gray-500"><p>&copy; {tahunIni} Kolab. Hak cipta dilindungi.</p></footer>
         </main>
     );
 }

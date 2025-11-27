@@ -57,29 +57,24 @@ export default function Beranda() {
 
             <div className="w-full">
                 <div className="max-w-6xl mx-auto text-center px-4 py-14">
-
                     <h2 className="text-3xl md:text-4xl font-bold text-black">
                         Mengapa Memilih Kami?
                     </h2>
 
                     <p className="text-gray-500 mt-3 max-w-2xl mx-auto">
-                        Kami berkomitmen memberikan pendidikan sepak
-                        bola terbaik dengan fasilitas dan metode modern
+                        Kami berkomitmen memberikan pendidikan sepak bola
+                        terbaik dengan fasilitas dan metode modern
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-
                         {features.map((f, i) => (
                             <div
                                 key={i}
                                 className="p-6 border rounded-xl shadow-sm hover:shadow-md transition bg-white"
                             >
-
                                 <div className="w-12 h-12   rounded-full flex items-center justify-center mx-auto">
-
                                     <span className="text-green-600 text-xl">
                                         <i className={f.icon}></i>
                                     </span>
-
                                 </div>
 
                                 <h3 className="text-lg font-semibold mt-4">
@@ -89,49 +84,25 @@ export default function Beranda() {
                                 <p className="text-gray-500 mt-2 text-sm">
                                     {f.desc}
                                 </p>
-
                             </div>
                         ))}
-
                     </div>
-
-                </div>
-
-                <div className="bg-white py-16">
-
-                    <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 text-center gap-8">
-
-                        {stats.map((s, i) => (
-                            <div key={i}>
-
-                                <p className="text-3xl font-bold text-green-600">
-                                    {s.number}
-                                </p>
-
-                                <p className="text-gray-500 text-sm mt-2">
-                                    {s.label}
-                                </p>
-
-                            </div>
-                        ))}
-
-                    </div>
-
                 </div>
 
                 <div className="bg-gradient-to-r from-green-500 to-green-600 text-white text-center py-16 px-4">
-
                     <h2 className="text-2xl md:text-3xl font-bold">
                         Siap Memulai Perjalanan Sepak Bola Anda?
-
                     </h2>
 
                     <p className="text-white/90 mt-3 max-w-lg mx-auto mb-6">
-                        Daftar sekarang dan dapatkan trial gratis
-                        untuk merasakan pengalaman latihan bersama kami
+                        Daftar sekarang dan dapatkan trial gratis untuk
+                        merasakan pengalaman latihan bersama kami
                     </p>
 
-                    <a href="/biodata" className="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg font-semibold shadow">
+                    <a
+                        href="/register"
+                        className="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg font-semibold shadow"
+                    >
                         Daftar Sekarang
                     </a>
                 </div>
@@ -139,13 +110,15 @@ export default function Beranda() {
 
             <div className="text-gray-800 font-sans p-4 sm:p-8 lg:p-12">
                 <div className="max-w-7xl mx-auto pt-8 pb-8">
-                    <div className="flex flex-col md:flex-row items-start lg:space-x-12">
+                    <div className="flex flex-col md:flex-row items-start md:space-x-6 lg:space-x-12">
                         <div className="w-full md:w-[50%] lg:w-1/2 mb-8 lg:mb-0">
                             <h2 className="text-4xl font-bold mb-6">
                                 Program Pelatihan Terstruktur & Profesional
                             </h2>
                             <p className="text-lg text-muted-foreground mb-6 text-gray-600 max-w-lg">
-                                Kami menawarkan program pelatihan yang dirancang khusus untuk mengembangkan kemampuan teknik, taktik, fisik, dan mental pemain.
+                                Kami menawarkan program pelatihan yang dirancang
+                                khusus untuk mengembangkan kemampuan teknik,
+                                taktik, fisik, dan mental pemain.
                             </p>
 
                             <div className="space-y-4">
@@ -169,7 +142,7 @@ export default function Beranda() {
                             </div>
                         </div>
 
-                        <div className="relative hidden md:block h-[500px] rounded-2xl overflow-hidden shadow-xl shadow-black">
+                        <div className="relative hidden md:block bg-red-900 h-[500px] w-auto md:w-[40%] md:h-[400px] rounded-2xl overflow-hidden shadow-sm shadow-black">
                             <img
                                 src={ProgramBola}
                                 alt="Program Bola"
@@ -179,6 +152,6 @@ export default function Beranda() {
                     </div>
                 </div>
             </div>
-        </section >
+        </section>
     );
 }
