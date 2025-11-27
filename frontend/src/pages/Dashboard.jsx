@@ -569,7 +569,7 @@ export default function Dsbd({ onLogout }) {
                 </nav>
 
                 <div className="absolute bottom-20 md:bottom-[150px] left-6 right-6">
-                    <div className="h-fit flex flex-col gap-3">
+                    <div className="h-fit flex flex-col gap-5">
                         <div className="flex items-center space-x-3 bg-white bg-opacity-10 rounded-xl p-3 backdrop-blur-sm">
                             <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center shadow-md">
                                 <span className="text-white font-bold text-sm">
@@ -589,6 +589,8 @@ export default function Dsbd({ onLogout }) {
                             onClick={onLogout}
                             className="w-full flex items-center justify-center gap-2 bg-red-400 hover:bg-red-500 text-white py-2 px-4 rounded-xl font-medium shadow-sm"
                         >
+                            {" "}
+                            <i className="fas fa-sign-out-alt"></i>
                             Logout
                         </button>
                     </div>
