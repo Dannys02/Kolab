@@ -637,7 +637,7 @@ export default function Dsbd({ onLogout }) {
             </aside>
 
             {/* Main Content */}
-            <main className="lg:ml-64 p-6">
+            <main onClick={() => setSidebarOpen(false)} className="lg:ml-64 p-6">
                 {/* Header */}
                 <div className="bg-white rounded-2xl shadow-sm p-6 mb-6 border border-green-100">
                     <div className="flex justify-between items-center">
@@ -1050,6 +1050,9 @@ export default function Dsbd({ onLogout }) {
                                             Jumlah
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
+                                            Status
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
                                             Action
                                         </th>
                                     </tr>
@@ -1077,6 +1080,17 @@ export default function Dsbd({ onLogout }) {
                                             >
                                                 {/* Sesuaikan field database: jumlah */}
                                                 {formatRupiah(item.jumlah)}
+                                            </td>
+                                            <td
+                                                className={`px-6 py-4 text-sm font-bold ${
+                                                    // Sesuaikan field database: tipe
+                                                    item.tipe === "pemasukan"
+                                                        ? "text-green-600"
+                                                        : "text-red-600"
+                                                    }`}
+                                            >
+                                                {/* Sesuaikan field database: jumlah */}
+                                              Lunas
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex justify-center items-center gap-2">
@@ -1927,7 +1941,7 @@ export default function Dsbd({ onLogout }) {
             
             <footer className="w-full flex justify-center py-2">
                 <p className="text-center">
-                    &copy; {tahunIni} Sepak Bola SMEMSA ? Membangun Generasi
+                    &copy; {tahunIni} Sepak Bola SMEMSA – Membangun Generasi
                     Berprestasi.
                 </p>
             </footer>
