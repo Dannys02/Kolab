@@ -6,10 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Transaksi extends Model
 {
-    protected $table = 'transaksis';
-    protected $fillable = [ 
-        'tipe',        // pemasukan atau pengeluaran
+    protected $table = "transaksis";
+
+    protected $fillable = 
+    [
+        'tipe',
         'deskripsi',
         'jumlah',
-        'tanggal',];
+        'tanggal'
+    ];
 }
