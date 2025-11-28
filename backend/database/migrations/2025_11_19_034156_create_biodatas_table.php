@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('biodatas', function (Blueprint $table) {
         $table->id();
-        $table->string('nama_lengkap');
-        $table->string('email')->unique();
-        $table->string('phone')->unique(); // [FIX] Ganti integer jadi string
-        $table->date('tanggal_lahir'); // [FIX] Tambahkan ini agar sinkron dengan React
-        $table->text('alamat'); // [FIX] String -> text agar muat banyak
+        $table->string('nama_lengkap')->nullable();
+        $table->string('email')->unique()->nullable();
+        $table->string('phone')->unique()->nullable(); // [FIX] Ganti integer jadi string
+        $table->date('tanggal_lahir')->nullable(); // [FIX] Tambahkan ini agar sinkron dengan React
+        $table->text('alamat')->nullable(); // [FIX] String -> text agar muat banyak
         $table->timestamps();
     });
     }

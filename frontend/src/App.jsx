@@ -17,8 +17,8 @@ import NotFound from './pages/NotFound';
 
 // Dashboard
 import Dashboard from "./pages/Dashboard";
-import MemberDashboard from "./pages/MemberDashboard";
-import DashboardUser from './pages/DashboardUser';
+import MemberDashboard from "./pages/DashboardUser";
+import DashboardUser from './pages/MemberDashboard';
 
 function App() {
   // 1. AMBIL TOKEN & ROLE DARI LOCAL STORAGE

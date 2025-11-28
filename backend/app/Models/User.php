@@ -28,4 +28,10 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function biodata()
+    {
+        return $this->hasOne(Biodata::class);
+    }
+
 }
