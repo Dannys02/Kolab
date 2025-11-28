@@ -10,20 +10,27 @@ use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-// [Tambahan]
-
 class KeuanganController extends Controller
 {
-    // [ADMIN] Ambil data keuangan berdasarkan ID Biodata Siswa (Query Param)
+    // [ADMIN] Ambil data keuangan
+    // Jika ada parameter ?biodata_id=X -> Tampilkan detail keuangan siswa tersebut
+    // Jika TIDAK ADA parameter -> Tampilkan list semua tagihan (untuk Dashboard Admin)
     public function index(Request $request)
     {
         $biodataId = $request->query('biodata_id');
 
-        if (!$biodataId) {
-            return response()->json(['message' => 'Biodata ID diperlukan'], 400);
+        // Skenario 1: Detail per Siswa
+        if ($biodataId) {
+            return $this->getDataKeuangan($biodataId);
         }
 
-        return $this->getDataKeuangan($biodataId);
+        // Skenario 2: List Semua Tagihan (Global) untuk Admin
+        // Mengambil semua tagihan beserta nama siswanya, diurutkan dari yang jatuh tempo duluan
+        $semuaTagihan = Tagihan::with('biodata') // Pastikan model Tagihan punya relasi public function biodata()
+            ->orderBy('jatuh_tempo', 'asc')
+            ->get();
+
+        return response()->json($semuaTagihan);
     }
 
     // [SISWA] Ambil data tagihan untuk User yang sedang login
@@ -60,7 +67,13 @@ class KeuanganController extends Controller
         $totalTerbayar = Pembayaran::where('biodata_id', $biodataId)->sum('jumlah_bayar');
 
         // 4. Sisa Tagihan (Yang harus dibayar)
+        // Logika sederhana: Total Tagihan - Total Pembayaran
+        // (Bisa dikembangkan lagi jika pembayaran per item tagihan)
         $sisaTagihan = $totalTagihan - $totalTerbayar;
+        if ($sisaTagihan < 0) {
+            $sisaTagihan = 0;
+        }
+        // Cegah minus jika overpay
 
         // 5. Ambil Riwayat Pembayaran
         $riwayat = Pembayaran::where('biodata_id', $biodataId)
@@ -109,26 +122,24 @@ class KeuanganController extends Controller
             'jumlah_bayar' => 'required|numeric|min:1000',
         ]);
 
+        // 1. Catat ke Tabel Pembayaran
         $pembayaran = Pembayaran::create([
             'biodata_id' => $request->biodata_id,
             'jumlah_bayar' => $request->jumlah_bayar,
             'tanggal_bayar' => now()->toDateString(),
-            'metode' => 'Transfer/Cash', // Bisa diubah sesuai input
+            'metode' => 'Transfer/Cash',
             'status' => 'Lunas',
         ]);
-
-        // Opsional: Cek apakah tagihan lunas (Logic sederhana)
-        // Disini kita hanya mencatat uang masuk, logika pelunasan per item tagihan
-        // bisa ditambahkan jika sistemnya lebih kompleks.
 
         $siswa = Biodata::find($request->biodata_id);
         $namaSiswa = $siswa ? $siswa->nama_lengkap : 'Siswa';
 
-// 3. [BARU] Otomatis Masukkan ke Tabel Transaksi Admin (Sebagai Pemasukan)
+        // 2. Otomatis Masukkan ke Tabel Transaksi Admin (Sebagai Pemasukan)
+        // [FIX] Mengubah 'status' jadi 'Lunas' agar tidak error undefined index
         Transaksi::create([
             'tipe' => 'pemasukan',
-            'deskripsi' => "{$namaSiswa} telah membayar kas", // Format: "Arya telah membayar kas"
-            'status' => $request->status,
+            'deskripsi' => "{$namaSiswa} telah membayar kas",
+            'status' => 'Lunas',
             'jumlah' => $request->jumlah_bayar,
             'tanggal' => now()->toDateString(),
         ]);

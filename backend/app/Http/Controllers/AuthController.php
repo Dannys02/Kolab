@@ -78,29 +78,51 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logout Berhasil']);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
+        $user = $request->user();
+
         $request->validate([
-            'user' => 'required|string',
-            'email' => 'required|email',
-            'password' => 'required|password',
+            'name' => 'required|string|max:255',
+            // Validasi email unik kecuali untuk user ini sendiri
+            'email' => 'required|email|unique:users,email,' . $user->id,
         ]);
 
-        $account = User::findOrFail($id);
-        $account->update($request->all());
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+        ]);
 
         return response()->json([
-            "message" => "Data Berhasil Diupdate",
-            "data" => $biodata,
+            "message" => "Profil Berhasil Diupdate",
+            "data" => $user,
         ]);
+
     }
 
-    public function destroy($id)
-  {
-    User::findOrFail($id)->delete();
+    public function destroy(Request $request)
+    {
+        $user = $request->user();
 
-    return response()->json([
-      "message" => "Data Berhasil Dihapus",
-    ]);
-  }
+// 1. Cek apakah user sudah punya Biodata?
+if ($user->biodata) {
+    // 2. Cek apakah di biodata tersebut ada tagihan yang 'Belum Lunas'
+    $tagihanBelumLunas = Tagihan::where('biodata_id', $user->biodata->id)
+        ->where('status', '!=', 'Lunas')
+        ->exists();
+
+    if ($tagihanBelumLunas) {
+        return response()->json([
+            'message' => 'GAGAL: Anda masih memiliki tagihan yang belum lunas. Silakan lunasi dulu sebelum menghapus akun.',
+        ], 400); // 400 Bad Request
+    }
+}
+
+        // Hapus user tersebut
+        $user->delete();
+
+        return response()->json([
+            "message" => "Akun Berhasil Dihapus Selamanya",
+        ]);
+    }
 }
