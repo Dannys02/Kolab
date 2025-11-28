@@ -25,6 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // User & Dashboard
     Route::get('/user', function (Request $request) {return $request->user();});
+    Route::get('/dashboard-data', [DashboardController::class, 'biodataIndex']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
 // ========= Edit Informasi pribadi ===================
