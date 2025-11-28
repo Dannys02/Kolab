@@ -16,4 +16,9 @@ class Biodata extends Model
         'alamat',
         'tanggal_lahir'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

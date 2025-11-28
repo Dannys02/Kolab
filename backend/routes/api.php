@@ -25,9 +25,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // User & Dashboard
     Route::get('/user', function (Request $request) {return $request->user();});
-    Route::get('/dashboard-data', [DashboardController::class, 'index']);
+    Route::get('/dashboard-data', [DashboardController::class, 'biodataIndex']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
+// ========= Edit Informasi pribadi ===================
+    Route::put('/data/edit', [AuthController::class, 'update']);
+// ================ Hapus Akun ==================
+    Route::delete('/data/destroy', [AuthController::class, 'destroy']);
     // Biodata (Admin)
     Route::post('/biodata', [BiodataController::class, 'store']);
     Route::put('/biodata/{id}', [BiodataController::class, 'update']);

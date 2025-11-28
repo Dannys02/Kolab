@@ -5,6 +5,7 @@ const UserDashboard = ({ onLogout }) => {
     const tahunIni = new Date().getFullYear();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activePage, setActivePage] = useState("dashboard");
+    const [user, setUser] = useState(null);
 
     // === STATE BIODATA ===
     const [biodata, setBiodata] = useState({
@@ -14,6 +15,25 @@ const UserDashboard = ({ onLogout }) => {
         alamat: "",
         tanggal_lahir: ""
     });
+
+    //  ====== Nama User di sidebar ========
+    const fetchUser = async () => {
+        try {
+            const response = await axios.get("http://localhost:8000/api/user", {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            setUser(response.data);
+        } catch (error) {
+            console.error("Gagal Mengambil data User:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchDataKeuangan();
+        fetchUser(); // <-- Panggil disini
+    }, []);
 
     // === STATE LAIN YANG TERKAIT BIODATA ===
     const [message, setMessage] = useState({ type: "", text: "" });
@@ -91,7 +111,7 @@ const UserDashboard = ({ onLogout }) => {
     const fetchDataKeuangan = async () => {
         try {
             const response = await axios.get(
-                "http://localhost:8000/api/keuangan?biodata_id=1",
+                "http://localhost:8000/api/tagihan-siswa",
                 {
                     headers: { Authorization: `Bearer ${token}` }
                 }
@@ -106,6 +126,43 @@ const UserDashboard = ({ onLogout }) => {
         fetchDataKeuangan();
     }, []);
 
+     const fetchDataSiswa = async () => {
+        try {
+            const response = await fetch(
+                "http://localhost:8000/api/dashboard/index",
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        // Sertakan token jika route dashboard diprotect di masa depan
+                        Authorization: `Bearer ${localStorage.getItem("token")}`
+                    }
+                }
+            );
+            const result = await response.json();
+            const dataSiswa = result.data || [];
+            setSiswa(dataSiswa);
+
+            setStats(prev => ({
+                ...prev,
+                totalPlayers: dataSiswa.length,
+                activePlayers: dataSiswa.filter(s => s.status === "Aktif")
+                    .length
+            }));
+        } catch (error) {
+            console.error("Error fetching siswa:", error);
+        }
+     };
+    
+    useEffect(() => {
+        const fetchAllData = async () => {
+            setLoading(true);
+            await Promise.all([
+                fetchDataSiswa(),
+            ]);
+            setLoading(false);
+        };
+        fetchAllData();
+    }, []);
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
             {/* Mobile Menu Button */}
@@ -133,11 +190,10 @@ const UserDashboard = ({ onLogout }) => {
             {/* Sidebar User */}
             <aside
                 className={`min-h-screen w-64 fixed overflow-y-auto left-0 p-6 bg-gradient-to-b from-green-600 to-blue-600 shadow-2xl transform transition-transform duration-300 z-40
-                ${
-                    sidebarOpen
+                ${sidebarOpen
                         ? "translate-x-0"
                         : "-translate-x-full lg:translate-x-0"
-                }`}
+                    }`}
             >
                 {/* Logo */}
                 <div className="flex items-center justify-center mb-8 pt-4">
@@ -229,7 +285,7 @@ const UserDashboard = ({ onLogout }) => {
                             </div>
                             <div className="flex-1">
                                 <p className="text-white font-medium text-sm">
-                                    Player Name
+                                    {user ? user.name : "Memuat..."}
                                 </p>
                                 <p className="text-blue-100 text-xs">
                                     Tim U-15
@@ -524,7 +580,7 @@ const UserDashboard = ({ onLogout }) => {
                                                     Nama Lengkap
                                                 </label>
                                                 <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 text-gray-800">
-                                                    Ahmad Rizki Maulana
+                                                    {biodata.nama_lengkap || user?.name || "Belum Diisi"}
                                                 </div>
                                             </div>
                                             <div>
@@ -532,50 +588,13 @@ const UserDashboard = ({ onLogout }) => {
                                                     Email
                                                 </label>
                                                 <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 text-gray-800">
-                                                    ahmad.rizki@smemsa.sch.id
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    No HP
-                                                </label>
-                                                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 text-gray-800">
-                                                    +62 812-3456-7890
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Tanggal Lahir
-                                                </label>
-                                                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 text-gray-800">
-                                                    15 Maret 2008
+                                                    {biodata.email || user?.email || "Belum Diisi"}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Posisi
-                                            </label>
-                                            <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 text-gray-800">
-                                                Striker
-                                            </div>
-                                        </div>
-                                    </div>
 
-                                    {/* Alamat */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Alamat
-                                        </label>
-                                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 text-gray-800 min-h-[80px]">
-                                            Jl. Merdeka No. 123, Kelurahan
-                                            Sukajadi, Kecamatan Sumur Bandung,
-                                            Kota Bandung, Jawa Barat 40112
-                                        </div>
-                                    </div>
 
                                     {/* Tombol Aksi */}
                                     <div className="flex gap-3 pt-4 border-t border-gray-200">
