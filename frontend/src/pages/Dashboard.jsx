@@ -10,8 +10,6 @@ export default function Dsbd({ onLogout }) {
     const [activePage, setActivePage] = useState("dashboard");
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState(null);
-      const [token, setToken] = useState(localStorage.getItem("token"));
-
 
     // --- STATE DATA DARI API ---
     const [siswa, setSiswa] = useState([]);
@@ -308,10 +306,7 @@ export default function Dsbd({ onLogout }) {
     const handleUpdate = async id => {
         await fetch(`http://localhost:8000/api/biodata/${editData.id}`, {
             method: "PUT",
-            headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`
-                },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(formData)
         });
 
@@ -321,11 +316,7 @@ export default function Dsbd({ onLogout }) {
 
     const handleDelete = async id => {
         await fetch(`http://localhost:8000/api/biodata/${id}`, {
-            method: "DELETE",
-            headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`
-                },
+            method: "DELETE"
         });
 
         fetchDataSiswa();

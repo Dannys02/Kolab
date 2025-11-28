@@ -8,12 +8,10 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens; // <--- [1] WAJIB IMPORT INI
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Database\Eloquent\SoftDeletes; // Import ini
-
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles, softDeletes; // <--- [2] WAJIB PAKAI DI SINI
+    use HasApiTokens, HasFactory, Notifiable, HasRoles; // <--- [2] WAJIB PAKAI DI SINI
 
     protected $fillable = [
         'name',
