@@ -15,8 +15,7 @@ class Biodata extends Model
         'email',
         'phone',
         'alamat',
-        'tanggal_lahir',
-        'pilihan_program'
+        'tanggal_lahir'
     ];
 
     public function user()

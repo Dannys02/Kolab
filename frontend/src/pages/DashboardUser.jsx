@@ -6,8 +6,6 @@ const UserDashboard = ({ onLogout }) => {
     const tahunIni = new Date().getFullYear();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activePage, setActivePage] = useState("dashboard");
-
-    // State User & Loading
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -19,8 +17,7 @@ const UserDashboard = ({ onLogout }) => {
         email: "",
         phone: "",
         alamat: "",
-        tanggal_lahir: "",
-        pilihan_program: ""
+        tanggal_lahir: ""
     });
 
     // === STATE FITUR LAIN ===
@@ -49,7 +46,9 @@ const UserDashboard = ({ onLogout }) => {
     const fetchUser = async () => {
         try {
             const response = await axios.get("http://localhost:8000/api/user", {
-                headers: { Authorization: `Bearer ${token}` }
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
             setUser(response.data);
             setEditForm({ name: response.data.name, email: response.data.email });
@@ -80,11 +79,9 @@ const UserDashboard = ({ onLogout }) => {
     };
 
     useEffect(() => {
-        if (token) {
-            fetchUser();
-            fetchDataKeuangan();
-        }
-    }, [token]);
+        fetchDataKeuangan();
+        fetchUser(); // <-- Panggil disini
+    }, []);
 
     // === ACTION HANDLERS ===
     const handleBiodataChange = e => {
@@ -103,6 +100,7 @@ const UserDashboard = ({ onLogout }) => {
         } catch (error) {
             alert("Gagal menyimpan biodata.");
         } finally {
+            alert("Biodata berhasil dikirim.");
             setIsLoading(false);
         }
     };
@@ -197,8 +195,18 @@ const UserDashboard = ({ onLogout }) => {
         } finally {
             setIsLoading(false);
         }
-    };
-
+     };
+    
+    useEffect(() => {
+        const fetchAllData = async () => {
+            setLoading(true);
+            await Promise.all([
+                fetchDataSiswa(),
+            ]);
+            setLoading(false);
+        };
+        fetchAllData();
+    }, []);
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 relative">
             
@@ -460,14 +468,15 @@ const UserDashboard = ({ onLogout }) => {
                                         )}
                                     </div>
                                 </div>
-                            ))}
+                            </div>
                         </div>
                     </div>
                 )}
 
-                {/* PAGE: PROFIL SAYA */}
+                {/* Profil Pages User */}
                 {activePage === "profil" && (
                     <div className="space-y-6">
+                        {/* Header */}
                         <div className="bg-white rounded-2xl shadow-sm p-6 border border-green-100">
                             <h1 className="text-2xl font-bold text-gray-800">Profil Saya</h1>
                             <p className="text-gray-600">Informasi akun dan biodata siswa.</p>
@@ -506,7 +515,7 @@ const UserDashboard = ({ onLogout }) => {
                     </div>
                 )}
 
-                {/* PAGE: KAS SAYA */}
+                {/* Kas Pages User */}
                 {activePage === "kas saya" && (
                     <div className="space-y-6">
                         <div className="bg-white rounded-2xl shadow-sm p-6 border border-green-100">
@@ -559,12 +568,12 @@ const UserDashboard = ({ onLogout }) => {
                         </div>
                     </div>
                 )}
-
             </main>
 
-            <footer className="w-full flex justify-center py-6">
-                <p className="text-center text-gray-400 text-sm">
-                    &copy; {tahunIni} Sepak Bola SMEMSA
+            <footer className="w-full flex justify-center py-2">
+                <p className="text-center">
+                    &copy; {tahunIni} Sepak Bola SMEMSA — Membangun Generasi
+                    Berprestasi.
                 </p>
             </footer>
         </div>
