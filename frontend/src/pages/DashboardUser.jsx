@@ -15,6 +15,8 @@ const UserDashboard = ({ onLogout }) => {
         alamat: "",
         tanggal_lahir: ""
     });
+    
+    const token = localStorage.getItem("token");
 
     //  ====== Nama User di sidebar ========
     const fetchUser = async () => {
@@ -38,8 +40,6 @@ const UserDashboard = ({ onLogout }) => {
     // === STATE LAIN YANG TERKAIT BIODATA ===
     const [message, setMessage] = useState({ type: "", text: "" });
     const [isLoading, setIsLoading] = useState(false);
-
-    const token = localStorage.getItem("token");
 
     // === HANDLE INPUT CHANGE BIODATA ===
     const handleBiodataChange = e => {
@@ -78,6 +78,9 @@ const UserDashboard = ({ onLogout }) => {
                 alamat: "",
                 tanggal_lahir: ""
             });
+
+            setSudahIsi(true); // <-- PENTING, bikin form hilang selamanya
+            alert("Biodata berhasil dikirim.");
         } catch (error) {
             if (error.response && error.response.status === 403) {
                 setMessage({
@@ -96,10 +99,21 @@ const UserDashboard = ({ onLogout }) => {
                 });
             }
         } finally {
-            alert("Biodata berhasil dikirim.");
             setIsLoading(false);
         }
     };
+
+    // === USER HANYA BISA INPUT BIODATA SEKALI ===
+    const [sudahIsi, setSudahIsi] = useState(false);
+    useEffect(() => {
+        if (!token) return;
+
+        fetch("http://localhost:8000/api/biodata/user", {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(res => res.json())
+            .then(data => setSudahIsi(data.sudahIsi));
+    }, [token]);
 
     // Total tagihan User
     const [keuangan, setKeuangan] = useState({
@@ -126,7 +140,7 @@ const UserDashboard = ({ onLogout }) => {
         fetchDataKeuangan();
     }, []);
 
-     const fetchDataSiswa = async () => {
+    const fetchDataSiswa = async () => {
         try {
             const response = await fetch(
                 "http://localhost:8000/api/dashboard/index",
@@ -151,14 +165,12 @@ const UserDashboard = ({ onLogout }) => {
         } catch (error) {
             console.error("Error fetching siswa:", error);
         }
-     };
-    
+    };
+
     useEffect(() => {
         const fetchAllData = async () => {
             setLoading(true);
-            await Promise.all([
-                fetchDataSiswa(),
-            ]);
+            await Promise.all([fetchDataSiswa()]);
             setLoading(false);
         };
         fetchAllData();
@@ -190,10 +202,11 @@ const UserDashboard = ({ onLogout }) => {
             {/* Sidebar User */}
             <aside
                 className={`min-h-screen w-64 fixed overflow-y-auto left-0 p-6 bg-gradient-to-b from-green-600 to-blue-600 shadow-2xl transform transition-transform duration-300 z-40
-                ${sidebarOpen
+                ${
+                    sidebarOpen
                         ? "translate-x-0"
                         : "-translate-x-full lg:translate-x-0"
-                    }`}
+                }`}
             >
                 {/* Logo */}
                 <div className="flex items-center justify-center mb-8 pt-4">
@@ -287,12 +300,13 @@ const UserDashboard = ({ onLogout }) => {
                                 <p className="text-white font-medium text-sm">
                                     {user ? user.name : "Memuat..."}
                                 </p>
-                                <p className="text-blue-100 text-xs">
-                                    Tim U-15
-                                </p>
+                                <p className="text-blue-100 text-xs">User</p>
                             </div>
                         </div>
-                        <button className="w-full flex items-center justify-center gap-2 bg-red-400 hover:bg-red-500 text-white py-2 px-4 rounded-xl font-medium shadow-sm" onClick={onLogout}>
+                        <button
+                            className="w-full flex items-center justify-center gap-2 bg-red-400 hover:bg-red-500 text-white py-2 px-4 rounded-xl font-medium shadow-sm"
+                            onClick={onLogout}
+                        >
                             {" "}
                             <i className="fas fa-sign-out-alt"></i>
                             Logout
@@ -342,80 +356,94 @@ const UserDashboard = ({ onLogout }) => {
                         </div>
 
                         <div className="p-6 bg-white rounded-2xl mb-6">
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <h3 className="text-lg font-semibold text-gray-900">
-                                    Input Biodata
-                                </h3>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <input
-                                        type="text"
-                                        name="nama_lengkap"
-                                        value={biodata.nama_lengkap}
-                                        onChange={handleBiodataChange}
-                                        className="w-full px-4 py-3 border border-black text-black rounded-lg"
-                                        placeholder="Nama Lengkap (Contoh: Budi)"
-                                        required
-                                    />
-
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        value={biodata.email}
-                                        onChange={handleBiodataChange}
-                                        className="w-full px-4 py-3 border border-black text-black rounded-lg"
-                                        placeholder="Email (Contoh: budi@mail.com)"
-                                        required
-                                    />
-
-                                    <input
-                                        type="number"
-                                        name="phone"
-                                        value={biodata.phone}
-                                        onChange={handleBiodataChange}
-                                        className="w-full px-4 py-3 border border-black text-black rounded-lg"
-                                        placeholder="No HP (Contoh: 0812xxxxxx)"
-                                        required
-                                    />
-
-                                    <input
-                                        type="date"
-                                        name="tanggal_lahir"
-                                        value={biodata.tanggal_lahir}
-                                        onChange={handleBiodataChange}
-                                        className="w-full px-4 py-3 border border-black rounded-lg"
-                                        required
-                                    />
-
-                                    <textarea
-                                        name="alamat"
-                                        value={biodata.alamat}
-                                        onChange={handleBiodataChange}
-                                        rows="3"
-                                        className="w-full px-4 py-3 border border-black text-black rounded-lg md:col-span-2"
-                                        placeholder="Alamat (Contoh: Jl. Mawar No. 1)"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="flex justify-end gap-2">
-                                    <button
-                                        type="submit"
-                                        disabled={isLoading}
-                                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
+                            {sudahIsi ? (
+                                <p className="text-green-600 font-semibold">
+                                    Biodata sudah diisi. Tidak bisa diubah lagi.
+                                </p>
+                            ) : (
+                                <>
+                                    <form
+                                        onSubmit={handleSubmit}
+                                        className="space-y-6"
                                     >
-                                        {isLoading
-                                            ? "Menyimpan..."
-                                            : "Simpan Biodata"}
-                                    </button>
-                                </div>
-                            </form>
-                            <div className="mt-6 p-4 bg-yellow-50 rounded-xl border border-yellow-200 text-sm text-yellow-800 flex items-center gap-3">
+                                        <h3 className="text-lg font-semibold text-gray-900">
+                                            Input Biodata
+                                        </h3>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <input
+                                                type="text"
+                                                name="nama_lengkap"
+                                                value={biodata.nama_lengkap}
+                                                onChange={handleBiodataChange}
+                                                className="w-full px-4 py-3 border border-black text-black rounded-lg"
+                                                placeholder="Nama Lengkap (Contoh: Budi)"
+                                                required
+                                            />
+
+                                            <input
+                                                type="email"
+                                                name="email"
+                                                value={biodata.email}
+                                                onChange={handleBiodataChange}
+                                                className="w-full px-4 py-3 border border-black text-black rounded-lg"
+                                                placeholder="Email (Contoh: budi@mail.com)"
+                                                required
+                                            />
+
+                                            <input
+                                                type="number"
+                                                name="phone"
+                                                value={biodata.phone}
+                                                onChange={handleBiodataChange}
+                                                className="w-full px-4 py-3 border border-black text-black rounded-lg"
+                                                placeholder="No HP (Contoh: 0812xxxxxx)"
+                                                required
+                                            />
+
+                                            <input
+                                                type="date"
+                                                name="tanggal_lahir"
+                                                value={biodata.tanggal_lahir}
+                                                onChange={handleBiodataChange}
+                                                className="w-full px-4 py-3 border border-black rounded-lg"
+                                                required
+                                            />
+
+                                            <textarea
+                                                name="alamat"
+                                                value={biodata.alamat}
+                                                onChange={handleBiodataChange}
+                                                rows="3"
+                                                className="w-full px-4 py-3 border border-black text-black rounded-lg md:col-span-2"
+                                                placeholder="Alamat (Contoh: Jl. Mawar No. 1)"
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="flex justify-end gap-2">
+                                            <button
+                                                type="submit"
+                                                disabled={isLoading}
+                                                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
+                                            >
+                                                {isLoading
+                                                    ? "Menyimpan..."
+                                                    : "Simpan Biodata"}
+                                            </button>
+                                        </div>
+                                    </form>
+                                    <div className="mt-6 p-4 bg-yellow-50 rounded-xl border border-yellow-200 text-sm text-yellow-800 flex items-center gap-3">
                                         <i className="fas fa-info-circle text-lg mt-0.5"></i>
                                         <p>
-                                            Peringatan: Data biodata hanya dapat diisi sekali. Pastikan data yang dimasukkan sudah benar sebelum melakukan pengiriman.
+                                            Peringatan: Data biodata hanya dapat
+                                            diisi sekali. Pastikan data yang
+                                            dimasukkan sudah benar sebelum
+                                            melakukan pengiriman.
                                         </p>
                                     </div>
+                                </>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
@@ -586,7 +614,9 @@ const UserDashboard = ({ onLogout }) => {
                                                     Nama Lengkap
                                                 </label>
                                                 <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 text-gray-800">
-                                                    {biodata.nama_lengkap || user?.name || "Belum Diisi"}
+                                                    {biodata.nama_lengkap ||
+                                                        user?.name ||
+                                                        "Belum Diisi"}
                                                 </div>
                                             </div>
                                             <div>
@@ -594,13 +624,13 @@ const UserDashboard = ({ onLogout }) => {
                                                     Email
                                                 </label>
                                                 <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 text-gray-800">
-                                                    {biodata.email || user?.email || "Belum Diisi"}
+                                                    {biodata.email ||
+                                                        user?.email ||
+                                                        "Belum Diisi"}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-
-
 
                                     {/* Tombol Aksi */}
                                     <div className="flex gap-3 pt-4 border-t border-gray-200">
@@ -696,7 +726,7 @@ const UserDashboard = ({ onLogout }) => {
                 {/* Kas Pages User */}
                 {activePage === "kas saya" && (
                     <div className="space-y-8 min-h-screen">
-                                              <div className="bg-white rounded-2xl shadow-sm p-6 border border-green-100">
+                        <div className="bg-white rounded-2xl shadow-sm p-6 border border-green-100">
                             <div className="flex justify-between items-center">
                                 <div>
                                     <h1 className="text-2xl font-bold text-gray-800">
@@ -708,28 +738,28 @@ const UserDashboard = ({ onLogout }) => {
                                 </div>
                             </div>
                         </div>
-                        
-                        <div className="bg-white p-6 rounded-2xl">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                            Cek Total Tagihan
-                        </h3>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
-                                <h4 className="font-semibold mb-4">
-                                    Total Tagihan
-                                </h4>
-                                <p className="text-3xl font-bold mb-2">
-                                    Rp{" "}
-                                    {parseInt(
-                                        keuangan.total_tagihan
-                                    ).toLocaleString("id-ID")}
-                                </p>
-                                <p className="text-blue-100 text-sm">
-                                    Sisa Kewajiban Pembayaran
-                                </p>
+                        <div className="bg-white p-6 rounded-2xl">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                                Cek Total Tagihan
+                            </h3>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+                                    <h4 className="font-semibold mb-4">
+                                        Total Tagihan
+                                    </h4>
+                                    <p className="text-3xl font-bold mb-2">
+                                        Rp{" "}
+                                        {parseInt(
+                                            keuangan.total_tagihan
+                                        ).toLocaleString("id-ID")}
+                                    </p>
+                                    <p className="text-blue-100 text-sm">
+                                        Sisa Kewajiban Pembayaran
+                                    </p>
+                                </div>
                             </div>
-                        </div>
                         </div>
                     </div>
                 )}
