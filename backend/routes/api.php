@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\TransaksiController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BiodataController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\TotalKasController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -53,6 +54,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Total Kas (Admin Dashboard)
     Route::get('/total', [TotalKasController::class, 'index']);
+
+    // --- PENGUMUMAN ---
+    // [SISWA] Lihat pengumuman aktif
+    Route::get('/pengumuman', [PengumumanController::class, 'index']);
+    
+    // [ADMIN] Manage pengumuman
+    Route::get('/pengumuman/admin', [PengumumanController::class, 'indexAdmin']);
+    Route::post('/pengumuman', [PengumumanController::class, 'store']);
+    Route::put('/pengumuman/{id}', [PengumumanController::class, 'update']);
+    Route::delete('/pengumuman/{id}', [PengumumanController::class, 'destroy']);
 });
 
 // --- ROUTES LAINNYA ---
