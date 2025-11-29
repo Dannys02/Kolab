@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Tagihan extends Model
 {
+    // Properti fillable yang dipertahankan dari kedua file
     protected $fillable = [
         'biodata_id',
         'judul',
@@ -14,8 +15,13 @@ class Tagihan extends Model
         'status'
     ];
 
+    /**
+     * Relasi ke model Biodata
+     */
     public function biodata()
     {
-        return $this->belongsTo(\App\Models\Biodata::class, 'biodata_id');
+        // Menggunakan sintaks yang lebih ringkas dan otomatis menemukan kelas Biodata
+        // Asumsi model Biodata berada dalam namespace App\Models
+        return $this->belongsTo(Biodata::class, 'biodata_id');
     }
 }
