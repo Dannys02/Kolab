@@ -7,17 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class Biodata extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'nama_lengkap',
         'email',
         'phone',
-        'tanggal_lahir',
-        'alamat'
+        'alamat',
+        'tanggal_lahir'
     ];
 
-    public function tagihans()
+    public function user()
     {
-        return $this->hasMany(Tagihan::class, 'biodata_id');
+        return $this->belongsTo(User::class);
     }
 }
