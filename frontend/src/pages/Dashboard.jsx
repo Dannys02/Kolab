@@ -337,6 +337,7 @@ export default function Dsbd({ onLogout }) {
             }
         });
         fetchDataSiswa();
+        alert("Data berhasil dihapus!");
     };
 
     // 🔥 FUNGSI BARU: Handle perubahan input di modal edit tagihan
@@ -390,25 +391,35 @@ export default function Dsbd({ onLogout }) {
         e.preventDefault();
         setIsLoadingSubmit(true);
 
-        // Pastikan ID tersedia
         if (!editTagihanData.id) return alert("ID Tagihan tidak ditemukan.");
 
+        const token = localStorage.getItem("token");
+        if (!token) {
+            alert("Sesi Anda berakhir. Silakan login ulang.");
+            setIsLoadingSubmit(false);
+            // Mungkin tambahkan redirect ke halaman login
+            return;
+        }
+
         const payload = {
+            // 🔥 PASTIKAN ANDA MENGIRIM biodata_id di payload!
+            // Meskipun di backend sudah dibuat opsional/nullable, mengirimkannya lebih aman.
+            biodata_id: editTagihanData.biodata_id, // Ganti ini dengan cara Anda menyimpan biodata_id saat edit
             judul: editTagihanData.judul,
             jumlah: editTagihanData.jumlah,
             status: editTagihanData.status,
             jatuh_tempo: editTagihanData.jatuh_tempo
-            // Kita tidak perlu mengirim biodata_id di sini, tapi tergantung API backend Anda
         };
 
         try {
             const response = await fetch(
+                // 🔥 PERUBAHAN UTAMA: Hapus /update/ dari URL!
                 `http://localhost:8000/api/tagihan/${editTagihanData.id}`,
                 {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
-                        Authorization: `Bearer ${localStorage.getItem("token")}`
+                        Authorization: `Bearer ${token}`
                     },
                     body: JSON.stringify(payload)
                 }
@@ -417,15 +428,25 @@ export default function Dsbd({ onLogout }) {
             if (response.ok) {
                 alert("Tagihan berhasil diperbarui!");
                 setActiveTagihanEdit(false);
-                // Panggil fungsi fetching data terbaru untuk refresh tabel
                 await fetchDataKeuanganSiswa();
+            } else if (response.status === 401) {
+                // Tangani status 401 Unauthorized dari backend
+                alert("Autentikasi gagal. Silakan login ulang.");
             } else {
-                const errorData = await response.json();
-                alert("Gagal memperbarui: " + JSON.stringify(errorData));
+                // Tangani status error lainnya (400, 404, 500)
+                const errorData = await response.json().catch(() => ({
+                    message: "Server error atau respons non-JSON"
+                }));
+                alert(
+                    "Gagal memperbarui: " +
+                        JSON.stringify(errorData.message || response.statusText)
+                );
             }
         } catch (error) {
-            console.error("Error updating tagihan:", error);
-            alert("Terjadi kesalahan koneksi saat update tagihan.");
+            console.error("Error updating tagihan (Network/CORS):", error);
+            alert(
+                "Terjadi kesalahan koneksi atau CORS. Cek konsol dan pastikan server backend berjalan."
+            );
         } finally {
             setIsLoadingSubmit(false);
         }
@@ -1275,7 +1296,8 @@ export default function Dsbd({ onLogout }) {
                                                                   : "bg-red-100 text-red-600"
                                                           }`}
                                                     >
-                                                        {tag.status}
+                                                        Belum lunas(belum
+                                                        difungsikan)
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-3 text-sm text-gray-700">
@@ -1382,179 +1404,153 @@ export default function Dsbd({ onLogout }) {
                                 </table>
                             </div>
                         </div>
+                    </div>
+                )}
 
-                        {/* --- MODAL EDIT TAGIHAN SISWA --- */}
-                        {activeTagihanEdit && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm">
-                                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
-                                    {/* Header Modal */}
-                                    <div className="px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-500 flex justify-between items-center">
-                                        <h3 className="text-lg font-bold text-white">
-                                            Edit Data Tagihan
-                                        </h3>
-                                        <button
-                                            onClick={() =>
-                                                setActiveTagihanEdit(false)
-                                            }
-                                            className="text-white hover:text-gray-200"
-                                        >
-                                            <svg
-                                                className="w-6 h-6"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={2}
-                                                    d="M6 18L18 6M6 6l12 12"
-                                                />
-                                            </svg>
-                                        </button>
-                                    </div>
-
-                                    <form
-                                        className="space-y-4 p-6"
-                                        onSubmit={handleUpdateTagihan}
+                {/* --- MODAL EDIT TAGIHAN SISWA --- */}
+                {activeTagihanEdit && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fadeIn">
+                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
+                            {/* Header Modal */}
+                            <div className="px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-500 flex justify-between items-center">
+                                <h3 className="text-lg font-bold text-white">
+                                    Edit Data Tagihan
+                                </h3>
+                                <button
+                                    onClick={() => setActiveTagihanEdit(false)}
+                                    className="text-white hover:text-gray-200"
+                                >
+                                    <svg
+                                        className="w-6 h-6"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
                                     >
-                                        {/* NAMA SISWA (READ-ONLY) */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Nama Siswa
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={
-                                                    editTagihanData.nama_lengkap
-                                                }
-                                                readOnly
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 outline-none"
-                                            />
-                                        </div>
-
-                                        {/* JUDUL TAGIHAN */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Judul Tagihan{" "}
-                                                <span className="text-red-500">
-                                                    *
-                                                </span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="judul"
-                                                value={editTagihanData.judul}
-                                                onChange={
-                                                    handleEditTagihanChange
-                                                }
-                                                required
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 outline-none"
-                                            />
-                                        </div>
-
-                                        {/* JUMLAH TAGIHAN */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Total Tagihan (Rp){" "}
-                                                <span className="text-red-500">
-                                                    *
-                                                </span>
-                                            </label>
-                                            <div className="relative">
-                                                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
-                                                    Rp
-                                                </span>
-                                                <input
-                                                    type="number"
-                                                    name="jumlah"
-                                                    value={
-                                                        editTagihanData.jumlah
-                                                    }
-                                                    onChange={
-                                                        handleEditTagihanChange
-                                                    }
-                                                    required
-                                                    min="0"
-                                                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 outline-none"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* JATUH TEMPO */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Jatuh Tempo{" "}
-                                                <span className="text-red-500">
-                                                    *
-                                                </span>
-                                            </label>
-                                            <input
-                                                type="date"
-                                                name="jatuh_tempo"
-                                                value={
-                                                    editTagihanData.jatuh_tempo
-                                                }
-                                                onChange={
-                                                    handleEditTagihanChange
-                                                }
-                                                required
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 outline-none"
-                                            />
-                                        </div>
-
-                                        {/* STATUS */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Status{" "}
-                                                <span className="text-red-500">
-                                                    *
-                                                </span>
-                                            </label>
-                                            <select
-                                                name="status"
-                                                value={editTagihanData.status}
-                                                onChange={
-                                                    handleEditTagihanChange
-                                                }
-                                                required
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 outline-none"
-                                            >
-                                                <option value="Belum Lunas">
-                                                    Belum Lunas
-                                                </option>
-                                                <option value="Lunas">
-                                                    Lunas
-                                                </option>
-                                            </select>
-                                        </div>
-
-                                        {/* BUTTON */}
-                                        <div className="flex space-x-3 pt-4 border-t border-gray-100">
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setActiveTagihanEdit(false)
-                                                }
-                                                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-all duration-200 border border-gray-300"
-                                            >
-                                                Batal
-                                            </button>
-
-                                            <button
-                                                type="submit"
-                                                disabled={isLoadingSubmit}
-                                                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
-                                            >
-                                                {isLoadingSubmit
-                                                    ? "Mengedit..."
-                                                    : "Edit Tagihan"}
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M6 18L18 6M6 6l12 12"
+                                        />
+                                    </svg>
+                                </button>
                             </div>
-                        )}
+
+                            <form
+                                className="space-y-4 p-6"
+                                onSubmit={handleUpdateTagihan}
+                            >
+                                {/* NAMA SISWA (READ-ONLY) */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Nama Siswa
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={editTagihanData.nama_lengkap}
+                                        readOnly
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 outline-none"
+                                    />
+                                </div>
+
+                                {/* JUDUL TAGIHAN */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Judul Tagihan{" "}
+                                        <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="judul"
+                                        value={editTagihanData.judul}
+                                        onChange={handleEditTagihanChange}
+                                        required
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 outline-none"
+                                    />
+                                </div>
+
+                                {/* JUMLAH TAGIHAN */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Total Tagihan (Rp){" "}
+                                        <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
+                                            Rp
+                                        </span>
+                                        <input
+                                            type="number"
+                                            name="jumlah"
+                                            value={editTagihanData.jumlah}
+                                            onChange={handleEditTagihanChange}
+                                            required
+                                            min="0"
+                                            className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 outline-none"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* JATUH TEMPO */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Jatuh Tempo{" "}
+                                        <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="date"
+                                        name="jatuh_tempo"
+                                        value={editTagihanData.jatuh_tempo}
+                                        onChange={handleEditTagihanChange}
+                                        required
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 outline-none"
+                                    />
+                                </div>
+
+                                {/* STATUS */}
+                                {/*<div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Status{" "}
+                                        <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        name="status"
+                                        value={editTagihanData.status}
+                                        onChange={handleEditTagihanChange}
+                                        required
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 outline-none"
+                                    >
+                                        <option value="Belum Lunas">
+                                            Belum Lunas
+                                        </option>
+                                        <option value="Lunas">Lunas</option>
+                                    </select>
+                                </div>*/}
+
+                                {/* BUTTON */}
+                                <div className="flex space-x-3 pt-4 border-t border-gray-100">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setActiveTagihanEdit(false)
+                                        }
+                                        className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-all duration-200 border border-gray-300"
+                                    >
+                                        Batal
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        disabled={isLoadingSubmit}
+                                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+                                    >
+                                        {isLoadingSubmit
+                                            ? "Mengedit..."
+                                            : "Edit Tagihan"}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 )}
 

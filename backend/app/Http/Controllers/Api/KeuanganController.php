@@ -9,15 +9,13 @@ use App\Models\Tagihan;
 use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
-// [Tambahan]
+use Illuminate\Validation\Rule;
 
 class KeuanganController extends Controller
 {
   // [ADMIN] Ambil data keuangan berdasarkan ID Biodata Siswa (Query Param)
   public function index()
   {
-    // AMBIL SEMUA BIODATA + SEMUA TAGIHAN
     $data = Biodata::with("tagihans")->get();
 
     return response()->json($data);
@@ -26,9 +24,8 @@ class KeuanganController extends Controller
   // [SISWA] Ambil data tagihan untuk User yang sedang login
   public function getTagihanSiswa(Request $request)
   {
-    $user = Auth::user(); // Ambil user dari token
+    $user = Auth::user();
 
-    // Cari Biodata berdasarkan email user yang login
     $biodata = Biodata::where("email", $user->email)->first();
 
     if (!$biodata) {
@@ -42,29 +39,27 @@ class KeuanganController extends Controller
       );
     }
 
-    return $this->getDataKeuangan($biodata->id);
+    $keuanganData = $this->getDataKeuangan($biodata->id)->getOriginalContent();
+    $keuanganData["biodata"] = $biodata;
+
+    return response()->json($keuanganData);
   }
 
   // [HELPER] Fungsi Logika Utama Hitung Keuangan (Private)
   private function getDataKeuangan($biodataId)
   {
-    // 1. Ambil Semua Tagihan (Detail)
     $listTagihan = Tagihan::where("biodata_id", $biodataId)
       ->orderBy("jatuh_tempo", "desc")
       ->get();
 
-    // 2. Hitung Total Tagihan (Hutang)
     $totalTagihan = $listTagihan->sum("jumlah");
 
-    // 3. Hitung Total yang Sudah Dibayar
     $totalTerbayar = Pembayaran::where("biodata_id", $biodataId)->sum(
       "jumlah_bayar"
     );
 
-    // 4. Sisa Tagihan (Yang harus dibayar)
     $sisaTagihan = $totalTagihan - $totalTerbayar;
 
-    // 5. Ambil Riwayat Pembayaran
     $riwayat = Pembayaran::where("biodata_id", $biodataId)
       ->orderBy("tanggal_bayar", "desc")
       ->take(10)
@@ -72,10 +67,10 @@ class KeuanganController extends Controller
 
     return response()->json([
       "biodata_id" => $biodataId,
-      "total_tagihan" => $sisaTagihan, // Sisa yang harus dibayar
+      "total_tagihan" => $sisaTagihan,
       "total_sudah_bayar" => $totalTerbayar,
-      "list_tagihan" => $listTagihan, // Daftar tagihan lengkap (SPP, Gedung, dll)
-      "riwayat" => $riwayat, // History pembayaran
+      "list_tagihan" => $listTagihan,
+      "riwayat" => $riwayat,
     ]);
   }
 
@@ -118,21 +113,16 @@ class KeuanganController extends Controller
       "biodata_id" => $request->biodata_id,
       "jumlah_bayar" => $request->jumlah_bayar,
       "tanggal_bayar" => now()->toDateString(),
-      "metode" => "Transfer/Cash", // Bisa diubah sesuai input
+      "metode" => "Transfer/Cash",
       "status" => "Lunas",
     ]);
-
-    // Opsional: Cek apakah tagihan lunas (Logic sederhana)
-    // Disini kita hanya mencatat uang masuk, logika pelunasan per item tagihan
-    // bisa ditambahkan jika sistemnya lebih kompleks.
 
     $siswa = Biodata::find($request->biodata_id);
     $namaSiswa = $siswa ? $siswa->nama_lengkap : "Siswa";
 
-    // 3. [BARU] Otomatis Masukkan ke Tabel Transaksi Admin (Sebagai Pemasukan)
     Transaksi::create([
       "tipe" => "pemasukan",
-      "deskripsi" => "{$namaSiswa} telah membayar kas", // Format: "Arya telah membayar kas"
+      "deskripsi" => "Pembayaran kas dari {$namaSiswa}",
       "status" => $request->status,
       "jumlah" => $request->jumlah_bayar,
       "tanggal" => now()->toDateString(),
@@ -147,10 +137,48 @@ class KeuanganController extends Controller
     );
   }
 
+  // [ADMIN] Perbarui Tagihan yang Sudah Ada
+  public function updateTagihan(Request $request, $id)
+  {
+    $tagihan = Tagihan::findOrFail($id);
+
+    $request->validate([
+      // 🔥 PERBAIKAN VALIDASI: Jadikan biodata_id opsional jika tidak dikirim (nullable)
+      "biodata_id" => [
+        "nullable",
+        "exists:biodatas,id",
+        Rule::in([$tagihan->biodata_id]),
+      ],
+      "judul" => "required|string",
+      "jumlah" => "required|numeric|min:0",
+      "jatuh_tempo" => "required|date",
+      "status" => [
+        "nullable",
+        "string",
+        Rule::in(["Lunas", "Belum Lunas", "Dibatalkan"]),
+      ],
+    ]);
+
+    $tagihan->update([
+      "judul" => $request->judul,
+      "jumlah" => $request->jumlah,
+      "jatuh_tempo" => $request->jatuh_tempo,
+      "status" => $request->status ?? $tagihan->status,
+    ]);
+
+    return response()->json(
+      [
+        "message" => "Tagihan berhasil diperbarui!",
+        "data" => $tagihan,
+      ],
+      200
+    );
+  }
+
   // Hapus Tagihan
   public function deleteTagihan($id)
   {
     Tagihan::findOrFail($id)->delete();
-    return response()->json(["message" => "Deleted"]);
+    return response()->json(["message" => "Tagihan berhasil dihapus"]);
   }
 }

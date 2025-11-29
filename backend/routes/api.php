@@ -42,10 +42,13 @@ Route::middleware("auth:sanctum")->group(function () {
 
   // 1. [ADMIN] Lihat Keuangan Siswa Tertentu (via ?biodata_id=X)
   Route::get("/keuangan", [KeuanganController::class, "index"]);
-  Route::delete('/tagihan/{id}', [KeuanganController::class, 'deleteTagihan']);
+
+  // 🔥 PERBAIKAN ROUTE: Mengubah PUT /tagihan/update/{id} menjadi PUT /tagihan/{id}
+  Route::put("/tagihan/{id}", [KeuanganController::class, "updateTagihan"]);
+  Route::delete("/tagihan/{id}", [KeuanganController::class, "deleteTagihan"]);
 
   // 2. [SISWA] Lihat Tagihan Saya Sendiri (Otomatis deteksi login)
-  Route::get("/tagihan-siswa", [KeuanganController::class, "getTagihanSiswa"]); // <-- ROUTE BARU
+  Route::get("/tagihan-siswa", [KeuanganController::class, "getTagihanSiswa"]);
 
   // 3. [ADMIN] Buat Tagihan Baru
   Route::post("/tagihan", [KeuanganController::class, "store"]);
