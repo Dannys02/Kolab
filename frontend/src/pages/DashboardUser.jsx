@@ -19,8 +19,6 @@ const UserDashboard = ({ onLogout }) => {
         alamat: "",
         tanggal_lahir: ""
     });
-    
-    const token = localStorage.getItem("token");
     const [pengumumans, setPengumumans] = useState([]);
 
     // === STATE FITUR LAIN ===
@@ -100,11 +98,6 @@ const UserDashboard = ({ onLogout }) => {
         fetchDataPengumuman();
     }, []);
 
-    // === STATE LAIN YANG TERKAIT BIODATA ===
-    const [message, setMessage] = useState({ type: "", text: "" });
-    const [isLoading, setIsLoading] = useState(false);
-
-    // === HANDLE INPUT CHANGE BIODATA ===
     // === ACTION HANDLERS ===
     const handleBiodataChange = e => {
         setBiodata({ ...biodata, [e.target.name]: e.target.value });
@@ -117,33 +110,16 @@ const UserDashboard = ({ onLogout }) => {
             await axios.post("http://localhost:8000/api/biodata", biodata, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-
-            setSudahIsi(true); // <-- PENTING, bikin form hilang selamanya
-            alert("Biodata berhasil dikirim.");
+            alert("Biodata berhasil disimpan! Selamat bergabung.");
+            fetchDataKeuangan(); 
         } catch (error) {
             alert("Gagal menyimpan biodata.");
         } finally {
+            alert("Biodata berhasil dikirim.");
             setIsLoading(false);
         }
     };
 
-    // === USER HANYA BISA INPUT BIODATA SEKALI ===
-    const [sudahIsi, setSudahIsi] = useState(false);
-    useEffect(() => {
-        if (!token) return;
-
-        fetch("http://localhost:8000/api/biodata/user", {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-            .then(res => res.json())
-            .then(data => setSudahIsi(data.sudahIsi));
-    }, [token]);
-
-    // Total tagihan User
-    const [keuangan, setKeuangan] = useState({
-        total_tagihan: 0,
-        riwayat: []
-    });
     const handlePayment = async (e) => {
         e.preventDefault();
         
@@ -204,7 +180,6 @@ const UserDashboard = ({ onLogout }) => {
         }
     };
 
-    const fetchDataSiswa = async () => {
     const handleDeleteAccount = async () => {
         if (!window.confirm("Yakin hapus akun? Data tidak bisa kembali.")) return;
         setIsLoading(true);
@@ -244,16 +219,7 @@ const UserDashboard = ({ onLogout }) => {
         } finally {
             setIsLoading(false);
         }
-    };
-
-    useEffect(() => {
-        const fetchAllData = async () => {
-            setLoading(true);
-            await Promise.all([fetchDataSiswa()]);
-            setLoading(false);
-        };
-        fetchAllData();
-    }, []);
+     };
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 relative">
             
@@ -287,16 +253,10 @@ const UserDashboard = ({ onLogout }) => {
                 </button>
             </div>
 
-            {/* Sidebar User */}
-            <aside
-                className={`min-h-screen w-64 fixed overflow-y-auto left-0 p-6 bg-gradient-to-b from-green-600 to-blue-600 shadow-2xl transform transition-transform duration-300 z-40
-                ${
-                    sidebarOpen
-                        ? "translate-x-0"
-                        : "-translate-x-full lg:translate-x-0"
-                }`}
-            >
-                {/* Logo */}
+            {/* Sidebar (UPDATED) */}
+            <aside className={`min-h-screen w-64 fixed overflow-y-auto left-0 p-6 bg-gradient-to-b from-green-600 to-blue-600 shadow-2xl transform transition-transform duration-300 z-40 ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
+                
+                {/* --- LOGO SEKOLAH (UPDATED) --- */}
                 <div className="flex items-center justify-center mb-8 pt-4">
                     <div className="bg-white rounded-full p-3 shadow-lg">
                         <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center">

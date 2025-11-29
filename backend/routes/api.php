@@ -18,44 +18,39 @@ use Illuminate\Support\Facades\Route;
  */
 
 // --- PUBLIC ROUTES ---
-Route::post("/login", [AuthController::class, "login"]);
-Route::post("/register", [AuthController::class, "register"]);
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
 
 // --- PROTECTED ROUTES (BUTUH LOGIN) ---
-Route::middleware("auth:sanctum")->group(function () {
-  // User & Dashboard
-  Route::get("/user", function (Request $request) {
-    return $request->user();
-  });
-  Route::get("/dashboard-data", [DashboardController::class, "biodataIndex"]);
-  Route::post("/logout", [AuthController::class, "logout"]);
+Route::middleware('auth:sanctum')->group(function () {
 
-  // ========= Edit Informasi pribadi ===================
-  Route::put("/data/edit", [AuthController::class, "update"]);
-  // ================ Hapus Akun ==================
-  Route::delete("/data/destroy", [AuthController::class, "destroy"]);
-  // Biodata (Admin)
-  Route::post("/biodata", [BiodataController::class, "store"]);
-  Route::put("/biodata/{id}", [BiodataController::class, "update"]);
-  Route::delete("/biodata/{id}", [BiodataController::class, "destroy"]);
+    // User & Dashboard
+    Route::get('/user', function (Request $request) {return $request->user();});
+    Route::get('/dashboard-data', [DashboardController::class, 'biodataIndex']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 
-  // --- FITUR KEUANGAN & TAGIHAN ---
+// ========= Edit Informasi pribadi ===================
+    Route::put('/data/edit', [AuthController::class, 'update']);
+// ================ Hapus Akun ==================
+    Route::delete('/data/destroy', [AuthController::class, 'destroy']);
+    // Biodata (Admin)
+    Route::post('/biodata', [BiodataController::class, 'store']);
+    Route::put('/biodata/{id}', [BiodataController::class, 'update']);
+    Route::delete('/biodata/{id}', [BiodataController::class, 'destroy']);
 
-  // 1. [ADMIN] Lihat Keuangan Siswa Tertentu (via ?biodata_id=X)
-  Route::get("/keuangan", [KeuanganController::class, "index"]);
+    // --- FITUR KEUANGAN & TAGIHAN ---
 
-  // 🔥 PERBAIKAN ROUTE: Mengubah PUT /tagihan/update/{id} menjadi PUT /tagihan/{id}
-  Route::put("/tagihan/{id}", [KeuanganController::class, "updateTagihan"]);
-  Route::delete("/tagihan/{id}", [KeuanganController::class, "deleteTagihan"]);
+    // 1. [ADMIN] Lihat Keuangan Siswa Tertentu (via ?biodata_id=X)
+    Route::get('/keuangan', [KeuanganController::class, 'index']);
 
-  // 2. [SISWA] Lihat Tagihan Saya Sendiri (Otomatis deteksi login)
-  Route::get("/tagihan-siswa", [KeuanganController::class, "getTagihanSiswa"]);
+    // 2. [SISWA] Lihat Tagihan Saya Sendiri (Otomatis deteksi login)
+    Route::get('/tagihan-siswa', [KeuanganController::class, 'getTagihanSiswa']); // <-- ROUTE BARU
 
-  // 3. [ADMIN] Buat Tagihan Baru
-  Route::post("/tagihan", [KeuanganController::class, "store"]);
+    // 3. [ADMIN] Buat Tagihan Baru
+    Route::post('/tagihan', [KeuanganController::class, 'store']);
 
-  // 4. [ADMIN/SISWA] Bayar Tagihan
-  Route::post("/pembayaran", [KeuanganController::class, "storePembayaran"]);
+    // 4. [ADMIN/SISWA] Bayar Tagihan
+    Route::post('/pembayaran', [KeuanganController::class, 'storePembayaran']);
 
     // Total Kas (Admin Dashboard)
     Route::get('/total', [TotalKasController::class, 'index']);
@@ -72,17 +67,14 @@ Route::middleware("auth:sanctum")->group(function () {
 });
 
 // --- ROUTES LAINNYA ---
-Route::post("/contact", [ContactController::class, "store"]);
-Route::get("/dashboard/index", [DashboardController::class, "biodataIndex"]);
+Route::post('/contact', [ContactController::class, 'store']);
+Route::get('/dashboard/index', [DashboardController::class, 'biodataIndex']);
 
-Route::prefix("transaksi")->group(function () {
-  Route::get("/", [TransaksiController::class, "index"]);
-  Route::get("/pemasukan", [TransaksiController::class, "pemasukan"]);
-  Route::put("/pemasukan/update/{id}", [TransaksiController::class, "update"]);
-  Route::delete("/pemasukan/delete/{id}", [
-    TransaksiController::class,
-    "destroy",
-  ]);
-  Route::get("/pengeluaran", [TransaksiController::class, "pengeluaran"]);
-  Route::post("/", [TransaksiController::class, "store"]);
+Route::prefix('transaksi')->group(function () {
+    Route::get('/', [TransaksiController::class, 'index']);
+    Route::get('/pemasukan', [TransaksiController::class, 'pemasukan']);
+    Route::put('/pemasukan/update/{id}', [TransaksiController::class, 'update']);
+    Route::delete('/pemasukan/delete/{id}', [TransaksiController::class, 'destroy']);
+    Route::get('/pengeluaran', [TransaksiController::class, 'pengeluaran']);
+    Route::post('/', [TransaksiController::class, 'store']);
 });
