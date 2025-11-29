@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Biodata;
 use App\Models\Tagihan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -92,16 +93,38 @@ class AuthController extends Controller
 
         return response()->json([
             "message" => "Data Berhasil Diupdate",
-            "data" => $biodata,
+            "data" => $account,
         ]);
     }
 
-    public function destroy($id)
-  {
-    User::findOrFail($id)->delete();
+    public function destroy(Request $request)
+    {
+        // 1. Ambil user yang sedang login
+        $user = $request->user();
 
-    return response()->json([
-      "message" => "Data Berhasil Dihapus",
-    ]);
-  }
+        // 2. Cari Biodata milik user ini
+        $biodata = Biodata::where('user_id', $user->id)->first();
+
+        // 3. Jika biodata ada, kita cek tagihannya
+        if ($biodata) {
+            // Cek apakah ada tagihan yang statusnya BUKAN 'Lunas'
+            $punyaHutang = Tagihan::where('biodata_id', $biodata->id)
+                                  ->where('status', '!=', 'Lunas') 
+                                  ->exists();
+
+            if ($punyaHutang) {
+                // Jika masih punya hutang, tolak penghapusan!
+                return response()->json([
+                    'message' => 'GAGAL: Anda masih memiliki tagihan yang belum lunas. Silakan lunasi administrasi terlebih dahulu sebelum menghapus akun.'
+                ], 400); // 400 = Bad Request
+            }
+        }
+
+        // 4. Jika tidak punya biodata ATAU tagihan sudah lunas semua -> Hapus User
+        $user->delete();
+
+        return response()->json([
+            "message" => "Akun Berhasil Dihapus Selamanya",
+        ]);
+    }
 }

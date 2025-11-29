@@ -19,12 +19,14 @@ const UserDashboard = ({ onLogout }) => {
         alamat: "",
         tanggal_lahir: ""
     });
+    const [pengumumans, setPengumumans] = useState([]);
 
     // === STATE FITUR LAIN ===
     const [paymentAmount, setPaymentAmount] = useState("");
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState({ name: "", email: "" });
     const [isLoading, setIsLoading] = useState(false);
+    const [showAllPrograms, setShowAllPrograms] = useState(false);
 
     // === DATA JADWAL (DUMMY) ===
     const JADWAL_LATIHAN = [
@@ -78,9 +80,22 @@ const UserDashboard = ({ onLogout }) => {
         }
     };
 
+    // 3. Fetch Pengumuman
+    const fetchDataPengumuman = async () => {
+        try {
+            const response = await axios.get("http://localhost:8000/api/pengumuman", {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setPengumumans(response.data.data || []);
+        } catch (error) {
+            console.error("Gagal data pengumuman:", error);
+        }
+    };
+
     useEffect(() => {
         fetchDataKeuangan();
-        fetchUser(); // <-- Panggil disini
+        fetchUser();
+        fetchDataPengumuman();
     }, []);
 
     // === ACTION HANDLERS ===
@@ -185,28 +200,26 @@ const UserDashboard = ({ onLogout }) => {
         setIsLoading(true);
         try {
             const payload = { ...biodata, pilihan_program: programId };
-            await axios.post("http://localhost:8000/api/biodata", payload, {
+            const response = await axios.post("http://localhost:8000/api/biodata", payload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setBiodata(payload);
+            // Update state dengan data dari server
+            if (response.data.data) {
+                setBiodata(response.data.data);
+            } else {
+                setBiodata(payload);
+            }
+            // Reset showAllPrograms untuk menampilkan konfirmasi
+            setShowAllPrograms(false);
+            // Refresh data keuangan untuk mendapatkan biodata terbaru
+            fetchDataKeuangan();
             alert("Berhasil memilih program!");
         } catch (error) {
-            alert("Gagal memilih program.");
+            alert("Gagal memilih program: " + (error.response?.data?.message || "Error"));
         } finally {
             setIsLoading(false);
         }
      };
-    
-    useEffect(() => {
-        const fetchAllData = async () => {
-            setLoading(true);
-            await Promise.all([
-                fetchDataSiswa(),
-            ]);
-            setLoading(false);
-        };
-        fetchAllData();
-    }, []);
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 relative">
             
@@ -371,18 +384,40 @@ const UserDashboard = ({ onLogout }) => {
 
                                 {/* Pengumuman */}
                                 <div className="space-y-6">
-                                    <div className="bg-yellow-50 rounded-2xl border border-yellow-200 p-6 shadow-sm">
-                                        <h3 className="font-bold text-yellow-800 mb-3 flex items-center gap-2">
-                                            ? Pengumuman
-                                        </h3>
-                                        <p className="text-sm text-yellow-800 leading-relaxed">
-                                            Persiapan seleksi <strong>LKS Tingkat Kabupaten</strong> akan dimulai minggu depan. 
-                                            Harap seluruh anggota <em>Elite Squad</em> menjaga kondisi fisik.
-                                        </p>
-                                        <div className="mt-4 pt-4 border-t border-yellow-200 text-xs text-yellow-600">
-                                            Admin Sekolah ? 2 Jam yang lalu
+                                    {pengumumans.length > 0 ? (
+                                        pengumumans.slice(0, 3).map((pengumuman) => (
+                                            <div key={pengumuman.id} className="bg-yellow-50 rounded-2xl border border-yellow-200 p-6 shadow-sm">
+                                                <h3 className="font-bold text-yellow-800 mb-3 flex items-center gap-2">
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                                                    </svg>
+                                                    {pengumuman.judul}
+                                                </h3>
+                                                <p className="text-sm text-yellow-800 leading-relaxed whitespace-pre-wrap">
+                                                    {pengumuman.isi}
+                                                </p>
+                                                <div className="mt-4 pt-4 border-t border-yellow-200 text-xs text-yellow-600">
+                                                    {pengumuman.user?.name || "Admin"} • {new Date(pengumuman.created_at).toLocaleDateString("id-ID", {
+                                                        day: "numeric",
+                                                        month: "long",
+                                                        year: "numeric"
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="bg-yellow-50 rounded-2xl border border-yellow-200 p-6 shadow-sm">
+                                            <h3 className="font-bold text-yellow-800 mb-3 flex items-center gap-2">
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                                                </svg>
+                                                Pengumuman
+                                            </h3>
+                                            <p className="text-sm text-yellow-600">
+                                                Belum ada pengumuman saat ini.
+                                            </p>
                                         </div>
-                                    </div>
+                                    )}
 
                                     {/* Quick Stat */}
                                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -447,29 +482,165 @@ const UserDashboard = ({ onLogout }) => {
                             <h1 className="text-2xl font-bold text-gray-800">Pilih Program</h1>
                             <p className="text-gray-600">Sesuaikan dengan minat dan posisi bermainmu.</p>
                         </div>
-                        {biodata.pilihan_program && (
-                            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
-                                <strong className="font-bold">Program Aktif: </strong>
-                                <span>{LIST_PROGRAM.find(p => p.id === biodata.pilihan_program)?.judul || biodata.pilihan_program}</span>
-                            </div>
-                        )}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {LIST_PROGRAM.map((program) => (
-                                <div key={program.id} className={`bg-white rounded-2xl p-6 border-2 transition-all hover:shadow-lg ${biodata.pilihan_program === program.id ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-100'}`}>
-                                    <div className={`h-2 w-12 rounded-full mb-4 ${program.warna.replace('bg-', 'bg-').replace('-50', '-500').split(' ')[0]}`}></div>
-                                    <h3 className="text-xl font-bold text-gray-800 mb-2">{program.judul}</h3>
-                                    <p className="text-sm text-gray-600 mb-4 h-16">{program.deskripsi}</p>
-                                    <div className="flex justify-between items-center pt-4 border-t border-gray-50">
-                                        <span className="font-bold text-gray-700">{program.harga}</span>
-                                        {biodata.pilihan_program === program.id ? (
-                                            <span className="text-green-600 font-bold flex items-center gap-1"><i className="fas fa-check-circle"></i> Terdaftar</span>
-                                        ) : (
-                                            <button onClick={() => handlePilihProgram(program.id)} className={`px-4 py-2 text-white rounded-lg text-sm font-medium ${program.btnWarna}`}>Pilih</button>
-                                        )}
+
+                        {/* TAMPILAN SETELAH MEMILIH PROGRAM */}
+                        {biodata.pilihan_program && !showAllPrograms ? (
+                            <div className="space-y-6">
+                                {/* Card Konfirmasi Program Terpilih */}
+                                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl shadow-lg border-2 border-green-300 p-8 relative overflow-hidden">
+                                    {/* Decorative Elements */}
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-green-200 rounded-full -mr-16 -mt-16 opacity-20"></div>
+                                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-emerald-200 rounded-full -ml-12 -mb-12 opacity-20"></div>
+                                    
+                                    <div className="relative z-10">
+                                        {/* Header dengan Icon */}
+                                        <div className="flex items-center gap-4 mb-6">
+                                            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                                                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h2 className="text-2xl font-bold text-gray-800">Program Berhasil Dipilih!</h2>
+                                                <p className="text-gray-600">Selamat, Anda telah terdaftar dalam program berikut:</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Detail Program Terpilih */}
+                                        {(() => {
+                                            const programTerpilih = LIST_PROGRAM.find(p => p.id === biodata.pilihan_program);
+                                            if (!programTerpilih) return null;
+                                            
+                                            return (
+                                                <div className="bg-white rounded-xl p-6 shadow-md border border-green-200">
+                                                    <div className="flex items-start justify-between mb-4">
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center gap-3 mb-3">
+                                                                <div className={`h-3 w-3 rounded-full ${programTerpilih.warna.replace('bg-', 'bg-').replace('-50', '-500').split(' ')[0]}`}></div>
+                                                                <h3 className="text-xl font-bold text-gray-800">{programTerpilih.judul}</h3>
+                                                                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">AKTIF</span>
+                                                            </div>
+                                                            <p className="text-gray-600 mb-4">{programTerpilih.deskripsi}</p>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+                                                        <div>
+                                                            <p className="text-xs text-gray-500 mb-1">Biaya Bulanan</p>
+                                                            <p className="text-lg font-bold text-gray-800">{programTerpilih.harga}</p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs text-gray-500 mb-1">Status Pendaftaran</p>
+                                                            <p className="text-lg font-bold text-green-600">Terdaftar</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+
+                                        {/* Informasi Selanjutnya */}
+                                        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                            <div className="flex items-start gap-3">
+                                                <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <div>
+                                                    <p className="text-sm font-medium text-blue-800 mb-1">Langkah Selanjutnya:</p>
+                                                    <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
+                                                        <li>Tunggu konfirmasi dari admin untuk aktivasi program</li>
+                                                        <li>Lakukan pembayaran sesuai tagihan yang akan diterbitkan</li>
+                                                        <li>Ikuti jadwal latihan yang telah ditentukan</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Tombol Aksi */}
+                                        <div className="flex gap-3 mt-6">
+                                            <button 
+                                                onClick={() => setActivePage('dashboard')} 
+                                                className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-md transition-all"
+                                            >
+                                                Lihat Dashboard
+                                            </button>
+                                            <button 
+                                                onClick={() => setActivePage('kas saya')} 
+                                                className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-md transition-all"
+                                            >
+                                                Cek Pembayaran
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
+
+                                {/* Opsi Mengubah Program */}
+                                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-lg font-bold text-gray-800">Ingin Mengubah Program?</h3>
+                                        <button 
+                                            onClick={() => {
+                                                if (confirm("Yakin ingin melihat semua program lagi? Anda bisa memilih program lain.")) {
+                                                    setShowAllPrograms(true);
+                                                }
+                                            }}
+                                            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+                                        >
+                                            Lihat Semua Program
+                                        </button>
+                                    </div>
+                                    <p className="text-sm text-gray-600">Anda dapat mengubah pilihan program kapan saja. Pilih program yang sesuai dengan kebutuhan Anda.</p>
+                                </div>
                             </div>
-                        </div>
+                        ) : (
+                            /* TAMPILAN SEBELUM MEMILIH PROGRAM ATAU SAAT INGIN MENGUBAH */
+                            <div className="space-y-6">
+                                {biodata.pilihan_program && (
+                                    <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-center gap-3">
+                                        <svg className="w-5 h-5 text-yellow-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <p className="text-sm text-yellow-800">
+                                            <strong>Program saat ini:</strong> {LIST_PROGRAM.find(p => p.id === biodata.pilihan_program)?.judul || biodata.pilihan_program}. 
+                                            Pilih program lain untuk mengubah pilihan Anda.
+                                        </p>
+                                    </div>
+                                )}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    {LIST_PROGRAM.map((program) => (
+                                        <div key={program.id} className={`bg-white rounded-2xl p-6 border-2 transition-all hover:shadow-lg ${
+                                            biodata.pilihan_program === program.id 
+                                                ? 'border-green-500 ring-2 ring-green-200' 
+                                                : 'border-gray-100 hover:border-gray-200'
+                                        }`}>
+                                            <div className={`h-2 w-12 rounded-full mb-4 ${program.warna.replace('bg-', 'bg-').replace('-50', '-500').split(' ')[0]}`}></div>
+                                            <h3 className="text-xl font-bold text-gray-800 mb-2">{program.judul}</h3>
+                                            <p className="text-sm text-gray-600 mb-4 h-16">{program.deskripsi}</p>
+                                            <div className="flex justify-between items-center pt-4 border-t border-gray-50">
+                                                <span className="font-bold text-gray-700">{program.harga}</span>
+                                                {biodata.pilihan_program === program.id ? (
+                                                    <span className="text-green-600 font-bold flex items-center gap-1">
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                        Terdaftar
+                                                    </span>
+                                                ) : (
+                                                    <button 
+                                                        onClick={() => {
+                                                            setShowAllPrograms(false);
+                                                            handlePilihProgram(program.id);
+                                                        }} 
+                                                        className={`px-4 py-2 text-white rounded-lg text-sm font-medium ${program.btnWarna} hover:shadow-md transition-all`}
+                                                    >
+                                                        {biodata.pilihan_program ? 'Ganti Program' : 'Pilih Program'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 
