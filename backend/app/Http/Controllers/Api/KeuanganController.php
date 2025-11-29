@@ -68,13 +68,16 @@ class KeuanganController extends Controller
             ->take(10)
             ->get();
 
-        return response()->json([
-            'biodata_id' => $biodataId,
-            'total_tagihan' => $sisaTagihan, // Sisa yang harus dibayar
-            'total_sudah_bayar' => $totalTerbayar,
-            'list_tagihan' => $listTagihan, // Daftar tagihan lengkap (SPP, Gedung, dll)
-            'riwayat' => $riwayat, // History pembayaran
-        ]);
+            $detailBiodata = Biodata::find($biodataId);
+
+return response()->json([
+    'biodata_id' => $biodataId,
+    'biodata' => $detailBiodata, // <--- INI KUNCINYA AGAR DATA TIDAK HILANG
+    'total_tagihan' => $sisaTagihan,
+    'total_sudah_bayar' => $totalTerbayar,
+    'list_tagihan' => $listTagihan,
+    'riwayat' => $riwayat,
+]);
     }
 
     // [ADMIN] Buat Tagihan Baru
