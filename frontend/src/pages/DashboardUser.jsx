@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import Logo from "../assets/logosmks.png"; // [BARU] Import Logo Sekolah
 
 const UserDashboard = ({ onLogout }) => {
     const tahunIni = new Date().getFullYear();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activePage, setActivePage] = useState("dashboard");
     const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    // === STATE BIODATA ===
+    // === STATE UTAMA ===
+    const [hasBiodata, setHasBiodata] = useState(false);
+    const [keuangan, setKeuangan] = useState({ total_tagihan: 0, riwayat: [], biodata_id: null });
     const [biodata, setBiodata] = useState({
         nama_lengkap: "",
         email: "",
@@ -17,8 +21,32 @@ const UserDashboard = ({ onLogout }) => {
     });
     
     const token = localStorage.getItem("token");
+    const [pengumumans, setPengumumans] = useState([]);
 
-    //  ====== Nama User di sidebar ========
+    // === STATE FITUR LAIN ===
+    const [paymentAmount, setPaymentAmount] = useState("");
+    const [isEditing, setIsEditing] = useState(false);
+    const [editForm, setEditForm] = useState({ name: "", email: "" });
+    const [isLoading, setIsLoading] = useState(false);
+    const [showAllPrograms, setShowAllPrograms] = useState(false);
+
+    // === DATA JADWAL (DUMMY) ===
+    const JADWAL_LATIHAN = [
+        { hari: "Senin", jam: "15:30 - 17:30", materi: "Fisik & Stamina", lokasi: "Lapangan Utama" },
+        { hari: "Rabu", jam: "15:30 - 17:30", materi: "Teknik Dasar & Passing", lokasi: "Lapangan B" },
+        { hari: "Jumat", jam: "15:00 - 17:00", materi: "Game & Taktik", lokasi: "Lapangan Utama" },
+    ];
+
+    // Data Program
+    const LIST_PROGRAM = [
+        { id: "reguler", judul: "Reguler / Youth", deskripsi: "Program pembinaan dasar usia 10-15 tahun.", harga: "Rp 50.000/bln", warna: "bg-blue-50 border-blue-200", btnWarna: "bg-blue-600 hover:bg-blue-700" },
+        { id: "elite", judul: "Elite Squad", deskripsi: "Tim inti sekolah untuk kompetisi LKS.", harga: "Rp 100.000/bln", warna: "bg-purple-50 border-purple-200", btnWarna: "bg-purple-600 hover:bg-purple-700" },
+        { id: "kiper", judul: "Goalkeeper Class", deskripsi: "Pelatihan khusus penjaga gawang.", harga: "Rp 75.000/bln", warna: "bg-yellow-50 border-yellow-200", btnWarna: "bg-yellow-600 hover:bg-yellow-700" }
+    ];
+
+    const token = localStorage.getItem("token");
+
+    // 1. Fetch User Data (Akun Utama)
     const fetchUser = async () => {
         try {
             const response = await axios.get("http://localhost:8000/api/user", {
@@ -27,14 +55,49 @@ const UserDashboard = ({ onLogout }) => {
                 }
             });
             setUser(response.data);
+            setEditForm({ name: response.data.name, email: response.data.email });
         } catch (error) {
-            console.error("Gagal Mengambil data User:", error);
+            console.error("Gagal data user:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 2. Fetch Keuangan & Cek Biodata
+    const fetchDataKeuangan = async () => {
+        try {
+            const response = await axios.get("http://localhost:8000/api/tagihan-siswa", {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setKeuangan(response.data);
+
+            if (response.data.biodata) {
+                setBiodata(response.data.biodata);
+                setHasBiodata(true); 
+            } else {
+                setHasBiodata(false); 
+            }
+        } catch (error) {
+            console.error("Gagal data keuangan:", error);
+        }
+    };
+
+    // 3. Fetch Pengumuman
+    const fetchDataPengumuman = async () => {
+        try {
+            const response = await axios.get("http://localhost:8000/api/pengumuman", {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setPengumumans(response.data.data || []);
+        } catch (error) {
+            console.error("Gagal data pengumuman:", error);
         }
     };
 
     useEffect(() => {
         fetchDataKeuangan();
-        fetchUser(); // <-- Panggil disini
+        fetchUser();
+        fetchDataPengumuman();
     }, []);
 
     // === STATE LAIN YANG TERKAIT BIODATA ===
@@ -42,62 +105,23 @@ const UserDashboard = ({ onLogout }) => {
     const [isLoading, setIsLoading] = useState(false);
 
     // === HANDLE INPUT CHANGE BIODATA ===
+    // === ACTION HANDLERS ===
     const handleBiodataChange = e => {
-        setBiodata({
-            ...biodata,
-            [e.target.name]: e.target.value
-        });
+        setBiodata({ ...biodata, [e.target.name]: e.target.value });
     };
 
-    // === SUBMIT BIODATA (API POST) ===
-    const handleSubmit = async e => {
+    const handleSubmitBiodata = async e => {
         e.preventDefault();
         setIsLoading(true);
-        setMessage({ type: "", text: "" });
-
         try {
-            const response = await axios.post(
-                "http://localhost:8000/api/biodata",
-                biodata,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
-
-            setMessage({
-                type: "success",
-                text: "Sukses: " + response.data.message
-            });
-
-            setBiodata({
-                nama_lengkap: "",
-                email: "",
-                phone: "",
-                alamat: "",
-                tanggal_lahir: ""
+            await axios.post("http://localhost:8000/api/biodata", biodata, {
+                headers: { Authorization: `Bearer ${token}` }
             });
 
             setSudahIsi(true); // <-- PENTING, bikin form hilang selamanya
             alert("Biodata berhasil dikirim.");
         } catch (error) {
-            if (error.response && error.response.status === 403) {
-                setMessage({
-                    type: "error",
-                    text: "Gagal: Akses Ditolak! Token Rahasia Salah."
-                });
-            } else if (error.response && error.response.data.message) {
-                setMessage({
-                    type: "error",
-                    text: "Gagal: " + error.response.data.message
-                });
-            } else {
-                setMessage({
-                    type: "error",
-                    text: "Terjadi kesalahan koneksi."
-                });
-            }
+            alert("Gagal menyimpan biodata.");
         } finally {
             setIsLoading(false);
         }
@@ -120,50 +144,105 @@ const UserDashboard = ({ onLogout }) => {
         total_tagihan: 0,
         riwayat: []
     });
+    const handlePayment = async (e) => {
+        e.preventDefault();
+        
+        // 1. Validasi Input Dasar
+        if (!paymentAmount || paymentAmount < 1000) {
+            return alert("Minimal pembayaran Rp 1.000");
+        }
+        
+        // 2. Validasi Biodata
+        if (!keuangan.biodata_id) {
+            return alert("Lengkapi biodata terlebih dahulu di menu Dashboard.");
+        }
 
-    // Ambil data keuangan
-    const fetchDataKeuangan = async () => {
+        // 3. [BARU] VALIDASI TAGIHAN AKTIF
+        // Jika total tagihan 0 atau kurang (alias sudah lunas atau belum ditagih), tolak pembayaran.
+        if (keuangan.total_tagihan <= 0) {
+            return alert("Anda tidak memiliki tagihan aktif yang perlu dibayar saat ini. Tunggu tagihan dari Admin.");
+        }
+
+        // 4. [OPSIONAL] Validasi Overpayment (Mencegah bayar lebih dari hutang)
+        if (parseInt(paymentAmount) > keuangan.total_tagihan) {
+            return alert(`Jumlah pembayaran melebihi sisa tagihan! Sisa tagihan Anda: Rp ${parseInt(keuangan.total_tagihan).toLocaleString()}`);
+        }
+        
+        if (!window.confirm(`Konfirmasi pembayaran Rp ${parseInt(paymentAmount).toLocaleString()}?`)) return;
+
+        setIsLoading(true);
         try {
-            const response = await axios.get(
-                "http://localhost:8000/api/tagihan-siswa",
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
-            );
-            setKeuangan(response.data);
+            await axios.post("http://localhost:8000/api/pembayaran", {
+                biodata_id: keuangan.biodata_id,
+                jumlah_bayar: paymentAmount
+            }, { headers: { Authorization: `Bearer ${token}` } });
+            
+            alert("Pembayaran berhasil dicatat! Terima kasih.");
+            setPaymentAmount("");
+            fetchDataKeuangan(); // Refresh data
         } catch (error) {
-            console.error("Gagal mengambil data keuangan:", error);
+            alert("Gagal memproses pembayaran. Cek koneksi internet.");
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchDataKeuangan();
-    }, []);
+    const handleUpdateProfile = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        try {
+            await axios.put("http://localhost:8000/api/data/edit", editForm, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            alert("Profil diperbarui!");
+            setIsEditing(false);
+            fetchUser();
+        } catch (error) {
+            alert("Gagal update profil.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const fetchDataSiswa = async () => {
+    const handleDeleteAccount = async () => {
+        if (!window.confirm("Yakin hapus akun? Data tidak bisa kembali.")) return;
+        setIsLoading(true);
         try {
-            const response = await fetch(
-                "http://localhost:8000/api/dashboard/index",
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                        // Sertakan token jika route dashboard diprotect di masa depan
-                        Authorization: `Bearer ${localStorage.getItem("token")}`
-                    }
-                }
-            );
-            const result = await response.json();
-            const dataSiswa = result.data || [];
-            setSiswa(dataSiswa);
-
-            setStats(prev => ({
-                ...prev,
-                totalPlayers: dataSiswa.length,
-                activePlayers: dataSiswa.filter(s => s.status === "Aktif")
-                    .length
-            }));
+            await axios.delete("http://localhost:8000/api/data/destroy", {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            alert("Akun dihapus.");
+            onLogout();
         } catch (error) {
-            console.error("Error fetching siswa:", error);
+            alert("Gagal hapus akun: " + (error.response?.data?.message || "Error"));
+            setIsLoading(false);
+        }
+    };
+
+    const handlePilihProgram = async (programId) => {
+        if (!confirm("Pilih program ini?")) return;
+        setIsLoading(true);
+        try {
+            const payload = { ...biodata, pilihan_program: programId };
+            const response = await axios.post("http://localhost:8000/api/biodata", payload, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            // Update state dengan data dari server
+            if (response.data.data) {
+                setBiodata(response.data.data);
+            } else {
+                setBiodata(payload);
+            }
+            // Reset showAllPrograms untuk menampilkan konfirmasi
+            setShowAllPrograms(false);
+            // Refresh data keuangan untuk mendapatkan biodata terbaru
+            fetchDataKeuangan();
+            alert("Berhasil memilih program!");
+        } catch (error) {
+            alert("Gagal memilih program: " + (error.response?.data?.message || "Error"));
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -176,26 +255,35 @@ const UserDashboard = ({ onLogout }) => {
         fetchAllData();
     }, []);
     return (
-        <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-            {/* Mobile Menu Button */}
+        <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 relative">
+            
+            {/* Modal Edit Profil */}
+            {isEditing && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+                        <h3 className="text-xl font-bold mb-4 border-b pb-2">Edit Akun</h3>
+                        <form onSubmit={handleUpdateProfile} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Nama</label>
+                                <input type="text" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="w-full px-4 py-2 border rounded-lg" required />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Email</label>
+                                <input type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} className="w-full px-4 py-2 border rounded-lg" required />
+                            </div>
+                            <div className="flex gap-3 justify-end pt-4">
+                                <button type="button" onClick={() => setIsEditing(false)} className="px-4 py-2 bg-gray-100 rounded-lg">Batal</button>
+                                <button type="submit" disabled={isLoading} className="px-4 py-2 bg-blue-600 text-white rounded-lg">{isLoading ? "..." : "Simpan"}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Mobile Menu */}
             <div className="lg:hidden fixed top-4 left-4 z-50">
-                <button
-                    onClick={() => setSidebarOpen(!sidebarOpen)}
-                    className="p-2 bg-white rounded-lg shadow-md text-gray-600 hover:text-green-600 transition-colors"
-                >
-                    <svg
-                        className="w-6 h-6"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 6h16M4 12h16M4 18h16"
-                        />
-                    </svg>
+                <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 bg-white rounded-lg shadow-md text-gray-600">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
                 </button>
             </div>
 
@@ -210,373 +298,389 @@ const UserDashboard = ({ onLogout }) => {
             >
                 {/* Logo */}
                 <div className="flex items-center justify-center mb-8 pt-4">
-                    <div className="bg-white rounded-xl p-3 shadow-lg">
-                        <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg flex items-center justify-center">
-                            <span className="text-white font-bold text-lg">
-                                ⚽
-                            </span>
+                    <div className="bg-white rounded-full p-3 shadow-lg">
+                        <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center">
+                            <img src={Logo} alt="Logo" className="w-full h-full object-contain" />
                         </div>
                     </div>
-                    <h1 className="ml-3 text-white text-lg font-bold text-center">
-                        Sepak Bola
-                        <br />
-                        SMEMSA
+                    <h1 className="ml-3 text-white text-lg font-bold text-center leading-tight">
+                        Sepak Bola<br />SMEMSA
                     </h1>
                 </div>
 
-                {/* Navigation User */}
+                {/* --- NAVIGATION (UPDATED ICONS) --- */}
                 <nav className="space-y-2">
                     <button
-                        className="w-full flex items-center px-4 py-3 text-white bg-white bg-opacity-20 rounded-xl hover:bg-opacity-30 transition-all duration-200 shadow-sm"
                         onClick={() => setActivePage("dashboard")}
+                        className={`w-full flex items-center px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${activePage === "dashboard" ? "bg-white bg-opacity-20" : "bg-white bg-opacity-10"}`}
                     >
-                        <svg
-                            className="w-5 h-5 mr-3"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                            />
+                        {/* Icon Home */}
+                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
                         <span className="font-medium">Dashboard</span>
                     </button>
 
                     <button
-                        className="w-full flex items-center px-4 py-3 text-white bg-white bg-opacity-10 rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm"
                         onClick={() => setActivePage("profil")}
+                        className={`w-full flex items-center px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${activePage === "profil" ? "bg-white bg-opacity-20" : "bg-white bg-opacity-10"}`}
                     >
-                        <svg
-                            className="w-5 h-5 mr-3"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                            />
+                        {/* Icon User */}
+                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                         <span className="font-medium">Profil Saya</span>
                     </button>
 
                     <button
-                        className="w-full flex items-center px-4 py-3 text-white bg-white bg-opacity-10 rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm"
-                        onClick={() => setActivePage("kas saya")}
+                        onClick={() => setActivePage("program")}
+                        className={`w-full flex items-center px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${activePage === "program" ? "bg-white bg-opacity-20" : "bg-white bg-opacity-10"}`}
                     >
-                        <svg
-                            className="w-5 h-5 mr-3"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-                            />
+                        {/* Icon Clipboard/Program */}
+                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        <span className="font-medium">Pilih Program</span>
+                    </button>
+
+                    <button
+                        onClick={() => setActivePage("kas saya")}
+                        className={`w-full flex items-center px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${activePage === "kas saya" ? "bg-white bg-opacity-20" : "bg-white bg-opacity-10"}`}
+                    >
+                        {/* Icon Wallet */}
+                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
                         <span className="font-medium">Kas Saya</span>
                     </button>
                 </nav>
 
-                {/* User Profile */}
-                <div className="absolute bottom-20 md:bottom-[150px] left-6 right-6">
-                    <div className="flex flex-col gap-5">
-                        <div className="flex items-center space-x-3 bg-white bg-opacity-10 rounded-xl p-3 backdrop-blur-sm">
-                            <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center shadow-md">
-                                <span className="text-white font-bold text-sm">
-                                    P
-                                </span>
-                            </div>
-                            <div className="flex-1">
-                                <p className="text-white font-medium text-sm">
-                                    {user ? user.name : "Memuat..."}
-                                </p>
-                                <p className="text-blue-100 text-xs">User</p>
-                            </div>
+                <div className="absolute bottom-10 left-6 right-6">
+                    <div className="bg-white bg-opacity-10 rounded-xl p-3 mb-3 flex items-center gap-3 backdrop-blur-sm">
+                        <div className="w-8 h-8 bg-green-400 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                            {user?.name?.charAt(0).toUpperCase()}
                         </div>
-                        <button
-                            className="w-full flex items-center justify-center gap-2 bg-red-400 hover:bg-red-500 text-white py-2 px-4 rounded-xl font-medium shadow-sm"
-                            onClick={onLogout}
-                        >
-                            {" "}
-                            <i className="fas fa-sign-out-alt"></i>
-                            Logout
-                        </button>
+                        <div className="overflow-hidden">
+                            <p className="text-white text-sm font-medium truncate">{user?.name}</p>
+                            <p className="text-blue-100 text-xs truncate">Siswa</p>
+                        </div>
                     </div>
+                    <button onClick={onLogout} className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-xl font-medium shadow-sm transition-colors text-sm">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                        Logout
+                    </button>
                 </div>
             </aside>
 
-            {/* Main Content User */}
-            <main
-                onClick={() => setSidebarOpen(false)}
-                className="lg:ml-64 p-6"
-            >
-                {/* Dashboard Pages User */}
+            {/* Main Content */}
+            <main onClick={() => setSidebarOpen(false)} className="lg:ml-64 p-6 transition-all duration-300">
+                
+                {/* PAGE: DASHBOARD */}
                 {activePage === "dashboard" && (
                     <div>
-                        <div className="bg-white rounded-2xl shadow-sm p-6 mb-6 border border-green-100">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <h1 className="text-2xl font-bold text-gray-800">
-                                        Dashboard Pemain
-                                    </h1>
-                                    <p className="text-gray-600">
-                                        Selamat datang di sistem SMEMSA Football
-                                        Academy
-                                    </p>
-                                </div>
-                                <div className="flex items-center space-x-4">
-                                    <div className="text-right">
-                                        <p className="text-sm text-gray-500">
-                                            Hari ini
-                                        </p>
-                                        <p className="font-semibold text-gray-800">
-                                            {new Date().toLocaleDateString(
-                                                "id-ID",
-                                                {
-                                                    weekday: "long",
-                                                    year: "numeric",
-                                                    month: "long",
-                                                    day: "numeric"
-                                                }
-                                            )}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="p-6 bg-white rounded-2xl mb-6">
-                            {sudahIsi ? (
-                                <p className="text-green-600 font-semibold">
-                                    Biodata sudah diisi. Tidak bisa diubah lagi.
+                        <div className="bg-white rounded-2xl shadow-sm p-6 mb-6 border border-green-100 flex justify-between items-center">
+                            <div>
+                                <h1 className="text-2xl font-bold text-gray-800">Dashboard Pemain</h1>
+                                <p className="text-gray-600 mt-1">
+                                    {hasBiodata ? `Halo ${user?.name}, siap berlatih hari ini?` : "Lengkapi biodata untuk memulai!"}
                                 </p>
-                            ) : (
-                                <>
-                                    <form
-                                        onSubmit={handleSubmit}
-                                        className="space-y-6"
-                                    >
-                                        <h3 className="text-lg font-semibold text-gray-900">
-                                            Input Biodata
-                                        </h3>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <input
-                                                type="text"
-                                                name="nama_lengkap"
-                                                value={biodata.nama_lengkap}
-                                                onChange={handleBiodataChange}
-                                                className="w-full px-4 py-3 border border-black text-black rounded-lg"
-                                                placeholder="Nama Lengkap (Contoh: Budi)"
-                                                required
-                                            />
-
-                                            <input
-                                                type="email"
-                                                name="email"
-                                                value={biodata.email}
-                                                onChange={handleBiodataChange}
-                                                className="w-full px-4 py-3 border border-black text-black rounded-lg"
-                                                placeholder="Email (Contoh: budi@mail.com)"
-                                                required
-                                            />
-
-                                            <input
-                                                type="number"
-                                                name="phone"
-                                                value={biodata.phone}
-                                                onChange={handleBiodataChange}
-                                                className="w-full px-4 py-3 border border-black text-black rounded-lg"
-                                                placeholder="No HP (Contoh: 0812xxxxxx)"
-                                                required
-                                            />
-
-                                            <input
-                                                type="date"
-                                                name="tanggal_lahir"
-                                                value={biodata.tanggal_lahir}
-                                                onChange={handleBiodataChange}
-                                                className="w-full px-4 py-3 border border-black rounded-lg"
-                                                required
-                                            />
-
-                                            <textarea
-                                                name="alamat"
-                                                value={biodata.alamat}
-                                                onChange={handleBiodataChange}
-                                                rows="3"
-                                                className="w-full px-4 py-3 border border-black text-black rounded-lg md:col-span-2"
-                                                placeholder="Alamat (Contoh: Jl. Mawar No. 1)"
-                                                required
-                                            />
-                                        </div>
-
-                                        <div className="flex justify-end gap-2">
-                                            <button
-                                                type="submit"
-                                                disabled={isLoading}
-                                                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
-                                            >
-                                                {isLoading
-                                                    ? "Menyimpan..."
-                                                    : "Simpan Biodata"}
-                                            </button>
-                                        </div>
-                                    </form>
-                                    <div className="mt-6 p-4 bg-yellow-50 rounded-xl border border-yellow-200 text-sm text-yellow-800 flex items-center gap-3">
-                                        <i className="fas fa-info-circle text-lg mt-0.5"></i>
-                                        <p>
-                                            Peringatan: Data biodata hanya dapat
-                                            diisi sekali. Pastikan data yang
-                                            dimasukkan sudah benar sebelum
-                                            melakukan pengiriman.
-                                        </p>
-                                    </div>
-                                </>
+                            </div>
+                            {hasBiodata && (
+                                <span className="px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-bold border border-green-200">
+                                    SISWA AKTIF
+                                </span>
                             )}
                         </div>
 
-                        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-                            {/*Input pembayaran user*/}
-                            <div className="shadow-lg rounded-2xl overflow-hidden bg-white border border-green-100">
-                                <div className="px-6 py-5 border-b border-gray-200">
-                                    <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                                        Input Pembayaran Kas
-                                    </h3>
+                        {/* --- LOGIKA TAMPILAN: Form Input vs Jadwal --- */}
+                        {hasBiodata ? (
+                            // TAMPILAN 1: JIKA SUDAH ISI BIODATA (Jadwal & Pengumuman)
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                {/* Jadwal Latihan */}
+                                <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-blue-100 overflow-hidden">
+                                    <div className="bg-blue-600 p-4 flex justify-between items-center">
+                                        <h3 className="text-white font-bold flex items-center gap-2">
+                                            <i className="fas fa-calendar-alt"></i> Jadwal Latihan
+                                        </h3>
+                                        <span className="text-blue-100 text-xs bg-blue-700 px-2 py-1 rounded">Minggu Ini</span>
+                                    </div>
+                                    <div className="divide-y divide-gray-100">
+                                        {JADWAL_LATIHAN.map((item, idx) => (
+                                            <div key={idx} className="p-4 hover:bg-blue-50 transition-colors flex flex-col sm:flex-row sm:items-center gap-4">
+                                                <div className="sm:w-20 font-bold text-gray-800 bg-gray-100 rounded-lg p-2 text-center">
+                                                    {item.hari}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="font-bold text-blue-700 text-sm">{item.materi}</p>
+                                                    <div className="flex gap-4 text-xs text-gray-500 mt-1">
+                                                        <span>? {item.jam}</span>
+                                                        <span>? {item.lokasi}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                                <div className="p-6">
-                                    <form className="space-y-6">
-                                        {/* Input Nominal Pembayaran */}
-                                        <div className="space-y-2">
-                                            <label
-                                                htmlFor="cashAmount"
-                                                className="block text-sm font-medium text-gray-700"
-                                            >
-                                                Nominal Pembayaran Kas (Rp)
-                                            </label>
-                                            <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all duration-200">
-                                                <span className="px-4 py-3 bg-gray-50 text-gray-600 font-bold border-r border-gray-200">
-                                                    Rp
-                                                </span>
-                                                <input
-                                                    id="cashAmount"
-                                                    type="number"
-                                                    min="1000"
-                                                    placeholder="Contoh: 50000"
-                                                    className="w-full px-4 py-3 text-lg text-gray-800 focus:outline-none"
-                                                    required
-                                                />
+
+                                {/* Pengumuman */}
+                                <div className="space-y-6">
+                                    {pengumumans.length > 0 ? (
+                                        pengumumans.slice(0, 3).map((pengumuman) => (
+                                            <div key={pengumuman.id} className="bg-yellow-50 rounded-2xl border border-yellow-200 p-6 shadow-sm">
+                                                <h3 className="font-bold text-yellow-800 mb-3 flex items-center gap-2">
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                                                    </svg>
+                                                    {pengumuman.judul}
+                                                </h3>
+                                                <p className="text-sm text-yellow-800 leading-relaxed whitespace-pre-wrap">
+                                                    {pengumuman.isi}
+                                                </p>
+                                                <div className="mt-4 pt-4 border-t border-yellow-200 text-xs text-yellow-600">
+                                                    {pengumuman.user?.name || "Admin"} • {new Date(pengumuman.created_at).toLocaleDateString("id-ID", {
+                                                        day: "numeric",
+                                                        month: "long",
+                                                        year: "numeric"
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="bg-yellow-50 rounded-2xl border border-yellow-200 p-6 shadow-sm">
+                                            <h3 className="font-bold text-yellow-800 mb-3 flex items-center gap-2">
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                                                </svg>
+                                                Pengumuman
+                                            </h3>
+                                            <p className="text-sm text-yellow-600">
+                                                Belum ada pengumuman saat ini.
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* Quick Stat */}
+                                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                                        <p className="text-gray-500 text-sm mb-1">Status Pembayaran</p>
+                                        <div className="flex items-end gap-2">
+                                            <span className={`text-2xl font-bold ${keuangan.total_tagihan > 0 ? 'text-red-500' : 'text-green-500'}`}>
+                                                {keuangan.total_tagihan > 0 ? "Belum Lunas" : "Lunas"}
+                                            </span>
+                                        </div>
+                                        {keuangan.total_tagihan > 0 && (
+                                            <button onClick={() => setActivePage('kas saya')} className="mt-3 w-full py-2 bg-red-100 text-red-600 rounded-lg text-sm font-medium hover:bg-red-200">
+                                                Bayar Sekarang
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            // TAMPILAN 2: JIKA BELUM ISI BIODATA (Form Input)
+                            <div className="bg-white p-8 rounded-2xl shadow-lg border border-red-100 relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-orange-500"></div>
+                                <div className="mb-6 text-center">
+                                    <h2 className="text-xl font-bold text-gray-800">? Lengkapi Data Diri</h2>
+                                    <p className="text-gray-500 text-sm">Data ini diperlukan untuk administrasi dan pembuatan kartu anggota.</p>
+                                </div>
+                                <form onSubmit={handleSubmitBiodata} className="max-w-2xl mx-auto space-y-5">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
+                                            <input type="text" name="nama_lengkap" value={biodata.nama_lengkap} onChange={handleBiodataChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">No HP (WhatsApp)</label>
+                                            <input type="number" name="phone" value={biodata.phone} onChange={handleBiodataChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="08..." required />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Email Siswa</label>
+                                            <input type="email" name="email" value={biodata.email} onChange={handleBiodataChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal Lahir</label>
+                                            <input type="date" name="tanggal_lahir" value={biodata.tanggal_lahir} onChange={handleBiodataChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required />
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Alamat Lengkap</label>
+                                            <textarea name="alamat" value={biodata.alamat} onChange={handleBiodataChange} rows="3" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Jalan, RT/RW, Kelurahan..." required />
+                                        </div>
+                                    </div>
+                                    <button type="submit" disabled={isLoading} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-md transition-all">
+                                        {isLoading ? "Menyimpan..." : "Simpan Data & Lanjutkan"}
+                                    </button>
+                                </form>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* PAGE: PROGRAM */}
+                {activePage === "program" && (
+                    <div className="space-y-6">
+                        <div className="bg-white rounded-2xl shadow-sm p-6 border border-green-100">
+                            <h1 className="text-2xl font-bold text-gray-800">Pilih Program</h1>
+                            <p className="text-gray-600">Sesuaikan dengan minat dan posisi bermainmu.</p>
+                        </div>
+
+                        {/* TAMPILAN SETELAH MEMILIH PROGRAM */}
+                        {biodata.pilihan_program && !showAllPrograms ? (
+                            <div className="space-y-6">
+                                {/* Card Konfirmasi Program Terpilih */}
+                                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl shadow-lg border-2 border-green-300 p-8 relative overflow-hidden">
+                                    {/* Decorative Elements */}
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-green-200 rounded-full -mr-16 -mt-16 opacity-20"></div>
+                                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-emerald-200 rounded-full -ml-12 -mb-12 opacity-20"></div>
+                                    
+                                    <div className="relative z-10">
+                                        {/* Header dengan Icon */}
+                                        <div className="flex items-center gap-4 mb-6">
+                                            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                                                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h2 className="text-2xl font-bold text-gray-800">Program Berhasil Dipilih!</h2>
+                                                <p className="text-gray-600">Selamat, Anda telah terdaftar dalam program berikut:</p>
                                             </div>
                                         </div>
 
-                                        {/* Keterangan Pembayaran */}
-                                        <div className="space-y-2">
-                                            <label
-                                                htmlFor="month"
-                                                className="block text-sm font-medium text-gray-700"
-                                            >
-                                                Keterangan
-                                            </label>
-                                            <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all duration-200">
-                                                {" "}
-                                                <input
-                                                    type="text"
-                                                    name="deskripsi"
-                                                    required
-                                                    placeholder="Contoh: Iuran Bulanan"
-                                                    className="w-full px-4 py-3 text-lg text-gray-800 focus:outline-none"
-                                                />
+                                        {/* Detail Program Terpilih */}
+                                        {(() => {
+                                            const programTerpilih = LIST_PROGRAM.find(p => p.id === biodata.pilihan_program);
+                                            if (!programTerpilih) return null;
+                                            
+                                            return (
+                                                <div className="bg-white rounded-xl p-6 shadow-md border border-green-200">
+                                                    <div className="flex items-start justify-between mb-4">
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center gap-3 mb-3">
+                                                                <div className={`h-3 w-3 rounded-full ${programTerpilih.warna.replace('bg-', 'bg-').replace('-50', '-500').split(' ')[0]}`}></div>
+                                                                <h3 className="text-xl font-bold text-gray-800">{programTerpilih.judul}</h3>
+                                                                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">AKTIF</span>
+                                                            </div>
+                                                            <p className="text-gray-600 mb-4">{programTerpilih.deskripsi}</p>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+                                                        <div>
+                                                            <p className="text-xs text-gray-500 mb-1">Biaya Bulanan</p>
+                                                            <p className="text-lg font-bold text-gray-800">{programTerpilih.harga}</p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs text-gray-500 mb-1">Status Pendaftaran</p>
+                                                            <p className="text-lg font-bold text-green-600">Terdaftar</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+
+                                        {/* Informasi Selanjutnya */}
+                                        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                            <div className="flex items-start gap-3">
+                                                <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <div>
+                                                    <p className="text-sm font-medium text-blue-800 mb-1">Langkah Selanjutnya:</p>
+                                                    <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
+                                                        <li>Tunggu konfirmasi dari admin untuk aktivasi program</li>
+                                                        <li>Lakukan pembayaran sesuai tagihan yang akan diterbitkan</li>
+                                                        <li>Ikuti jadwal latihan yang telah ditentukan</li>
+                                                    </ul>
+                                                </div>
                                             </div>
                                         </div>
 
                                         {/* Tombol Aksi */}
-                                        <div className="pt-4">
-                                            <button
-                                                type="submit"
-                                                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors duration-200 shadow-md"
+                                        <div className="flex gap-3 mt-6">
+                                            <button 
+                                                onClick={() => setActivePage('dashboard')} 
+                                                className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-md transition-all"
                                             >
-                                                <i className="fas fa-paper-plane"></i>
-                                                Kirim Pembayaran
+                                                Lihat Dashboard
+                                            </button>
+                                            <button 
+                                                onClick={() => setActivePage('kas saya')} 
+                                                className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-md transition-all"
+                                            >
+                                                Cek Pembayaran
                                             </button>
                                         </div>
-                                    </form>
+                                    </div>
+                                </div>
 
-                                    {/* Info/Catatan Tambahan */}
-                                    <div className="hidden mt-6 p-4 bg-yellow-50 rounded-xl border border-yellow-200 text-sm text-yellow-800 flex items-center gap-3">
-                                        <i className="fas fa-info-circle text-lg mt-0.5"></i>
-                                        <p>
-                                            Peringatan(contoh : Pastikan nominal
-                                            yang diinput sudah benar sesuai
-                                            dengan jumlah transfer.)
+                                {/* Opsi Mengubah Program */}
+                                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-lg font-bold text-gray-800">Ingin Mengubah Program?</h3>
+                                        <button 
+                                            onClick={() => {
+                                                if (confirm("Yakin ingin melihat semua program lagi? Anda bisa memilih program lain.")) {
+                                                    setShowAllPrograms(true);
+                                                }
+                                            }}
+                                            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+                                        >
+                                            Lihat Semua Program
+                                        </button>
+                                    </div>
+                                    <p className="text-sm text-gray-600">Anda dapat mengubah pilihan program kapan saja. Pilih program yang sesuai dengan kebutuhan Anda.</p>
+                                </div>
+                            </div>
+                        ) : (
+                            /* TAMPILAN SEBELUM MEMILIH PROGRAM ATAU SAAT INGIN MENGUBAH */
+                            <div className="space-y-6">
+                                {biodata.pilihan_program && (
+                                    <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-center gap-3">
+                                        <svg className="w-5 h-5 text-yellow-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <p className="text-sm text-yellow-800">
+                                            <strong>Program saat ini:</strong> {LIST_PROGRAM.find(p => p.id === biodata.pilihan_program)?.judul || biodata.pilihan_program}. 
+                                            Pilih program lain untuk mengubah pilihan Anda.
                                         </p>
                                     </div>
+                                )}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    {LIST_PROGRAM.map((program) => (
+                                        <div key={program.id} className={`bg-white rounded-2xl p-6 border-2 transition-all hover:shadow-lg ${
+                                            biodata.pilihan_program === program.id 
+                                                ? 'border-green-500 ring-2 ring-green-200' 
+                                                : 'border-gray-100 hover:border-gray-200'
+                                        }`}>
+                                            <div className={`h-2 w-12 rounded-full mb-4 ${program.warna.replace('bg-', 'bg-').replace('-50', '-500').split(' ')[0]}`}></div>
+                                            <h3 className="text-xl font-bold text-gray-800 mb-2">{program.judul}</h3>
+                                            <p className="text-sm text-gray-600 mb-4 h-16">{program.deskripsi}</p>
+                                            <div className="flex justify-between items-center pt-4 border-t border-gray-50">
+                                                <span className="font-bold text-gray-700">{program.harga}</span>
+                                                {biodata.pilihan_program === program.id ? (
+                                                    <span className="text-green-600 font-bold flex items-center gap-1">
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                        Terdaftar
+                                                    </span>
+                                                ) : (
+                                                    <button 
+                                                        onClick={() => {
+                                                            setShowAllPrograms(false);
+                                                            handlePilihProgram(program.id);
+                                                        }} 
+                                                        className={`px-4 py-2 text-white rounded-lg text-sm font-medium ${program.btnWarna} hover:shadow-md transition-all`}
+                                                    >
+                                                        {biodata.pilihan_program ? 'Ganti Program' : 'Pilih Program'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
-
-                            {/* Riwayat Pembayaran*/}
-                            <div className="bg-white shadow-lg rounded-2xl overflow-hidden border border-green-100">
-                                <div className="px-6 py-5 border-b border-gray-200">
-                                    <h3 className="text-lg font-bold text-gray-800">
-                                        Riwayat Pembayaran
-                                    </h3>
-                                </div>
-                                <div className="p-6">
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between items-center p-4 bg-blue-50 rounded-xl border border-blue-200">
-                                            <div>
-                                                <p className="font-semibold text-gray-800">
-                                                    Contoh: Bayar Pajak Ginjal
-                                                </p>
-                                                <p className="text-sm text-gray-600">
-                                                    Jumat, 18 Okt 2024 • 16:00
-                                                </p>
-                                                <p className="text-sm text-gray-500">
-                                                    Jumlah uang : Rp 500.000
-                                                </p>
-                                            </div>
-                                            <span
-                                                className="px-3 py-1 
-    bg-yellow-100 text-yellow-800 
-    rounded-full text-sm font-medium"
-                                            >
-                                                Belum Lunas
-                                            </span>
-                                        </div>
-
-                                        <div className="flex justify-between items-center p-4 bg-green-50 rounded-xl border border-green-200">
-                                            <div>
-                                                <p className="font-semibold text-gray-800">
-                                                    Contoh : Bayar Masjid
-                                                </p>
-                                                <p className="text-sm text-gray-600">
-                                                    Senin, 21 Okt 2024 • 15:30
-                                                </p>
-                                                <p className="text-sm text-gray-500">
-                                                    Jumlah uang : Rp 5.000
-                                                </p>
-                                            </div>
-                                            <span
-                                                className="px-3 py-1 
-    bg-green-100 text-green-800 
-    rounded-full text-sm font-medium"
-                                            >
-                                                Lunas
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        )}
                     </div>
                 )}
 
@@ -585,139 +689,38 @@ const UserDashboard = ({ onLogout }) => {
                     <div className="space-y-6">
                         {/* Header */}
                         <div className="bg-white rounded-2xl shadow-sm p-6 border border-green-100">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <h1 className="text-2xl font-bold text-gray-800">
-                                        Profil Saya
-                                    </h1>
-                                    <p className="text-gray-600">
-                                        Kelola informasi profil dan akun Anda
-                                    </p>
-                                </div>
-                            </div>
+                            <h1 className="text-2xl font-bold text-gray-800">Profil Saya</h1>
+                            <p className="text-gray-600">Informasi akun dan biodata siswa.</p>
                         </div>
-
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {/* Informasi Profil */}
-                            <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-green-100 p-6">
-                                <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-                                    <i className="fas fa-user-circle text-blue-500"></i>
-                                    Informasi Pribadi
-                                </h2>
-
-                                <div className="space-y-6">
-                                    {/* Foto Profil & Info Dasar */}
-                                    <div className="flex items-start gap-6">
-                                        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Nama Lengkap
-                                                </label>
-                                                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 text-gray-800">
-                                                    {biodata.nama_lengkap ||
-                                                        user?.name ||
-                                                        "Belum Diisi"}
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Email
-                                                </label>
-                                                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 text-gray-800">
-                                                    {biodata.email ||
-                                                        user?.email ||
-                                                        "Belum Diisi"}
-                                                </div>
-                                            </div>
+                            <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                                <h3 className="font-bold text-gray-800 mb-6 border-b pb-2">Informasi Pribadi</h3>
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div><label className="text-xs text-gray-500">Nama Akun</label><div className="font-medium">{user?.name}</div></div>
+                                        <div><label className="text-xs text-gray-500">Email Login</label><div className="font-medium">{user?.email}</div></div>
+                                    </div>
+                                    <div className="bg-gray-50 p-4 rounded-xl space-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div><label className="text-xs text-gray-500">Nama Siswa</label><div className="font-medium">{biodata.nama_lengkap || "-"}</div></div>
+                                            <div><label className="text-xs text-gray-500">No HP</label><div className="font-medium">{biodata.phone || "-"}</div></div>
+                                            <div className="md:col-span-2"><label className="text-xs text-gray-500">Alamat</label><div className="font-medium">{biodata.alamat || "-"}</div></div>
                                         </div>
                                     </div>
-
-                                    {/* Tombol Aksi */}
-                                    <div className="flex gap-3 pt-4 border-t border-gray-200">
-                                        <button className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg">
-                                            <i className="fas fa-edit"></i>
-                                            Edit Profil
-                                        </button>
-                                        <button className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg">
-                                            <i className="fas fa-trash-alt"></i>
-                                            Hapus Akun
-                                        </button>
+                                    <div className="flex gap-3 pt-4">
+                                        <button onClick={() => setIsEditing(true)} className="px-4 py-2 bg-yellow-500 text-white rounded-lg text-sm font-medium hover:bg-yellow-600">Edit Akun</button>
+                                        <button onClick={handleDeleteAccount} className="px-4 py-2 bg-red-100 text-red-600 rounded-lg text-sm font-medium hover:bg-red-200">Hapus Akun</button>
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Sidebar Info */}
-                            <div className="space-y-6">
-                                {/* Statistik Singkat */}
-                                <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
-                                    <h3 className="text-lg font-bold text-gray-800 mb-4">
-                                        Statistik Saya
-                                    </h3>
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                                    <i className="fas fa-wallet text-blue-600"></i>
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-medium text-gray-700">
-                                                        Total Kas
-                                                    </p>
-                                                    <p className="text-lg font-bold text-gray-800">
-                                                        Rp 1.250.000
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                                                    <i className="fas fa-calendar-check text-green-600"></i>
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-medium text-gray-700">
-                                                        Kehadiran
-                                                    </p>
-                                                    <p className="text-lg font-bold text-gray-800">
-                                                        92%
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg border border-purple-200">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                                                    <i className="fas fa-trophy text-purple-600"></i>
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-medium text-gray-700">
-                                                        Gol
-                                                    </p>
-                                                    <p className="text-lg font-bold text-gray-800">
-                                                        15
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Quick Actions */}
-                                <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
-                                    <h3 className="text-lg font-bold text-gray-800 mb-4">
-                                        Aksi Cepat
-                                    </h3>
-                                    <div className="space-y-2">
-                                        <button className="w-full flex items-center gap-3 p-3 text-left bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors">
-                                            <i className="fas fa-lock text-blue-600"></i>
-                                            <span className="font-medium text-gray-800">
-                                                Ubah Password
-                                            </span>
-                                        </button>
-                                    </div>
-                                </div>
+                            {/* Widget Keuangan Kecil */}
+                            <div className="bg-blue-600 rounded-2xl shadow-lg p-6 text-white">
+                                <h3 className="font-bold text-lg mb-1">Total Tagihan</h3>
+                                <p className="text-blue-100 text-sm mb-4">Wajib dibayar segera</p>
+                                <p className="text-3xl font-bold mb-6">Rp {parseInt(keuangan.total_tagihan || 0).toLocaleString('id-ID')}</p>
+                                <button onClick={() => setActivePage('kas saya')} className="w-full py-3 bg-white text-blue-600 rounded-xl font-bold shadow-sm hover:bg-blue-50 transition-colors">
+                                    Bayar Sekarang
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -725,40 +728,53 @@ const UserDashboard = ({ onLogout }) => {
 
                 {/* Kas Pages User */}
                 {activePage === "kas saya" && (
-                    <div className="space-y-8 min-h-screen">
+                    <div className="space-y-6">
                         <div className="bg-white rounded-2xl shadow-sm p-6 border border-green-100">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <h1 className="text-2xl font-bold text-gray-800">
-                                        Cek total tagihan
-                                    </h1>
-                                    <p className="text-gray-600">
-                                        Kelola informasi tagihan
-                                    </p>
+                            <h1 className="text-2xl font-bold text-gray-800">Kas & Pembayaran</h1>
+                            <p className="text-gray-600">Bayar tagihan via Transfer/QRIS.</p>
+                        </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                                <div className="p-6 bg-gray-50 border-b">
+                                    <h3 className="font-bold text-gray-800">Input Pembayaran</h3>
+                                </div>
+                                <div className="p-6">
+                                    <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-6 text-center">
+                                        <p className="text-sm font-medium text-blue-800 mb-2">Scan QRIS Sekolah</p>
+                                        <div className="bg-white p-2 inline-block rounded-lg shadow-sm border mb-2">
+                                            {/* Ganti URL ini dengan URL QRIS asli Anda */}
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg" alt="QRIS" className="w-32 h-32" />
+                                        </div>
+                                        <p className="text-xs text-blue-600">BCA: 123-456-7890 (SMEMSA)</p>
+                                    </div>
+                                    <form onSubmit={handlePayment} className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Nominal (Rp)</label>
+                                            <input type="number" min="1000" value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} placeholder="Contoh: 50000" className="w-full px-4 py-2 border rounded-xl" required />
+                                        </div>
+                                        <button type="submit" disabled={isLoading} className="w-full py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 shadow-lg transition-all">
+                                            {isLoading ? "Memproses..." : "Konfirmasi Pembayaran"}
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
-                        </div>
-
-                        <div className="bg-white p-6 rounded-2xl">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                                Cek Total Tagihan
-                            </h3>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
-                                    <h4 className="font-semibold mb-4">
-                                        Total Tagihan
-                                    </h4>
-                                    <p className="text-3xl font-bold mb-2">
-                                        Rp{" "}
-                                        {parseInt(
-                                            keuangan.total_tagihan
-                                        ).toLocaleString("id-ID")}
-                                    </p>
-                                    <p className="text-blue-100 text-sm">
-                                        Sisa Kewajiban Pembayaran
-                                    </p>
-                                </div>
+                            <div className="bg-white rounded-2xl border border-gray-200 p-6">
+                                <h3 className="font-bold text-gray-800 mb-4">Riwayat Pembayaran</h3>
+                                {keuangan.riwayat.length > 0 ? (
+                                    <ul className="space-y-3">
+                                        {keuangan.riwayat.map((item, idx) => (
+                                            <li key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                                <div>
+                                                    <p className="text-xs text-gray-500">{item.tanggal_bayar}</p>
+                                                    <p className="text-sm font-medium">Pembayaran Kas</p>
+                                                </div>
+                                                <span className="text-green-600 font-bold bg-green-50 px-2 py-1 rounded">+ Rp {parseInt(item.jumlah_bayar).toLocaleString()}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p className="text-center text-gray-400 py-8">Belum ada riwayat.</p>
+                                )}
                             </div>
                         </div>
                     </div>
