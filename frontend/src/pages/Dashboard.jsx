@@ -306,7 +306,10 @@ export default function Dsbd({ onLogout }) {
     const handleUpdate = async id => {
         await fetch(`http://localhost:8000/api/biodata/${editData.id}`, {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+                },
             body: JSON.stringify(formData)
         });
 
@@ -316,9 +319,11 @@ export default function Dsbd({ onLogout }) {
 
     const handleDelete = async id => {
         await fetch(`http://localhost:8000/api/biodata/${id}`, {
-            method: "DELETE"
+            method: "DELETE",
+            headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+                }
         });
-
         fetchDataSiswa();
     };
 

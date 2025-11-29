@@ -410,6 +410,12 @@ const UserDashboard = ({ onLogout }) => {
                                     </button>
                                 </div>
                             </form>
+                            <div className="mt-6 p-4 bg-yellow-50 rounded-xl border border-yellow-200 text-sm text-yellow-800 flex items-center gap-3">
+                                        <i className="fas fa-info-circle text-lg mt-0.5"></i>
+                                        <p>
+                                            Peringatan: Data biodata hanya dapat diisi sekali. Pastikan data yang dimasukkan sudah benar sebelum melakukan pengiriman.
+                                        </p>
+                                    </div>
                         </div>
 
                         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
@@ -478,7 +484,7 @@ const UserDashboard = ({ onLogout }) => {
                                     </form>
 
                                     {/* Info/Catatan Tambahan */}
-                                    <div className="mt-6 p-4 bg-yellow-50 rounded-xl border border-yellow-200 text-sm text-yellow-800 flex items-center gap-3">
+                                    <div className="hidden mt-6 p-4 bg-yellow-50 rounded-xl border border-yellow-200 text-sm text-yellow-800 flex items-center gap-3">
                                         <i className="fas fa-info-circle text-lg mt-0.5"></i>
                                         <p>
                                             Peringatan(contoh : Pastikan nominal
@@ -689,8 +695,22 @@ const UserDashboard = ({ onLogout }) => {
 
                 {/* Kas Pages User */}
                 {activePage === "kas saya" && (
-                    <div className="space-y-8">
-                        <h3 className="text-lg font-semibold text-gray-900">
+                    <div className="space-y-8 min-h-screen">
+                                              <div className="bg-white rounded-2xl shadow-sm p-6 border border-green-100">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h1 className="text-2xl font-bold text-gray-800">
+                                        Cek total tagihan
+                                    </h1>
+                                    <p className="text-gray-600">
+                                        Kelola informasi tagihan
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="bg-white p-6 rounded-2xl">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
                             Cek Total Tagihan
                         </h3>
 
@@ -709,6 +729,7 @@ const UserDashboard = ({ onLogout }) => {
                                     Sisa Kewajiban Pembayaran
                                 </p>
                             </div>
+                        </div>
                         </div>
                     </div>
                 )}
