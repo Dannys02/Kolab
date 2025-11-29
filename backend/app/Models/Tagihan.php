@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Tagihan extends Model
 {
-    // [FIX] Tambahkan ini agar data bisa masuk
     protected $fillable = [
         'biodata_id',
         'judul',
@@ -14,4 +13,9 @@ class Tagihan extends Model
         'jatuh_tempo',
         'status'
     ];
+
+    public function biodata()
+    {
+        return $this->belongsTo(\App\Models\Biodata::class, 'biodata_id');
+    }
 }
