@@ -17,7 +17,19 @@ class BiodataController extends Controller
             "tanggal_lahir" => "required|date",
         ]);
 
-        $biodata = Biodata::create($request->all());
+        // [PERBAIKAN] Ambil semua inputan
+        $data = $request->all();
+
+        // [PERBAIKAN] Masukkan ID user yang sedang login secara otomatis
+        $data['user_id'] = $request->user()->id;
+
+        // Cek apakah user ini sudah punya biodata sebelumnya? (Mencegah duplikat)
+        $existingBiodata = Biodata::where('user_id', $data['user_id'])->first();
+        if ($existingBiodata) {
+            return response()->json(['message' => 'Biodata Anda sudah ada. Silakan edit saja.'], 400);
+        }
+
+        $biodata = Biodata::create($data);
 
         return response()->json(
             [
@@ -28,15 +40,17 @@ class BiodataController extends Controller
         );
     }
 
+    // ... method update dan destroy biarkan atau sesuaikan validasinya ...
+
     public function update(Request $request, $id)
     {
+        // ... kode lama ...
         $request->validate([
             "nama_lengkap" => "required|string",
             "email" => "required|email",
             "phone" => "required|numeric",
             "alamat" => "required|string",
             "tanggal_lahir" => "required|date",
-            "pilihan_program" => "nullable|string",
         ]);
 
         $biodata = Biodata::findOrFail($id);
@@ -46,6 +60,7 @@ class BiodataController extends Controller
             "message" => "Data Berhasil Diupdate",
             "data" => $biodata,
         ]);
+
     }
 
     public function destroy($id)
