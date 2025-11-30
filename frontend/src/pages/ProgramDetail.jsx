@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -22,6 +22,17 @@ export default function ProgramDetail() {
     if (!confirm(`Konfirmasi memilih program ${program.judul}?`)) return;
     setIsLoading(true);
     try {
+      // Cek ulang apakah user sudah memilih program (mencegah double-submit atau bypass)
+      try {
+        const check = await axios.get('http://localhost:8000/api/tagihan-siswa', { headers: { Authorization: `Bearer ${token}` } });
+        if (check.data?.biodata?.pilihan_program) {
+          alert('Anda sudah memilih program. Halaman pemilihan tidak dapat diakses lagi.');
+          navigate('/program-success');
+          return;
+        }
+      } catch (errCheck) {
+        // jika gagal cek, lanjutkan (server mungkin belum tersedia) — tetap coba
+      }
       // 1) Update/Create biodata dengan pilihan program
       const biodataResp = await axios.post("http://localhost:8000/api/biodata", { pilihan_program: program.id }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -67,6 +78,21 @@ export default function ProgramDetail() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    // Jika sudah memilih program, redirect ke success
+    if (!token) return;
+    axios.get('http://localhost:8000/api/tagihan-siswa', { headers: { Authorization: `Bearer ${token}` } })
+      .then(resp => {
+        const b = resp.data?.biodata;
+        if (b?.pilihan_program) {
+          const pid = b.pilihan_program;
+          const matched = SAMPLE_PROGRAMS.find(p => p.id === pid);
+          navigate('/program-success', { state: { program: matched || { id: pid, judul: pid, deskripsi: '' } } });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   if (!program) {
     return (

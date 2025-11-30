@@ -14,4 +14,5 @@ class Tagihan extends Model
         'jatuh_tempo',
         'status'
     ];
+    
 }

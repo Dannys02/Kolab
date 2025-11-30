@@ -37,6 +37,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/biodata', [BiodataController::class, 'store']);
     Route::put('/biodata/{id}', [BiodataController::class, 'update']);
     Route::delete('/biodata/{id}', [BiodataController::class, 'destroy']);
+    // Admin: paksa set pilihan program untuk koreksi jika diperlukan
+    Route::post('/admin/biodata/{id}/force-set-program', [BiodataController::class, 'forceSetProgram']);
 
     // --- FITUR KEUANGAN & TAGIHAN ---
 
@@ -71,6 +73,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/jadwal/{id}', [\App\Http\Controllers\Api\JadwalController::class, 'show']);
     Route::put('/jadwal/{id}', [\App\Http\Controllers\Api\JadwalController::class, 'update']);
     Route::delete('/jadwal/{id}', [\App\Http\Controllers\Api\JadwalController::class, 'destroy']);
+
+    // --- EXPORT DATA (ADMIN ONLY) ---
+    Route::get('/export/siswa-program', [\App\Http\Controllers\Api\ExportController::class, 'getSiswaProgram']);
+    Route::get('/export/ringkasan-program', [\App\Http\Controllers\Api\ExportController::class, 'getRingkasanProgram']);
+    Route::get('/export/program/{programId}/siswa', [\App\Http\Controllers\Api\ExportController::class, 'getSiswaByProgram']);
 });
 
 // --- ROUTES LAINNYA ---

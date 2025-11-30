@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Biodata extends Model
 {
@@ -15,7 +16,8 @@ class Biodata extends Model
         'email',
         'phone',
         'alamat',
-        'tanggal_lahir'
+        'tanggal_lahir',
+        'pilihan_program'
     ];
 
     public function user()

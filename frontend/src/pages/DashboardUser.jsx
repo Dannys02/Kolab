@@ -222,7 +222,8 @@ const UserDashboard = ({ onLogout }) => {
             alert("Akun dihapus.");
             onLogout();
         } catch (error) {
-            alert("Gagal hapus akun: " + (error.response?.data?.message || "Error"));
+            const errorMessage = error.response?.data?.message || error.response?.statusText || "Error tidak diketahui";
+            alert("Gagal hapus akun: " + errorMessage);
             setIsLoading(false);
         }
     };
@@ -605,22 +606,12 @@ const UserDashboard = ({ onLogout }) => {
                                     </div>
                                 </div>
 
-                                {/* Opsi Mengubah Program */}
+                                {/* Informasi: Pengubahan program dibatasi */}
                                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h3 className="text-lg font-bold text-gray-800">Ingin Mengubah Program?</h3>
-                                        <button 
-                                            onClick={() => {
-                                                if (confirm("Yakin ingin melihat semua program lagi? Anda bisa memilih program lain.")) {
-                                                    setShowAllPrograms(true);
-                                                }
-                                            }}
-                                            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
-                                        >
-                                            Lihat Semua Program
-                                        </button>
+                                    <div className="mb-2">
+                                        <h3 className="text-lg font-bold text-gray-800">Informasi Pilihan Program</h3>
                                     </div>
-                                    <p className="text-sm text-gray-600">Anda dapat mengubah pilihan program kapan saja. Pilih program yang sesuai dengan kebutuhan Anda.</p>
+                                    <p className="text-sm text-gray-600">Pilihan program sudah tersimpan. Halaman pemilihan tidak dapat diakses kembali oleh siswa. Jika perlu perubahan, hubungi admin.</p>
                                 </div>
                             </div>
                         ) : (
@@ -657,14 +648,25 @@ const UserDashboard = ({ onLogout }) => {
                                                         Terdaftar
                                                     </span>
                                                 ) : (
-                                                    <button 
-                                                        onClick={() => {
-                                                            navigate(`/program-detail/${program.id}`, { state: { program } });
-                                                        }} 
-                                                        className={`px-4 py-2 text-white rounded-lg text-sm font-medium ${program.btnWarna} hover:shadow-md transition-all`}
-                                                    >
-                                                        {biodata.pilihan_program ? 'Ganti Program' : 'Pilih Program'}
-                                                    </button>
+                                                    // Jika user sudah memilih program lain, tombol pemilihan dinonaktifkan
+                                                    (biodata.pilihan_program ? (
+                                                        <button 
+                                                            onClick={() => alert('Anda sudah memilih program. Halaman pemilihan tidak dapat diakses kembali.')}
+                                                            className={`px-4 py-2 text-white rounded-lg text-sm font-medium bg-gray-300 cursor-not-allowed`} 
+                                                            disabled
+                                                        >
+                                                            Tidak Tersedia
+                                                        </button>
+                                                    ) : (
+                                                        <button 
+                                                            onClick={() => {
+                                                                navigate(`/program-detail/${program.id}`, { state: { program } });
+                                                            }} 
+                                                            className={`px-4 py-2 text-white rounded-lg text-sm font-medium ${program.btnWarna} hover:shadow-md transition-all`}
+                                                        >
+                                                            Pilih Program
+                                                        </button>
+                                                    ))
                                                 )}
                                             </div>
                                         </div>

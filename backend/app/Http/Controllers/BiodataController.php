@@ -26,6 +26,14 @@ class BiodataController extends Controller
             
             $request->validate($rules);
             
+            // Jika ada upaya mengubah pilihan_program, pastikan tidak sudah ter-set
+            if ($request->has('pilihan_program')) {
+                // jika sudah ada pilihan dan user bukan admin, tolak
+                if ($existingBiodata->pilihan_program && !$user->hasRole('admin')) {
+                    return response()->json(["message" => "Pilihan program sudah diset dan tidak dapat diubah. Hubungi admin."], 403);
+                }
+            }
+
             // Update biodata yang sudah ada
             $existingBiodata->update($request->all());
             
@@ -69,6 +77,14 @@ class BiodataController extends Controller
         ]);
 
         $biodata = Biodata::findOrFail($id);
+
+        // Protect pilihan_program from being changed by non-admins once set
+        if ($request->has('pilihan_program')) {
+            if ($biodata->pilihan_program && !$request->user()->hasRole('admin')) {
+                return response()->json(["message" => "Pilihan program sudah diset dan tidak dapat diubah oleh user."], 403);
+            }
+        }
+
         $biodata->update($request->all());
 
         return response()->json([
@@ -84,6 +100,31 @@ class BiodataController extends Controller
 
         return response()->json([
             "message" => "Data Berhasil Dihapus",
+        ]);
+    }
+
+    /**
+     * Force set pilihan_program by admin.
+     * Route: POST /api/admin/biodata/{id}/force-set-program
+     */
+    public function forceSetProgram(Request $request, $id)
+    {
+        $user = $request->user();
+        if (!$user->hasRole('admin')) {
+            return response()->json(["message" => "Unauthorized"], 403);
+        }
+
+        $request->validate([
+            'pilihan_program' => 'required|string'
+        ]);
+
+        $biodata = Biodata::findOrFail($id);
+        $biodata->pilihan_program = $request->pilihan_program;
+        $biodata->save();
+
+        return response()->json([
+            'message' => 'Pilihan program berhasil diperbarui oleh admin',
+            'data' => $biodata->fresh(),
         ]);
     }
 }
