@@ -7,52 +7,48 @@ use Illuminate\Http\Request;
 
 class BiodataController extends Controller
 {
-    /**
-     * Metode Store/Update Hybrid:
-     * 1. Jika Biodata belum ada untuk user ini, lakukan CREATE (Pendaftaran Baru).
-     * 2. Jika Biodata sudah ada, lakukan UPDATE.
-     */
     public function store(Request $request)
     {
-        // 1. Ambil user yang sedang login dari token
-        $user = $request->user(); 
-
-        // 2. Cek apakah biodata sudah ada
+        // Validasi fleksibel: jika biodata sudah ada, hanya validasi field yang dikirim
+        $user = $request->user();
         $existingBiodata = Biodata::where('user_id', $user->id)->first();
         
         if ($existingBiodata) {
-            // --- LOGIKA UPDATE (Jika biodata sudah ada) ---
-
-            // Validasi hanya field yang dikirim (fleksibel untuk partial update)
+            // Jika biodata sudah ada, ini adalah UPDATE (misal update pilihan_program)
+            // Validasi hanya field yang dikirim
             $rules = [];
-            if ($request->has('nama_lengkap')) $rules['nama_lengkap'] = 'nullable|string';
-            if ($request->has('email')) $rules['email'] = 'nullable|email';
-            if ($request->has('phone')) $rules['phone'] = 'nullable|numeric';
-            if ($request->has('alamat')) $rules['alamat'] = 'nullable|string';
-            if ($request->has('tanggal_lahir')) $rules['tanggal_lahir'] = 'nullable|date';
-            if ($request->has('pilihan_program')) $rules['pilihan_program'] = 'nullable|string';
+            if ($request->has('nama_lengkap')) $rules['nama_lengkap'] = 'string';
+            if ($request->has('email')) $rules['email'] = 'email';
+            if ($request->has('phone')) $rules['phone'] = 'numeric';
+            if ($request->has('alamat')) $rules['alamat'] = 'string';
+            if ($request->has('tanggal_lahir')) $rules['tanggal_lahir'] = 'date';
+            if ($request->has('pilihan_program')) $rules['pilihan_program'] = 'string';
             
             $request->validate($rules);
             
-            // Update data yang ada
+            // Jika ada upaya mengubah pilihan_program, pastikan tidak sudah ter-set
+            if ($request->has('pilihan_program')) {
+                // jika sudah ada pilihan dan user bukan admin, tolak
+                if ($existingBiodata->pilihan_program && !$user->hasRole('admin')) {
+                    return response()->json(["message" => "Pilihan program sudah diset dan tidak dapat diubah. Hubungi admin."], 403);
+                }
+            }
+
+            // Update biodata yang sudah ada
             $existingBiodata->update($request->all());
             
             return response()->json([
                 "message" => "Data Berhasil Diupdate",
                 "data" => $existingBiodata->fresh(),
             ], 200);
-            
         } else {
-            // --- LOGIKA CREATE (Jika biodata belum ada) ---
-
-            // Validasi wajib untuk pendaftaran awal
+            // Jika biodata belum ada, ini adalah CREATE (pendaftaran baru)
             $request->validate([
                 "nama_lengkap" => "required|string",
-                "email" => "required|email|unique:biodatas,email", // Tambahkan unique check
+                "email" => "required|email",
                 "phone" => "required|numeric",
                 "alamat" => "required|string",
                 "tanggal_lahir" => "required|date",
-                // 'pilihan_program' bisa menjadi opsional saat create
             ]);
 
             $data = $request->all();
@@ -67,14 +63,11 @@ class BiodataController extends Controller
         }
     }
 
-// ----------------------------------------------------------------------
+    // ... method update dan destroy biarkan atau sesuaikan validasinya ...
 
-    /**
-     * [ADMIN/LAMA] Metode Update standar berdasarkan ID (Tidak terikat User yang sedang login)
-     */
     public function update(Request $request, $id)
     {
-        // Validasi wajib (standar) untuk update penuh
+        // ... kode lama ...
         $request->validate([
             "nama_lengkap" => "required|string",
             "email" => "required|email",
@@ -84,25 +77,54 @@ class BiodataController extends Controller
         ]);
 
         $biodata = Biodata::findOrFail($id);
+
+        // Protect pilihan_program from being changed by non-admins once set
+        if ($request->has('pilihan_program')) {
+            if ($biodata->pilihan_program && !$request->user()->hasRole('admin')) {
+                return response()->json(["message" => "Pilihan program sudah diset dan tidak dapat diubah oleh user."], 403);
+            }
+        }
+
         $biodata->update($request->all());
 
         return response()->json([
             "message" => "Data Berhasil Diupdate",
             "data" => $biodata,
         ]);
+
     }
 
-// ----------------------------------------------------------------------
-
-    /**
-     * Metode Destroy standar berdasarkan ID
-     */
     public function destroy($id)
     {
         Biodata::findOrFail($id)->delete();
 
         return response()->json([
             "message" => "Data Berhasil Dihapus",
+        ]);
+    }
+
+    /**
+     * Force set pilihan_program by admin.
+     * Route: POST /api/admin/biodata/{id}/force-set-program
+     */
+    public function forceSetProgram(Request $request, $id)
+    {
+        $user = $request->user();
+        if (!$user->hasRole('admin')) {
+            return response()->json(["message" => "Unauthorized"], 403);
+        }
+
+        $request->validate([
+            'pilihan_program' => 'required|string'
+        ]);
+
+        $biodata = Biodata::findOrFail($id);
+        $biodata->pilihan_program = $request->pilihan_program;
+        $biodata->save();
+
+        return response()->json([
+            'message' => 'Pilihan program berhasil diperbarui oleh admin',
+            'data' => $biodata->fresh(),
         ]);
     }
 }
