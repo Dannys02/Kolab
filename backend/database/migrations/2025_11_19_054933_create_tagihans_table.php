@@ -13,12 +13,17 @@ return new class extends Migration
     {
         Schema::create('tagihans', function (Blueprint $table) {
             $table->id();
-        $table->foreignId('biodata_id')->constrained('biodatas')->onDelete('cascade');
-        $table->string('judul'); // Contoh: "Uang Pangkal", "SPP Maret"
-        $table->decimal('jumlah', 10, 2); // Contoh: 2500000.00
-        $table->string('status')->default('Belum Lunas')->nullable(); // Lunas / Belum Lunas
-        $table->date('jatuh_tempo');
-            $table->timestamps();
+            // Kunci asing yang menghubungkan ke tabel 'biodatas'
+            $table->foreignId('biodata_id')->constrained('biodatas')->onDelete('cascade');
+            
+            $table->string('judul'); // Contoh: "Uang Pangkal", "SPP Maret"
+            $table->decimal('jumlah', 10, 2); // Jumlah tagihan, max 10 digit, 2 di belakang koma
+            
+            // Status Tagihan: default 'Belum Lunas' dan diizinkan NULL
+            $table->string('status')->default('Belum Lunas')->nullable(); 
+            
+            $table->date('jatuh_tempo'); // Tanggal Batas Pembayaran
+            $table->timestamps(); // created_at dan updated_at
         });
     }
 
