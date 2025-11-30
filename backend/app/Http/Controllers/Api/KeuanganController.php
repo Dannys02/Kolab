@@ -9,6 +9,7 @@ use App\Models\Tagihan;
 use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 // [Tambahan]
 
@@ -118,16 +119,31 @@ class KeuanganController extends Controller
     public function storePembayaran(Request $request)
     {
         $request->validate([
-            "biodata_id" => "required|exists:biodatas,id",
-            "jumlah_bayar" => "required|numeric|min:1000",
+            'biodata_id' => 'required|exists:biodatas,id',
+            'jumlah_bayar' => 'required|numeric|min:1000',
+            'metode' => 'nullable|string',
         ]);
 
+        // If metode is Transfer or Digital, require an upload proof
+        $metode = $request->metode ?? 'Cash';
+        if (in_array(strtolower($metode), ['transfer', 'digital', 'e-wallet', 'ewallet'])) {
+            $request->validate([
+                'bukti' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            ]);
+        }
+
+        $buktiPath = null;
+        if ($request->hasFile('bukti')) {
+            $buktiPath = $request->file('bukti')->store('pembayaran_bukti', 'public');
+        }
+
         $pembayaran = Pembayaran::create([
-            "biodata_id" => $request->biodata_id,
-            "jumlah_bayar" => $request->jumlah_bayar,
-            "tanggal_bayar" => now()->toDateString(),
-            "metode" => "Transfer/Cash",
-            "status" => "Lunas",
+            'biodata_id' => $request->biodata_id,
+            'jumlah_bayar' => $request->jumlah_bayar,
+            'tanggal_bayar' => now()->toDateString(),
+            'metode' => $metode,
+            'status' => 'Lunas',
+            'bukti' => $buktiPath,
         ]);
 
         $siswa = Biodata::find($request->biodata_id);
@@ -135,16 +151,20 @@ class KeuanganController extends Controller
 
         // Mencatat ke Transaksi (Gabungan logic)
         Transaksi::create([
-            "tipe" => "pemasukan",
-            "deskripsi" => "Pembayaran kas dari {$namaSiswa}", // Format deskripsi punya Anda (tetap dipertahankan)
-            "status" => $request->status ?? 'Lunas', // Safety jika status null
-            "jumlah" => $request->jumlah_bayar,
-            "tanggal" => now()->toDateString(),
+            'tipe' => 'pemasukan',
+            'deskripsi' => "{$namaSiswa} telah membayar kas",
+            'status' => $request->status ?? 'sukses',
+            'jumlah' => $request->jumlah_bayar,
+            'tanggal' => now()->toDateString(),
         ]);
 
+        // If there's a stored bukti, also return a public URL (requires storage:link)
+        $buktiUrl = $pembayaran->bukti ? Storage::url($pembayaran->bukti) : null;
+
         return response()->json([
-            "message" => "Pembayaran berhasil dicatat!",
-            "data" => $pembayaran,
+            'message' => 'Pembayaran berhasil dicatat!',
+            'data' => $pembayaran,
+            'bukti_url' => $buktiUrl,
         ], 201);
     }
 

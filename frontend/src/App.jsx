@@ -9,12 +9,14 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Beranda from "./pages/Beranda";
 import Program from "./pages/Program";
+import ProgramDetail from './pages/ProgramDetail';
 import Galeri from "./pages/Galeri";
 import Artikel from "./pages/Artikel";
 import Kontak from "./pages/Kontak";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from './pages/NotFound';
+import ProgramSuccess from './pages/ProgramSuccess';
 
 // Dashboard
 import Dashboard from "./pages/Dashboard";
@@ -105,6 +107,9 @@ function App() {
         {/* --- ROUTE PUBLIK --- */}
         <Route path="/" element={<Beranda />} />
         <Route path="/program" element={<Program />} />
+        <Route path="/program/:id" element={<ProgramDetail />} />
+        <Route path="/program-detail/:id" element={<ProgramDetail />} />
+        <Route path="/program-success" element={<ProgramSuccess />} />
         <Route path="/galeri" element={<Galeri />} />
         <Route path="/artikel" element={<Artikel />} />
         <Route path="/kontak" element={<Kontak />} />

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Logo from "../assets/logosmks.png";
+import JadwalAdmin from './JadwalAdmin';
 
 export default function Dsbd({ onLogout }) {
     const tahunIni = new Date().getFullYear();
@@ -974,6 +975,17 @@ export default function Dsbd({ onLogout }) {
                         </svg>
                         <span className="font-medium">Pengumuman</span>
                     </button>
+                    
+                    <button
+                        onClick={() => setActivePage("jadwal")}
+                        className={`w-full flex items-center px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${activePage === "jadwal"
+                                ? "bg-white bg-opacity-20"
+                                : "bg-white bg-opacity-10"
+                            }`}
+                    >
+                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <span className="font-medium">Jadwal Latihan</span>
+                    </button>
                 </nav>
 
                 <div className="absolute bottom-20 md:bottom-[150px] left-6 right-6">
@@ -1390,6 +1402,13 @@ export default function Dsbd({ onLogout }) {
                             </div>
                         </div>
                     </>
+                )}
+
+                {/* --- PAGE: JADWAL ADMIN --- */}
+                {activePage === "jadwal" && (
+                    <div>
+                        <JadwalAdmin />
+                    </div>
                 )}
 
                 {/* --- PAGE: TRANSAKSI (PEMASUKAN / PENGELUARAN) --- */}

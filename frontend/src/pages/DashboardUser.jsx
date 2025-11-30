@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 // [DIAMBIL DARI FILE 2] Menggunakan logo yang diimpor
 import Logo from "../assets/logosmks.png"; 
@@ -36,9 +37,10 @@ const UserDashboard = ({ onLogout }) => {
     // --- STATE PROFIL EDIT ---
     const [isEditing, setIsEditing] = useState(false); // Modal Edit
     const [editForm, setEditForm] = useState({ name: "", email: "" });
-    const [showAllPrograms, setShowAllPrograms] = useState(false); // Untuk tombol ganti program
-
-    const token = localStorage.getItem("token");
+    const [isLoading, setIsLoading] = useState(false);
+    const [showAllPrograms, setShowAllPrograms] = useState(false);
+    const [metode, setMetode] = useState('Cash');
+    const [buktiFile, setBuktiFile] = useState(null);
 
     // === DATA JADWAL (DUMMY) ===
     const JADWAL_LATIHAN = [
@@ -47,6 +49,18 @@ const UserDashboard = ({ onLogout }) => {
         { hari: "Jumat", jam: "15:00 - 17:00", materi: "Game & Taktik", lokasi: "Lapangan Utama" },
     ];
 
+    // Jadwal dari API (akan menggantikan data dummy jika tersedia)
+    const [jadwals, setJadwals] = useState([]);
+
+    const fetchJadwals = async () => {
+        try {
+            const response = await axios.get('http://localhost:8000/api/jadwal', { headers: { Authorization: `Bearer ${token}` } });
+            setJadwals(response.data.data || []);
+        } catch (error) {
+            console.error('Gagal mengambil jadwal:', error);
+        }
+    };
+
     // Data Program
     const LIST_PROGRAM = [
         { id: "reguler", judul: "Reguler / Youth", deskripsi: "Program pembinaan dasar usia 10-15 tahun.", harga: "Rp 50.000/bln", warna: "bg-blue-50 border-blue-200", btnWarna: "bg-blue-600 hover:bg-blue-700" },
@@ -54,7 +68,8 @@ const UserDashboard = ({ onLogout }) => {
         { id: "kiper", judul: "Goalkeeper Class", deskripsi: "Pelatihan khusus penjaga gawang.", harga: "Rp 75.000/bln", warna: "bg-yellow-50 border-yellow-200", btnWarna: "bg-yellow-600 hover:bg-yellow-700" }
     ];
 
-    // --- FETCH DATA UTAMA (USER, KEUANGAN, BIODATA, PENGUMUMAN) ---
+    const token = localStorage.getItem("token");
+    const navigate = useNavigate();
 
     // 1. Fetch User Data (Akun Utama)
     const fetchUser = async () => {
@@ -114,7 +129,8 @@ const UserDashboard = ({ onLogout }) => {
         fetchDataKeuangan();
         fetchUser();
         fetchDataPengumuman();
-    }, [token]);
+        fetchJadwals();
+    }, []);
 
 
     // --- ACTION HANDLERS (Diambil dari File 2, lebih lengkap) ---
@@ -166,21 +182,36 @@ const UserDashboard = ({ onLogout }) => {
         if (amount > keuangan.total_tagihan) {
             return alert(`Jumlah pembayaran melebihi sisa tagihan! Sisa tagihan Anda: Rp ${parseInt(keuangan.total_tagihan).toLocaleString('id-ID')}`);
         }
-        
-        if (!window.confirm(`Konfirmasi pembayaran Rp ${amount.toLocaleString('id-ID')}?`)) return;
+        // If metode is transfer/digital, ensure buktiFile exists
+        if (metode && ['Transfer', 'transfer', 'Digital', 'digital', 'E-Wallet', 'e-wallet', 'ewallet'].includes(metode) && !buktiFile) {
+            return alert('Untuk pembayaran non-cash, mohon unggah bukti transfer.');
+        }
+
+        if (!window.confirm(`Konfirmasi pembayaran Rp ${parseInt(paymentAmount).toLocaleString()}?`)) return;
 
         setIsLoading(true);
         try {
-            await axios.post("http://localhost:8000/api/pembayaran", {
-                biodata_id: keuangan.biodata_id,
-                jumlah_bayar: amount
-            }, { headers: { Authorization: `Bearer ${token}` } });
-            
+            const formData = new FormData();
+            formData.append('biodata_id', keuangan.biodata_id);
+            formData.append('jumlah_bayar', paymentAmount);
+            formData.append('metode', metode);
+            if (buktiFile) formData.append('bukti', buktiFile);
+
+            await axios.post("http://localhost:8000/api/pembayaran", formData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    // NOTE: Do NOT set Content-Type header; let browser set multipart boundary
+                }
+            });
+
             alert("Pembayaran berhasil dicatat! Terima kasih.");
             setPaymentAmount("");
+            setBuktiFile(null);
+            setMetode('Cash');
             fetchDataKeuangan(); // Refresh data
         } catch (error) {
-            alert("Gagal memproses pembayaran: " + (error.response?.data?.message || "Error"));
+            console.error(error);
+            alert("Gagal memproses pembayaran. Cek koneksi internet atau format file bukti.");
         } finally {
             setIsLoading(false);
         }
@@ -399,15 +430,15 @@ const UserDashboard = ({ onLogout }) => {
                                         <span className="text-blue-100 text-xs bg-blue-700 px-2 py-1 rounded">Minggu Ini</span>
                                     </div>
                                     <div className="divide-y divide-gray-100">
-                                        {JADWAL_LATIHAN.map((item, idx) => (
-                                            <div key={idx} className="p-4 hover:bg-blue-50 transition-colors flex flex-col sm:flex-row sm:items-center gap-4">
+                                        {(jadwals.length ? jadwals : JADWAL_LATIHAN).map((item, idx) => (
+                                            <div key={item.id || idx} className="p-4 hover:bg-blue-50 transition-colors flex flex-col sm:flex-row sm:items-center gap-4">
                                                 <div className="sm:w-20 font-bold text-gray-800 bg-gray-100 rounded-lg p-2 text-center">
                                                     {item.hari}
                                                 </div>
                                                 <div className="flex-1">
                                                     <p className="font-bold text-blue-700 text-sm">{item.materi}</p>
                                                     <div className="flex gap-4 text-xs text-gray-500 mt-1">
-                                                        <span>? {item.jam}</span>
+                                                        <span>? {item.jam_mulai ? `${item.jam_mulai} - ${item.jam_selesai || '-'}` : item.jam || '-'}</span>
                                                         <span>? {item.lokasi}</span>
                                                     </div>
                                                 </div>
@@ -668,8 +699,7 @@ const UserDashboard = ({ onLogout }) => {
                                                 ) : (
                                                     <button 
                                                         onClick={() => {
-                                                            setShowAllPrograms(false);
-                                                            handlePilihProgram(program.id);
+                                                            navigate(`/program-detail/${program.id}`, { state: { program } });
                                                         }} 
                                                         className={`px-4 py-2 text-white rounded-lg text-sm font-medium ${program.btnWarna} hover:shadow-md transition-all`}
                                                     >
@@ -769,11 +799,23 @@ const UserDashboard = ({ onLogout }) => {
                                                 required 
                                             />
                                         </div>
-                                        <button 
-                                            type="submit" 
-                                            disabled={isLoading || keuangan.total_tagihan <= 0} 
-                                            className="w-full py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 shadow-lg transition-all disabled:bg-gray-400"
-                                        >
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Metode Pembayaran</label>
+                                            <select value={metode} onChange={(e) => setMetode(e.target.value)} className="w-full px-4 py-2 border rounded-xl">
+                                                <option value="Cash">Cash (Bayar Tunai)</option>
+                                                <option value="Transfer">Transfer Bank</option>
+                                                <option value="Digital">Digital / E-Wallet</option>
+                                            </select>
+                                        </div>
+
+                                        {metode !== 'Cash' && (
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Bukti Pembayaran (jpg, png, pdf)</label>
+                                                <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={(e) => setBuktiFile(e.target.files[0] || null)} className="w-full" />
+                                                {buktiFile && <p className="text-xs text-gray-500 mt-1">File: {buktiFile.name}</p>}
+                                            </div>
+                                        )}
+                                        <button type="submit" disabled={isLoading} className="w-full py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 shadow-lg transition-all">
                                             {isLoading ? "Memproses..." : "Konfirmasi Pembayaran"}
                                         </button>
                                         {keuangan.total_tagihan <= 0 && (

@@ -77,15 +77,24 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/pengumuman', [PengumumanController::class, 'store']);
     Route::put('/pengumuman/{id}', [PengumumanController::class, 'update']);
     Route::delete('/pengumuman/{id}', [PengumumanController::class, 'destroy']);
-    
-    // --- TRANSAKSI (PEMASUKAN & PENGELUARAN) ---
-    Route::prefix('transaksi')->group(function () {
-        Route::get('/', [TransaksiController::class, 'index']);
-        Route::get('/pemasukan', [TransaksiController::class, 'pemasukan']);
-        Route::get('/pengeluaran', [TransaksiController::class, 'pengeluaran']);
-        Route::post('/', [TransaksiController::class, 'store']);
-        // Semua rute update dan delete diletakkan di bawah POST/GET
-        Route::put('/pemasukan/update/{id}', [TransaksiController::class, 'update']);
-        Route::delete('/pemasukan/delete/{id}', [TransaksiController::class, 'destroy']);
-    });
+
+    // --- JADWAL (CRUD) ---
+    Route::get('/jadwal', [\App\Http\Controllers\Api\JadwalController::class, 'index']);
+    Route::post('/jadwal', [\App\Http\Controllers\Api\JadwalController::class, 'store']);
+    Route::get('/jadwal/{id}', [\App\Http\Controllers\Api\JadwalController::class, 'show']);
+    Route::put('/jadwal/{id}', [\App\Http\Controllers\Api\JadwalController::class, 'update']);
+    Route::delete('/jadwal/{id}', [\App\Http\Controllers\Api\JadwalController::class, 'destroy']);
+});
+
+// --- ROUTES LAINNYA ---
+Route::post('/contact', [ContactController::class, 'store']);
+Route::get('/dashboard/index', [DashboardController::class, 'biodataIndex']);
+
+Route::prefix('transaksi')->group(function () {
+    Route::get('/', [TransaksiController::class, 'index']);
+    Route::get('/pemasukan', [TransaksiController::class, 'pemasukan']);
+    Route::put('/pemasukan/update/{id}', [TransaksiController::class, 'update']);
+    Route::delete('/pemasukan/delete/{id}', [TransaksiController::class, 'destroy']);
+    Route::get('/pengeluaran', [TransaksiController::class, 'pengeluaran']);
+    Route::post('/', [TransaksiController::class, 'store']);
 });
