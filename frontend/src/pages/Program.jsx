@@ -1,4 +1,6 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useEffect } from "react";
 import { Clock, Users, Calendar, CheckCircle } from "lucide-react";
 
 export default function Program() {
@@ -68,6 +70,25 @@ export default function Program() {
             badge: "Spesialis",
         },
     ];
+
+    const navigate = useNavigate();
+
+    // Jika user sudah punya pilihan program, langsung redirect ke halaman sukses
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        axios.get('http://localhost:8000/api/tagihan-siswa', { headers: { Authorization: `Bearer ${token}` } })
+            .then(resp => {
+                const biodata = resp.data?.biodata || null;
+                if (biodata?.pilihan_program) {
+                    const pid = biodata.pilihan_program;
+                    const matched = programs.find(p => p.id === pid);
+                    // arahkan ke halaman sukses dan sertakan data program (jika ditemukan)
+                    navigate('/program-success', { state: { program: matched || { id: pid, judul: pid, deskripsi: '' } } });
+                }
+            })
+            .catch(() => { /* ignore */ });
+    }, []);
 
     return (
         <div className="min-h-screen pt-16">

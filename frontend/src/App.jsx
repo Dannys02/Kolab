@@ -22,6 +22,7 @@ import ProgramSuccess from './pages/ProgramSuccess';
 import Dashboard from "./pages/Dashboard";
 import MemberDashboard from "./pages/DashboardUser";
 import DashboardUser from './pages/MemberDashboard';
+import ExportSiswaProgram from './pages/ExportSiswaProgram';
 
 function App() {
   // 1. AMBIL TOKEN & ROLE DARI LOCAL STORAGE
@@ -146,6 +147,16 @@ function App() {
           element={
             <AdminRoute>
               <Dashboard onLogout={handleLogout} />
+            </AdminRoute>
+          }
+        />
+
+        {/* Export Siswa Program */}
+        <Route
+          path="/export/siswa-program"
+          element={
+            <AdminRoute>
+              <ExportSiswaProgram />
             </AdminRoute>
           }
         />

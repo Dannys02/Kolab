@@ -1,17 +1,49 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
+import axios from 'axios';
 
 const ProgramSuccess = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { program } = location.state || {}; // Ambil data program dari state navigasi
+    const { program: fromState } = location.state || {};
+    const [program, setProgram] = useState(fromState || null);
+    const [loading, setLoading] = useState(false);
+
+    // Jika tidak ada program di state, coba ambil dari API (biodata pengguna)
+    useEffect(() => {
+        if (program) return; // sudah ada
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        setLoading(true);
+        axios.get('http://localhost:8000/api/tagihan-siswa', { headers: { Authorization: `Bearer ${token}` } })
+            .then(resp => {
+                const b = resp.data?.biodata;
+                if (b?.pilihan_program) {
+                    // Daftar program sederhana (harus cocok dengan yang ada di Program/ProgramDetail)
+                    const LIST = [
+                        { id: 'reguler', judul: 'Reguler / Youth', deskripsi: 'Program pembinaan dasar usia 10-15 tahun.', harga: 'Rp 50.000/bln' },
+                        { id: 'elite', judul: 'Elite Squad', deskripsi: 'Tim inti sekolah untuk kompetisi LKS.', harga: 'Rp 100.000/bln' },
+                        { id: 'kiper', judul: 'Goalkeeper Class', deskripsi: 'Pelatihan khusus penjaga gawang.', harga: 'Rp 75.000/bln' }
+                    ];
+                    const matched = LIST.find(p => p.id === b.pilihan_program) || { id: b.pilihan_program, judul: b.pilihan_program, deskripsi: '', harga: '' };
+                    setProgram(matched);
+                }
+            })
+            .catch(() => {})
+            .finally(() => setLoading(false));
+    }, []);
+
+    if (!program && loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">Memuat...</div>
+        );
+    }
 
     if (!program) {
-        // Jika tidak ada data program, arahkan kembali ke halaman pemilihan program
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4 text-center">
                 <h2 className="text-2xl font-bold text-gray-800 mb-4">Oops! Terjadi Kesalahan</h2>
-                <p className="text-gray-600 mb-6">Informasi program tidak ditemukan. Silakan coba pilih program lagi.</p>
+                <p className="text-gray-600 mb-6">Informasi program tidak ditemukan. Silakan kembali ke dashboard.</p>
                 <Link to="/portal" className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors">
                     Kembali ke Dashboard
                 </Link>

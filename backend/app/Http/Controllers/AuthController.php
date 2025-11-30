@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Biodata;
 use App\Models\Tagihan;
+use App\Models\Pembayaran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -80,20 +81,24 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logout Berhasil']);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
+        // Update data user yang sedang login
+        $user = $request->user();
+
         $request->validate([
-            'user' => 'required|string',
-            'email' => 'required|email',
-            'password' => 'required|password',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
         ]);
 
-        $account = User::findOrFail($id);
-        $account->update($request->all());
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+        ]);
 
         return response()->json([
             "message" => "Data Berhasil Diupdate",
-            "data" => $account,
+            "data" => $user->fresh(),
         ]);
     }
 
@@ -107,16 +112,18 @@ class AuthController extends Controller
 
         // 3. Jika biodata ada, kita cek tagihannya
         if ($biodata) {
-            // Cek apakah ada tagihan yang statusnya BUKAN 'Lunas'
-            $punyaHutang = Tagihan::where('biodata_id', $biodata->id)
-                                  ->where('status', '!=', 'Lunas') 
-                                  ->exists();
+            // Lebih andal: hitung selisih antara total tagihan dan total pembayaran
+            $totalTagihan = Tagihan::where('biodata_id', $biodata->id)->sum('jumlah');
+            $totalTerbayar = Pembayaran::where('biodata_id', $biodata->id)->sum('jumlah_bayar');
 
-            if ($punyaHutang) {
-                // Jika masih punya hutang, tolak penghapusan!
+            $sisa = $totalTagihan - $totalTerbayar;
+
+            if ($sisa > 0) {
+                // Jika masih punya hutang bersih, tolak penghapusan
                 return response()->json([
-                    'message' => 'GAGAL: Anda masih memiliki tagihan yang belum lunas. Silakan lunasi administrasi terlebih dahulu sebelum menghapus akun.'
-                ], 400); // 400 = Bad Request
+                    'message' => 'GAGAL: Anda masih memiliki tagihan yang belum lunas. Silakan lunasi administrasi terlebih dahulu sebelum menghapus akun.',
+                    'sisa_tagihan' => $sisa,
+                ], 400);
             }
         }
 
