@@ -7,40 +7,52 @@ use Illuminate\Http\Request;
 
 class BiodataController extends Controller
 {
+    /**
+     * Metode Store/Update Hybrid:
+     * 1. Jika Biodata belum ada untuk user ini, lakukan CREATE (Pendaftaran Baru).
+     * 2. Jika Biodata sudah ada, lakukan UPDATE.
+     */
     public function store(Request $request)
     {
-        // Validasi fleksibel: jika biodata sudah ada, hanya validasi field yang dikirim
-        $user = $request->user();
+        // 1. Ambil user yang sedang login dari token
+        $user = $request->user(); 
+
+        // 2. Cek apakah biodata sudah ada
         $existingBiodata = Biodata::where('user_id', $user->id)->first();
         
         if ($existingBiodata) {
-            // Jika biodata sudah ada, ini adalah UPDATE (misal update pilihan_program)
-            // Validasi hanya field yang dikirim
+            // --- LOGIKA UPDATE (Jika biodata sudah ada) ---
+
+            // Validasi hanya field yang dikirim (fleksibel untuk partial update)
             $rules = [];
-            if ($request->has('nama_lengkap')) $rules['nama_lengkap'] = 'string';
-            if ($request->has('email')) $rules['email'] = 'email';
-            if ($request->has('phone')) $rules['phone'] = 'numeric';
-            if ($request->has('alamat')) $rules['alamat'] = 'string';
-            if ($request->has('tanggal_lahir')) $rules['tanggal_lahir'] = 'date';
-            if ($request->has('pilihan_program')) $rules['pilihan_program'] = 'string';
+            if ($request->has('nama_lengkap')) $rules['nama_lengkap'] = 'nullable|string';
+            if ($request->has('email')) $rules['email'] = 'nullable|email';
+            if ($request->has('phone')) $rules['phone'] = 'nullable|numeric';
+            if ($request->has('alamat')) $rules['alamat'] = 'nullable|string';
+            if ($request->has('tanggal_lahir')) $rules['tanggal_lahir'] = 'nullable|date';
+            if ($request->has('pilihan_program')) $rules['pilihan_program'] = 'nullable|string';
             
             $request->validate($rules);
             
-            // Update biodata yang sudah ada
+            // Update data yang ada
             $existingBiodata->update($request->all());
             
             return response()->json([
                 "message" => "Data Berhasil Diupdate",
                 "data" => $existingBiodata->fresh(),
             ], 200);
+            
         } else {
-            // Jika biodata belum ada, ini adalah CREATE (pendaftaran baru)
+            // --- LOGIKA CREATE (Jika biodata belum ada) ---
+
+            // Validasi wajib untuk pendaftaran awal
             $request->validate([
                 "nama_lengkap" => "required|string",
-                "email" => "required|email",
+                "email" => "required|email|unique:biodatas,email", // Tambahkan unique check
                 "phone" => "required|numeric",
                 "alamat" => "required|string",
                 "tanggal_lahir" => "required|date",
+                // 'pilihan_program' bisa menjadi opsional saat create
             ]);
 
             $data = $request->all();
@@ -55,11 +67,14 @@ class BiodataController extends Controller
         }
     }
 
-    // ... method update dan destroy biarkan atau sesuaikan validasinya ...
+// ----------------------------------------------------------------------
 
+    /**
+     * [ADMIN/LAMA] Metode Update standar berdasarkan ID (Tidak terikat User yang sedang login)
+     */
     public function update(Request $request, $id)
     {
-        // ... kode lama ...
+        // Validasi wajib (standar) untuk update penuh
         $request->validate([
             "nama_lengkap" => "required|string",
             "email" => "required|email",
@@ -75,9 +90,13 @@ class BiodataController extends Controller
             "message" => "Data Berhasil Diupdate",
             "data" => $biodata,
         ]);
-
     }
 
+// ----------------------------------------------------------------------
+
+    /**
+     * Metode Destroy standar berdasarkan ID
+     */
     public function destroy($id)
     {
         Biodata::findOrFail($id)->delete();
