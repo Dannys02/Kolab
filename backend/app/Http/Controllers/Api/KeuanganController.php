@@ -9,6 +9,7 @@ use App\Models\Tagihan;
 use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 // [Tambahan]
 
@@ -110,14 +111,29 @@ return response()->json([
         $request->validate([
             'biodata_id' => 'required|exists:biodatas,id',
             'jumlah_bayar' => 'required|numeric|min:1000',
+            'metode' => 'nullable|string',
         ]);
+
+        // If metode is Transfer or Digital, require an upload proof
+        $metode = $request->metode ?? 'Cash';
+        if (in_array(strtolower($metode), ['transfer', 'digital', 'e-wallet', 'ewallet'])) {
+            $request->validate([
+                'bukti' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            ]);
+        }
+
+        $buktiPath = null;
+        if ($request->hasFile('bukti')) {
+            $buktiPath = $request->file('bukti')->store('pembayaran_bukti', 'public');
+        }
 
         $pembayaran = Pembayaran::create([
             'biodata_id' => $request->biodata_id,
             'jumlah_bayar' => $request->jumlah_bayar,
             'tanggal_bayar' => now()->toDateString(),
-            'metode' => 'Transfer/Cash', // Bisa diubah sesuai input
+            'metode' => $metode,
             'status' => 'Lunas',
+            'bukti' => $buktiPath,
         ]);
 
         // Opsional: Cek apakah tagihan lunas (Logic sederhana)
@@ -130,15 +146,19 @@ return response()->json([
 // 3. [BARU] Otomatis Masukkan ke Tabel Transaksi Admin (Sebagai Pemasukan)
         Transaksi::create([
             'tipe' => 'pemasukan',
-            'deskripsi' => "{$namaSiswa} telah membayar kas", // Format: "Arya telah membayar kas"
-            'status' => $request->status,
+            'deskripsi' => "{$namaSiswa} telah membayar kas",
+            'status' => $request->status ?? 'sukses',
             'jumlah' => $request->jumlah_bayar,
             'tanggal' => now()->toDateString(),
         ]);
 
+        // If there's a stored bukti, also return a public URL (requires storage:link)
+        $buktiUrl = $pembayaran->bukti ? Storage::url($pembayaran->bukti) : null;
+
         return response()->json([
             'message' => 'Pembayaran berhasil dicatat!',
             'data' => $pembayaran,
+            'bukti_url' => $buktiUrl,
         ], 201);
     }
 }

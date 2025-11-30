@@ -15,7 +15,8 @@ class Pembayaran extends Model
         'jumlah_bayar',
         'tanggal_bayar',
         'metode',
-        'status'
+        'status',
+        'bukti'
     ];
 
     // Relasi balik ke Biodata (Opsional, tapi berguna nanti)

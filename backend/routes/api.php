@@ -64,6 +64,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/pengumuman', [PengumumanController::class, 'store']);
     Route::put('/pengumuman/{id}', [PengumumanController::class, 'update']);
     Route::delete('/pengumuman/{id}', [PengumumanController::class, 'destroy']);
+
+    // --- JADWAL (CRUD) ---
+    Route::get('/jadwal', [\App\Http\Controllers\Api\JadwalController::class, 'index']);
+    Route::post('/jadwal', [\App\Http\Controllers\Api\JadwalController::class, 'store']);
+    Route::get('/jadwal/{id}', [\App\Http\Controllers\Api\JadwalController::class, 'show']);
+    Route::put('/jadwal/{id}', [\App\Http\Controllers\Api\JadwalController::class, 'update']);
+    Route::delete('/jadwal/{id}', [\App\Http\Controllers\Api\JadwalController::class, 'destroy']);
 });
 
 // --- ROUTES LAINNYA ---

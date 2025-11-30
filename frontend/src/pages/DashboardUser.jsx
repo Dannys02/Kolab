@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import Logo from "../assets/logosmks.png"; // [BARU] Import Logo Sekolah
 
@@ -27,6 +28,8 @@ const UserDashboard = ({ onLogout }) => {
     const [editForm, setEditForm] = useState({ name: "", email: "" });
     const [isLoading, setIsLoading] = useState(false);
     const [showAllPrograms, setShowAllPrograms] = useState(false);
+    const [metode, setMetode] = useState('Cash');
+    const [buktiFile, setBuktiFile] = useState(null);
 
     // === DATA JADWAL (DUMMY) ===
     const JADWAL_LATIHAN = [
@@ -34,6 +37,18 @@ const UserDashboard = ({ onLogout }) => {
         { hari: "Rabu", jam: "15:30 - 17:30", materi: "Teknik Dasar & Passing", lokasi: "Lapangan B" },
         { hari: "Jumat", jam: "15:00 - 17:00", materi: "Game & Taktik", lokasi: "Lapangan Utama" },
     ];
+
+    // Jadwal dari API (akan menggantikan data dummy jika tersedia)
+    const [jadwals, setJadwals] = useState([]);
+
+    const fetchJadwals = async () => {
+        try {
+            const response = await axios.get('http://localhost:8000/api/jadwal', { headers: { Authorization: `Bearer ${token}` } });
+            setJadwals(response.data.data || []);
+        } catch (error) {
+            console.error('Gagal mengambil jadwal:', error);
+        }
+    };
 
     // Data Program
     const LIST_PROGRAM = [
@@ -43,6 +58,7 @@ const UserDashboard = ({ onLogout }) => {
     ];
 
     const token = localStorage.getItem("token");
+    const navigate = useNavigate();
 
     // 1. Fetch User Data (Akun Utama)
     const fetchUser = async () => {
@@ -96,6 +112,7 @@ const UserDashboard = ({ onLogout }) => {
         fetchDataKeuangan();
         fetchUser();
         fetchDataPengumuman();
+        fetchJadwals();
     }, []);
 
     // === ACTION HANDLERS ===
@@ -143,21 +160,36 @@ const UserDashboard = ({ onLogout }) => {
         if (parseInt(paymentAmount) > keuangan.total_tagihan) {
             return alert(`Jumlah pembayaran melebihi sisa tagihan! Sisa tagihan Anda: Rp ${parseInt(keuangan.total_tagihan).toLocaleString()}`);
         }
-        
+        // If metode is transfer/digital, ensure buktiFile exists
+        if (metode && ['Transfer', 'transfer', 'Digital', 'digital', 'E-Wallet', 'e-wallet', 'ewallet'].includes(metode) && !buktiFile) {
+            return alert('Untuk pembayaran non-cash, mohon unggah bukti transfer.');
+        }
+
         if (!window.confirm(`Konfirmasi pembayaran Rp ${parseInt(paymentAmount).toLocaleString()}?`)) return;
 
         setIsLoading(true);
         try {
-            await axios.post("http://localhost:8000/api/pembayaran", {
-                biodata_id: keuangan.biodata_id,
-                jumlah_bayar: paymentAmount
-            }, { headers: { Authorization: `Bearer ${token}` } });
-            
+            const formData = new FormData();
+            formData.append('biodata_id', keuangan.biodata_id);
+            formData.append('jumlah_bayar', paymentAmount);
+            formData.append('metode', metode);
+            if (buktiFile) formData.append('bukti', buktiFile);
+
+            await axios.post("http://localhost:8000/api/pembayaran", formData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    // NOTE: Do NOT set Content-Type header; let browser set multipart boundary
+                }
+            });
+
             alert("Pembayaran berhasil dicatat! Terima kasih.");
             setPaymentAmount("");
+            setBuktiFile(null);
+            setMetode('Cash');
             fetchDataKeuangan(); // Refresh data
         } catch (error) {
-            alert("Gagal memproses pembayaran. Cek koneksi internet.");
+            console.error(error);
+            alert("Gagal memproses pembayaran. Cek koneksi internet atau format file bukti.");
         } finally {
             setIsLoading(false);
         }
@@ -365,15 +397,15 @@ const UserDashboard = ({ onLogout }) => {
                                         <span className="text-blue-100 text-xs bg-blue-700 px-2 py-1 rounded">Minggu Ini</span>
                                     </div>
                                     <div className="divide-y divide-gray-100">
-                                        {JADWAL_LATIHAN.map((item, idx) => (
-                                            <div key={idx} className="p-4 hover:bg-blue-50 transition-colors flex flex-col sm:flex-row sm:items-center gap-4">
+                                        {(jadwals.length ? jadwals : JADWAL_LATIHAN).map((item, idx) => (
+                                            <div key={item.id || idx} className="p-4 hover:bg-blue-50 transition-colors flex flex-col sm:flex-row sm:items-center gap-4">
                                                 <div className="sm:w-20 font-bold text-gray-800 bg-gray-100 rounded-lg p-2 text-center">
                                                     {item.hari}
                                                 </div>
                                                 <div className="flex-1">
                                                     <p className="font-bold text-blue-700 text-sm">{item.materi}</p>
                                                     <div className="flex gap-4 text-xs text-gray-500 mt-1">
-                                                        <span>? {item.jam}</span>
+                                                        <span>? {item.jam_mulai ? `${item.jam_mulai} - ${item.jam_selesai || '-'}` : item.jam || '-'}</span>
                                                         <span>? {item.lokasi}</span>
                                                     </div>
                                                 </div>
@@ -627,8 +659,7 @@ const UserDashboard = ({ onLogout }) => {
                                                 ) : (
                                                     <button 
                                                         onClick={() => {
-                                                            setShowAllPrograms(false);
-                                                            handlePilihProgram(program.id);
+                                                            navigate(`/program-detail/${program.id}`, { state: { program } });
                                                         }} 
                                                         className={`px-4 py-2 text-white rounded-lg text-sm font-medium ${program.btnWarna} hover:shadow-md transition-all`}
                                                     >
@@ -712,6 +743,22 @@ const UserDashboard = ({ onLogout }) => {
                                             <label className="block text-sm font-medium text-gray-700 mb-1">Nominal (Rp)</label>
                                             <input type="number" min="1000" value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} placeholder="Contoh: 50000" className="w-full px-4 py-2 border rounded-xl" required />
                                         </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Metode Pembayaran</label>
+                                            <select value={metode} onChange={(e) => setMetode(e.target.value)} className="w-full px-4 py-2 border rounded-xl">
+                                                <option value="Cash">Cash (Bayar Tunai)</option>
+                                                <option value="Transfer">Transfer Bank</option>
+                                                <option value="Digital">Digital / E-Wallet</option>
+                                            </select>
+                                        </div>
+
+                                        {metode !== 'Cash' && (
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Bukti Pembayaran (jpg, png, pdf)</label>
+                                                <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={(e) => setBuktiFile(e.target.files[0] || null)} className="w-full" />
+                                                {buktiFile && <p className="text-xs text-gray-500 mt-1">File: {buktiFile.name}</p>}
+                                            </div>
+                                        )}
                                         <button type="submit" disabled={isLoading} className="w-full py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 shadow-lg transition-all">
                                             {isLoading ? "Memproses..." : "Konfirmasi Pembayaran"}
                                         </button>
