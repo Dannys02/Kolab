@@ -11,24 +11,13 @@ export default function Dsbd({ onLogout }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState(null);
 
-    // 🔥 STATE BARU UNTUK EDIT TAGIHAN 🔥
-    const [activeTagihanEdit, setActiveTagihanEdit] = useState(false);
-    const [editTagihanData, setEditTagihanData] = useState({
-        id: null,
-        biodata_id: "",
-        nama_lengkap: "", // Untuk display di modal
-        judul: "",
-        jumlah: "",
-        status: "",
-        jatuh_tempo: ""
-    });
-
     // --- STATE DATA DARI API ---
     const [siswa, setSiswa] = useState([]);
     const [finances, setFinances] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const [editData, setEditData] = useState(null);
+    const [token, setToken] = useState(localStorage.getItem("token"));
 
     // --- STATE MODAL TAMBAH PEMAIN ---
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -70,6 +59,16 @@ export default function Dsbd({ onLogout }) {
         jatuh_tempo: ""
     });
 
+    // --- STATE UNTUK PENGUMUMAN ---
+    const [pengumumans, setPengumumans] = useState([]);
+    const [isModalPengumumanOpen, setIsModalPengumumanOpen] = useState(false);
+    const [pengumumanForm, setPengumumanForm] = useState({
+        judul: "",
+        isi: "",
+        is_active: true
+    });
+    const [editPengumumanId, setEditPengumumanId] = useState(null);
+
     // --- USE EFFECT ---
     useEffect(() => {
         const fetchAllData = async () => {
@@ -83,6 +82,12 @@ export default function Dsbd({ onLogout }) {
         };
         fetchAllData();
     }, []);
+
+    useEffect(() => {
+        if (activePage === "pengumuman") {
+            fetchDataPengumuman();
+        }
+    }, [activePage]);
 
     // --- FUNGSI API (DISESUAIKAN DENGAN API.PHP) ---
 
@@ -316,172 +321,51 @@ export default function Dsbd({ onLogout }) {
     };
 
     const handleUpdate = async id => {
-        await fetch(`http://localhost:8000/api/biodata/${editData.id}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("token")}`
-            },
-            body: JSON.stringify(formData)
-        });
+        try {
+            const response = await fetch(`http://localhost:8000/api/biodata/${editData.id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify(formData)
+            });
 
-        fetchDataSiswa();
-        setActiveEdit(false);
+            if (response.ok) {
+                alert("Data berhasil diupdate!");
+                fetchDataSiswa();
+                setActiveEdit(false);
+            } else {
+                const result = await response.json();
+                alert(result.message || "Gagal mengupdate data");
+            }
+        } catch (error) {
+            console.error("Error updating data:", error);
+            alert("Terjadi kesalahan koneksi");
+        }
     };
 
     const handleDelete = async id => {
-        await fetch(`http://localhost:8000/api/biodata/${id}`, {
-            method: "DELETE",
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`
-            }
-        });
-        fetchDataSiswa();
-        alert("Data berhasil dihapus!");
-    };
-
-    // 🔥 FUNGSI BARU: Handle perubahan input di modal edit tagihan
-    const handleEditTagihanChange = e => {
-        const { name, value } = e.target;
-        setEditTagihanData(prev => ({ ...prev, [name]: value }));
-    };
-
-    // 6 POST /api/tagihan
-    // Ubah logika ini menjadi fungsi yang bisa dipanggil ulang
-    const fetchDataKeuanganSiswa = async () => {
-        const token = localStorage.getItem("token");
-
-        if (!token) return;
-
+        if (!confirm("Yakin ingin menghapus data ini?")) return;
+        
         try {
-            const response = await fetch("http://localhost:8000/api/keuangan", {
-                headers: { Authorization: `Bearer ${token}` }
+            const response = await fetch(`http://localhost:8000/api/biodata/${id}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
-            const data = await response.json();
-
-            // Asumsi: data adalah array [ { siswa1, tagihans: [...] }, ... ]
-            // Simpan semua data di state
-            setDataKeuanganSiswa(data);
-        } catch (error) {
-            console.error("Error fetching data keuangan siswa:", error);
-        }
-    };
-
-    // --- STATE DATA TAGIHAN (DARI SOLUSI SEBELUMNYA) ---
-    const [dataKeuanganSiswa, setDataKeuanganSiswa] = useState([]);
-    // Hapus 'const [keuangan, setKeuangan] = useState([]);' jika masih ada.
-
-    // --- USE EFFECT ---
-    useEffect(() => {
-        const fetchAllData = async () => {
-            setLoading(true);
-            await Promise.all([
-                fetchDataSiswa(),
-                fetchDataKeuangan(),
-                fetchDataTotalKas(),
-                fetchDataKeuanganSiswa() // <-- Panggil fungsi baru di sini
-            ]);
-            setLoading(false);
-        };
-        fetchAllData();
-    }, []);
-
-    // PUT /api/tagihan/:id
-    const handleUpdateTagihan = async e => {
-        e.preventDefault();
-        setIsLoadingSubmit(true);
-
-        if (!editTagihanData.id) return alert("ID Tagihan tidak ditemukan.");
-
-        const token = localStorage.getItem("token");
-        if (!token) {
-            alert("Sesi Anda berakhir. Silakan login ulang.");
-            setIsLoadingSubmit(false);
-            // Mungkin tambahkan redirect ke halaman login
-            return;
-        }
-
-        const payload = {
-            // 🔥 PASTIKAN ANDA MENGIRIM biodata_id di payload!
-            // Meskipun di backend sudah dibuat opsional/nullable, mengirimkannya lebih aman.
-            biodata_id: editTagihanData.biodata_id, // Ganti ini dengan cara Anda menyimpan biodata_id saat edit
-            judul: editTagihanData.judul,
-            jumlah: editTagihanData.jumlah,
-            status: editTagihanData.status,
-            jatuh_tempo: editTagihanData.jatuh_tempo
-        };
-
-        try {
-            const response = await fetch(
-                // 🔥 PERUBAHAN UTAMA: Hapus /update/ dari URL!
-                `http://localhost:8000/api/tagihan/${editTagihanData.id}`,
-                {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`
-                    },
-                    body: JSON.stringify(payload)
-                }
-            );
 
             if (response.ok) {
-                alert("Tagihan berhasil diperbarui!");
-                setActiveTagihanEdit(false);
-                await fetchDataKeuanganSiswa();
-            } else if (response.status === 401) {
-                // Tangani status 401 Unauthorized dari backend
-                alert("Autentikasi gagal. Silakan login ulang.");
+                alert("Data berhasil dihapus!");
+                fetchDataSiswa();
             } else {
-                // Tangani status error lainnya (400, 404, 500)
-                const errorData = await response.json().catch(() => ({
-                    message: "Server error atau respons non-JSON"
-                }));
-                alert(
-                    "Gagal memperbarui: " +
-                        JSON.stringify(errorData.message || response.statusText)
-                );
+                const result = await response.json();
+                alert(result.message || "Gagal menghapus data");
             }
         } catch (error) {
-            console.error("Error updating tagihan (Network/CORS):", error);
-            alert(
-                "Terjadi kesalahan koneksi atau CORS. Cek konsol dan pastikan server backend berjalan."
-            );
-        } finally {
-            setIsLoadingSubmit(false);
-        }
-    };
-
-    // Hapus data tagihan sesuai id
-    const handleDeleteTagihan = async id => {
-        const token = localStorage.getItem("token");
-
-        try {
-            const response = await fetch(
-                `http://localhost:8000/api/tagihan/${id}`,
-                {
-                    method: "DELETE",
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
-
-            if (response.ok) {
-                alert("Tagihan berhasil dihapus!");
-                // 🔥 SOLUSI UTAMA: PANGGIL ULANG FUNGSI FETCH
-                await fetchDataKeuanganSiswa();
-                // Fungsi ini akan mengambil data terbaru dari API dan mengupdate state `dataKeuanganSiswa`
-            } else {
-                const error = await response.json();
-                alert(
-                    "Gagal menghapus tagihan: " +
-                        (error.message || response.statusText)
-                );
-            }
-        } catch (error) {
-            console.error("Error deleting tagihan:", error);
-            alert("Terjadi kesalahan koneksi saat menghapus tagihan.");
+            console.error("Error deleting data:", error);
+            alert("Terjadi kesalahan koneksi");
         }
     };
 
@@ -506,14 +390,6 @@ export default function Dsbd({ onLogout }) {
         return finances;
     };
 
-    const allTagihans = dataKeuanganSiswa.flatMap(siswaItem =>
-        siswaItem.tagihans.map(tag => ({
-            ...tag,
-            nama_lengkap: siswaItem.nama_lengkap, // Tambahkan nama siswa
-            siswa_id: siswaItem.id // Tambahkan ID siswa
-        }))
-    );
-
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-green-50">
@@ -530,20 +406,315 @@ export default function Dsbd({ onLogout }) {
     // --- HANDLER TAGIHAN (BARU) ---
 
     // 1. Handle Input Form Tagihan
-    const handleTagihanChange = e => {
+    const handleTagihanChange = (e) => {
         const { name, value } = e.target;
         setTagihanForm(prev => ({ ...prev, [name]: value }));
     };
 
-    // --- HANDLER TAGIHAN (BARU) ---
+    // --- FUNGSI EXPORT DATA KE EXCEL/CSV ---
+    const exportToCSV = (data, filename) => {
+        if (!data || data.length === 0) {
+            alert("Tidak ada data untuk diekspor");
+            return;
+        }
 
-    // 2. Submit Tagihan ke Backend
-    const handleSubmitTagihan = async e => {
+        // Ambil header dari keys objek pertama
+        const headers = Object.keys(data[0]);
+        
+        // Buat CSV content
+        let csvContent = headers.join(",") + "\n";
+        
+        data.forEach(row => {
+            const values = headers.map(header => {
+                const value = row[header] || "";
+                // Handle nilai yang mengandung koma atau quote
+                if (typeof value === "string" && (value.includes(",") || value.includes('"'))) {
+                    return `"${value.replace(/"/g, '""')}"`;
+                }
+                return value;
+            });
+            csvContent += values.join(",") + "\n";
+        });
+
+        // Download file
+        const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", filename);
+        link.style.visibility = "hidden";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const exportToExcel = async () => {
+        try {
+            setIsLoadingSubmit(true);
+            
+            // Fetch semua data tagihan untuk setiap siswa
+            const allTagihanData = [];
+            const allPembayaranData = [];
+            
+            for (const s of siswa) {
+                try {
+                    const response = await fetch(
+                        `http://localhost:8000/api/keuangan?biodata_id=${s.id}`,
+                        {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${localStorage.getItem("token")}`
+                            }
+                        }
+                    );
+                    const keuanganData = await response.json();
+                    
+                    // Tambahkan tagihan
+                    if (keuanganData.list_tagihan && keuanganData.list_tagihan.length > 0) {
+                        keuanganData.list_tagihan.forEach(tagihan => {
+                            allTagihanData.push({
+                                "Nama Siswa": s.nama_lengkap,
+                                "Email": s.email,
+                                "No HP": s.phone,
+                                "Judul Tagihan": tagihan.judul,
+                                "Jumlah": tagihan.jumlah,
+                                "Jatuh Tempo": tagihan.jatuh_tempo,
+                                "Status": tagihan.status
+                            });
+                        });
+                    }
+                    
+                    // Tambahkan pembayaran
+                    if (keuanganData.riwayat && keuanganData.riwayat.length > 0) {
+                        keuanganData.riwayat.forEach(pembayaran => {
+                            allPembayaranData.push({
+                                "Nama Siswa": s.nama_lengkap,
+                                "Email": s.email,
+                                "No HP": s.phone,
+                                "Tanggal Bayar": pembayaran.tanggal_bayar,
+                                "Jumlah Bayar": pembayaran.jumlah_bayar,
+                                "Metode": pembayaran.metode || "-",
+                                "Status": pembayaran.status || "-"
+                            });
+                        });
+                    }
+                } catch (error) {
+                    console.error(`Error fetching data for ${s.nama_lengkap}:`, error);
+                }
+            }
+
+            // Format data siswa
+            const siswaData = siswa.map(s => ({
+                "Nama Lengkap": s.nama_lengkap,
+                "Email": s.email,
+                "No HP": s.phone,
+                "Tanggal Lahir": s.tanggal_lahir,
+                "Umur": hitungUmur(s.tanggal_lahir) + " Tahun",
+                "Alamat": s.alamat,
+                "Posisi": s.posisi || "-",
+                "Status": s.status || "-",
+                "Program": s.pilihan_program || "-"
+            }));
+
+            // Format data transaksi
+            const transaksiData = finances.map(t => ({
+                "Tanggal": t.tanggal,
+                "Keterangan": t.deskripsi,
+                "Tipe": t.tipe,
+                "Jumlah": t.jumlah
+            }));
+
+            // Buat data ringkasan
+            const totalTagihan = allTagihanData.reduce((sum, t) => sum + (parseInt(t.Jumlah) || 0), 0);
+            const totalPembayaran = allPembayaranData.reduce((sum, p) => sum + (parseInt(p["Jumlah Bayar"]) || 0), 0);
+            
+            const ringkasanData = [{
+                "Kategori": "Total Pemain",
+                "Jumlah": stats.totalPlayers,
+                "Keterangan": "Orang"
+            }, {
+                "Kategori": "Pemain Aktif",
+                "Jumlah": stats.activePlayers,
+                "Keterangan": "Orang"
+            }, {
+                "Kategori": "Total Kas",
+                "Jumlah": stats.totalKas,
+                "Keterangan": "Rupiah"
+            }, {
+                "Kategori": "Total Pemasukan",
+                "Jumlah": stats.monthlyIncome,
+                "Keterangan": "Rupiah"
+            }, {
+                "Kategori": "Total Pengeluaran",
+                "Jumlah": stats.monthlyExpense,
+                "Keterangan": "Rupiah"
+            }, {
+                "Kategori": "Total Tagihan",
+                "Jumlah": totalTagihan,
+                "Keterangan": "Rupiah"
+            }, {
+                "Kategori": "Total Pembayaran",
+                "Jumlah": totalPembayaran,
+                "Keterangan": "Rupiah"
+            }, {
+                "Kategori": "Tanggal Ekspor",
+                "Jumlah": new Date().toLocaleDateString("id-ID"),
+                "Keterangan": ""
+            }];
+
+            // Download semua file
+            const timestamp = new Date().toISOString().split('T')[0];
+            
+            // Export ringkasan dulu
+            exportToCSV(ringkasanData, `Rekap_Data_${timestamp}.csv`);
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Export data detail
+            if (siswaData.length > 0) {
+                exportToCSV(siswaData, `Data_Pemain_${timestamp}.csv`);
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            if (allTagihanData.length > 0) {
+                exportToCSV(allTagihanData, `Data_Tagihan_${timestamp}.csv`);
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            if (allPembayaranData.length > 0) {
+                exportToCSV(allPembayaranData, `Data_Pembayaran_${timestamp}.csv`);
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            if (transaksiData.length > 0) {
+                exportToCSV(transaksiData, `Data_Transaksi_${timestamp}.csv`);
+            }
+
+            alert(`Data berhasil diekspor! ${siswaData.length > 0 ? '1' : '0'} file CSV telah didownload:\n- Rekap Data\n${siswaData.length > 0 ? '- Data Pemain\n' : ''}${allTagihanData.length > 0 ? '- Data Tagihan\n' : ''}${allPembayaranData.length > 0 ? '- Data Pembayaran\n' : ''}${transaksiData.length > 0 ? '- Data Transaksi' : ''}`);
+        } catch (error) {
+            console.error("Error exporting data:", error);
+            alert("Terjadi kesalahan saat mengekspor data.");
+        } finally {
+            setIsLoadingSubmit(false);
+        }
+    };
+
+    // --- FUNGSI PENGUMUMAN ---
+    const fetchDataPengumuman = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch("http://localhost:8000/api/pengumuman/admin", {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) {
+                const text = await response.text();
+                console.error("Error response:", text);
+                return;
+            }
+            
+            const result = await response.json();
+            setPengumumans(result.data || []);
+        } catch (error) {
+            console.error("Error fetching pengumuman:", error);
+        }
+    };
+
+    const handlePengumumanChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setPengumumanForm(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+    };
+
+    const handleSubmitPengumuman = async (e) => {
         e.preventDefault();
         setIsLoadingSubmit(true);
         try {
             const token = localStorage.getItem("token");
-            // ... (Logika fetch POST) ...
+            const url = editPengumumanId 
+                ? `http://localhost:8000/api/pengumuman/${editPengumumanId}`
+                : "http://localhost:8000/api/pengumuman";
+            const method = editPengumumanId ? "PUT" : "POST";
+
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify(pengumumanForm)
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                let errorMessage = "Gagal menyimpan pengumuman.";
+                try {
+                    const errorJson = JSON.parse(text);
+                    errorMessage = errorJson.message || errorMessage;
+                } catch (e) {
+                    console.error("Error response:", text);
+                }
+                alert(errorMessage);
+                return;
+            }
+
+            const result = await response.json();
+            alert(editPengumumanId ? "Pengumuman berhasil diupdate!" : "Pengumuman berhasil dibuat!");
+            setIsModalPengumumanOpen(false);
+            setPengumumanForm({ judul: "", isi: "", is_active: true });
+            setEditPengumumanId(null);
+            fetchDataPengumuman();
+        } catch (error) {
+            console.error(error);
+            alert("Terjadi kesalahan koneksi ke server");
+        } finally {
+            setIsLoadingSubmit(false);
+        }
+    };
+
+    const handleEditPengumuman = (pengumuman) => {
+        setEditPengumumanId(pengumuman.id);
+        setPengumumanForm({
+            judul: pengumuman.judul,
+            isi: pengumuman.isi,
+            is_active: pengumuman.is_active
+        });
+        setIsModalPengumumanOpen(true);
+    };
+
+    const handleDeletePengumuman = async (id) => {
+        if (!confirm("Yakin ingin menghapus pengumuman ini?")) return;
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch(`http://localhost:8000/api/pengumuman/${id}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                alert("Pengumuman berhasil dihapus!");
+                fetchDataPengumuman();
+            } else {
+                alert("Gagal menghapus pengumuman.");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Terjadi kesalahan koneksi ke server");
+        }
+    };
+
+    // 2. Submit Tagihan ke Backend
+    const handleSubmitTagihan = async (e) => {
+        e.preventDefault();
+        setIsLoadingSubmit(true);
+        try {
+            const token = localStorage.getItem("token");
             const response = await fetch("http://localhost:8000/api/tagihan", {
                 method: "POST",
                 headers: {
@@ -557,21 +728,10 @@ export default function Dsbd({ onLogout }) {
             if (response.ok) {
                 alert("Tagihan berhasil dibuat!");
                 setIsModalTagihanOpen(false);
-
-                // 🔥 SOLUSI UTAMA: AMBIL DATA TERBARU SETELAH BERHASIL DISIMPAN
-                await fetchDataKeuanganSiswa();
-
                 // Reset form
-                setTagihanForm({
-                    biodata_id: "",
-                    judul: "",
-                    jumlah: "",
-                    jatuh_tempo: ""
-                });
+                setTagihanForm({ biodata_id: "", judul: "", jumlah: "", jatuh_tempo: "" });
             } else {
-                alert(
-                    result.message || "Gagal membuat tagihan. Cek input data."
-                );
+                alert(result.message || "Gagal membuat tagihan. Cek input data.");
             }
         } catch (error) {
             console.error(error);
@@ -607,11 +767,10 @@ export default function Dsbd({ onLogout }) {
 
             {/* Sidebar */}
             <aside
-                className={`min-h-screen w-64 fixed left-0 p-6 bg-gradient-to-b from-green-600 to-blue-600 shadow-2xl transform transition-transform duration-300 z-40 ${
-                    sidebarOpen
+                className={`min-h-screen w-64 fixed left-0 p-6 bg-gradient-to-b from-green-600 to-blue-600 shadow-2xl transform transition-transform duration-300 z-40 ${sidebarOpen
                         ? "translate-x-0"
                         : "-translate-x-full lg:translate-x-0"
-                }`}
+                    }`}
             >
                 <div className="flex items-center justify-center mb-8 pt-4">
                     <div className="bg-white rounded-full p-3 shadow-lg">
@@ -631,11 +790,10 @@ export default function Dsbd({ onLogout }) {
                 <nav className="space-y-2">
                     <button
                         onClick={() => setActivePage("dashboard")}
-                        className={`w-full flex items-center px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${
-                            activePage === "dashboard"
+                        className={`w-full flex items-center px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${activePage === "dashboard"
                                 ? "bg-white bg-opacity-20"
                                 : "bg-white bg-opacity-10"
-                        }`}
+                            }`}
                     >
                         <svg
                             className="w-5 h-5 mr-3"
@@ -653,42 +811,16 @@ export default function Dsbd({ onLogout }) {
                         <span className="font-medium">Dashboard</span>
                     </button>
 
-                    <button
-                        onClick={() => setActivePage("tagihan-siswa")}
-                        className={`w-full flex items-center px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${
-                            activePage === "tagihan-siswa"
-                                ? "bg-white bg-opacity-20"
-                                : "bg-white bg-opacity-10"
-                        }`}
-                    >
-                        <svg
-                            className="w-5 h-5 mr-3"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
-                            />
-                        </svg>
-
-                        <span className="font-medium">Tagihan siswa</span>
-                    </button>
-
                     {/* Transaksi Dropdown */}
                     <div className="relative">
                         <button
                             onClick={() => toggleDropdown("transaksi")}
-                            className={`w-full flex items-center justify-between px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${
-                                ["pemasukan", "pengeluaran"].includes(
-                                    activePage
-                                )
+                            className={`w-full flex items-center justify-between px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${["pemasukan", "pengeluaran"].includes(
+                                activePage
+                            )
                                     ? "bg-white bg-opacity-20"
                                     : "bg-white bg-opacity-10"
-                            }`}
+                                }`}
                         >
                             <div className="flex items-center">
                                 <svg
@@ -707,11 +839,10 @@ export default function Dsbd({ onLogout }) {
                                 <span className="font-medium">Transaksi</span>
                             </div>
                             <svg
-                                className={`w-4 h-4 transform transition-transform ${
-                                    activeDropdown === "transaksi"
+                                className={`w-4 h-4 transform transition-transform ${activeDropdown === "transaksi"
                                         ? "rotate-180"
                                         : ""
-                                }`}
+                                    }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -728,21 +859,19 @@ export default function Dsbd({ onLogout }) {
                             <div className="ml-6 mt-2 space-y-1 border-l-2 border-white border-opacity-20 pl-4">
                                 <button
                                     onClick={() => setActivePage("pemasukan")}
-                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
-                                        activePage === "pemasukan"
+                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "pemasukan"
                                             ? "bg-white bg-opacity-20"
                                             : "bg-white bg-opacity-5"
-                                    }`}
+                                        }`}
                                 >
                                     Pemasukan
                                 </button>
                                 <button
                                     onClick={() => setActivePage("pengeluaran")}
-                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
-                                        activePage === "pengeluaran"
+                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "pengeluaran"
                                             ? "bg-white bg-opacity-20"
                                             : "bg-white bg-opacity-5"
-                                    }`}
+                                        }`}
                                 >
                                     Pengeluaran
                                 </button>
@@ -754,13 +883,12 @@ export default function Dsbd({ onLogout }) {
                     <div className="relative">
                         <button
                             onClick={() => toggleDropdown("inventaris")}
-                            className={`w-full flex items-center justify-between px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${
-                                ["barang-masuk", "barang-keluar"].includes(
-                                    activePage
-                                )
+                            className={`w-full flex items-center justify-between px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${["barang-masuk", "barang-keluar"].includes(
+                                activePage
+                            )
                                     ? "bg-white bg-opacity-20"
                                     : "bg-white bg-opacity-10"
-                            }`}
+                                }`}
                         >
                             <div className="flex items-center">
                                 <svg
@@ -779,11 +907,10 @@ export default function Dsbd({ onLogout }) {
                                 <span className="font-medium">Inventaris</span>
                             </div>
                             <svg
-                                className={`w-4 h-4 transform transition-transform ${
-                                    activeDropdown === "inventaris"
+                                className={`w-4 h-4 transform transition-transform ${activeDropdown === "inventaris"
                                         ? "rotate-180"
                                         : ""
-                                }`}
+                                    }`}
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -802,11 +929,10 @@ export default function Dsbd({ onLogout }) {
                                     onClick={() =>
                                         setActivePage("barang-masuk")
                                     }
-                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
-                                        activePage === "barang-masuk"
+                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "barang-masuk"
                                             ? "bg-white bg-opacity-20"
                                             : "bg-white bg-opacity-5"
-                                    }`}
+                                        }`}
                                 >
                                     Barang Masuk
                                 </button>
@@ -814,17 +940,40 @@ export default function Dsbd({ onLogout }) {
                                     onClick={() =>
                                         setActivePage("barang-keluar")
                                     }
-                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${
-                                        activePage === "barang-keluar"
+                                    className={`w-full flex items-center px-3 py-2 text-blue-100 rounded-lg hover:bg-opacity-10 transition-all duration-200 ${activePage === "barang-keluar"
                                             ? "bg-white bg-opacity-20"
                                             : "bg-white bg-opacity-5"
-                                    }`}
+                                        }`}
                                 >
                                     Barang Keluar
                                 </button>
                             </div>
                         )}
                     </div>
+
+                    {/* Menu Pengumuman */}
+                    <button
+                        onClick={() => setActivePage("pengumuman")}
+                        className={`w-full flex items-center px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${activePage === "pengumuman"
+                                ? "bg-white bg-opacity-20"
+                                : "bg-white bg-opacity-10"
+                            }`}
+                    >
+                        <svg
+                            className="w-5 h-5 mr-3"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"
+                            />
+                        </svg>
+                        <span className="font-medium">Pengumuman</span>
+                    </button>
                 </nav>
 
                 <div className="absolute bottom-20 md:bottom-[150px] left-6 right-6">
@@ -857,13 +1006,10 @@ export default function Dsbd({ onLogout }) {
             </aside>
 
             {/* Main Content */}
-            <main
-                onClick={() => setSidebarOpen(false)}
-                className="lg:ml-64 p-6"
-            >
+            <main onClick={() => setSidebarOpen(false)} className="lg:ml-64 p-6">
                 {/* Header */}
                 <div className="bg-white rounded-2xl shadow-sm p-6 mb-6 border border-green-100">
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center flex-wrap gap-4">
                         <div>
                             <h1 className="text-2xl font-bold text-gray-800 capitalize">
                                 {activePage === "dashboard"
@@ -875,16 +1021,30 @@ export default function Dsbd({ onLogout }) {
                                 Genteng
                             </p>
                         </div>
-                        <div className="text-right hidden sm:block">
-                            <p className="text-sm text-gray-500">Hari ini</p>
-                            <p className="font-semibold text-gray-800">
-                                {new Date().toLocaleDateString("id-ID", {
-                                    weekday: "long",
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric"
-                                })}
-                            </p>
+                        <div className="flex items-center gap-4">
+                            {activePage === "dashboard" && (
+                                <button
+                                    onClick={exportToExcel}
+                                    disabled={isLoadingSubmit}
+                                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    {isLoadingSubmit ? "Mengekspor..." : "Ekspor Semua Data"}
+                                </button>
+                            )}
+                            <div className="text-right hidden sm:block">
+                                <p className="text-sm text-gray-500">Hari ini</p>
+                                <p className="font-semibold text-gray-800">
+                                    {new Date().toLocaleDateString("id-ID", {
+                                        weekday: "long",
+                                        year: "numeric",
+                                        month: "long",
+                                        day: "numeric"
+                                    })}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1026,14 +1186,14 @@ export default function Dsbd({ onLogout }) {
                                         + Tambah Pemain
                                     </button>
                                     <button
-                                        onClick={() =>
-                                            setIsModalTagihanOpen(true)
-                                        }
+                                        onClick={() => setIsModalTagihanOpen(true)}
                                         className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm mr-2"
                                     >
                                         + Buat Tagihan
                                     </button>
                                 </div>
+
+
 
                                 <div className="scroll-stylling overflow-x-auto">
                                     <table className="min-w-full divide-y divide-gray-200">
@@ -1182,8 +1342,8 @@ export default function Dsbd({ onLogout }) {
                                             {siswa.length === 0 && (
                                                 <tr>
                                                     <td
-                                                        colSpan="6"
-                                                        className="px-4 py-4 text-center text-gray-500 text-sm"
+                                                        colSpan="4"
+                                                        className="px-6 py-4 text-center text-gray-500 text-sm"
                                                     >
                                                         Belum ada data.
                                                     </td>
@@ -1232,328 +1392,6 @@ export default function Dsbd({ onLogout }) {
                     </>
                 )}
 
-                {/* PAGE: TAGIHAN SISWA */}
-                {activePage === "tagihan-siswa" && (
-                    <div className="space-y-6">
-                        {/* Tabel Tagihan */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-green-100 overflow-hidden">
-                            <div className="px-6 py-5 border-b border-gray-200 flex justify-between items-center">
-                                <h3 className="text-lg font-bold text-gray-900">
-                                    Daftar Tagihan Pemain
-                                </h3>
-                            </div>
-
-                            <div className="scroll-stylling overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
-                                                Nama
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
-                                                Judul
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
-                                                Total Tagihan
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
-                                                Status
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
-                                                Jatuh tempo
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
-                                                Action
-                                            </th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody className="divide-y divide-gray-200 bg-white">
-                                        {allTagihans.map(tag => (
-                                            <tr
-                                                key={tag.id}
-                                                className="hover:bg-gray-50 transition"
-                                            >
-                                                <td className="px-6 py-3 text-sm text-gray-700">
-                                                    {tag.nama_lengkap}
-                                                </td>
-                                                <td className="px-6 py-3 text-sm text-gray-700">
-                                                    {tag.judul}
-                                                </td>
-                                                <td className="px-6 py-3 text-sm text-gray-700">
-                                                    Rp{" "}
-                                                    {parseInt(
-                                                        tag.jumlah
-                                                    ).toLocaleString("id-ID")}
-                                                </td>
-                                                <td className="px-6 py-3 text-sm">
-                                                    <span
-                                                        className={`px-2 py-1 rounded-2xl text-xs whitespace-nowrap font-medium
-                                                          ${
-                                                              tag.status ===
-                                                              "Lunas"
-                                                                  ? "bg-green-500"
-                                                                  : "bg-red-100 text-red-600"
-                                                          }`}
-                                                    >
-                                                        Belum lunas(belum
-                                                        difungsikan)
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-3 text-sm text-gray-700">
-                                                    {tag.jatuh_tempo}
-                                                </td>
-                                                <td className="px-6 py-3 text-sm text-gray-700">
-                                                    <div className="flex justify-center items-center gap-2">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setEditTagihanData(
-                                                                    {
-                                                                        id: tag.id,
-                                                                        nama_lengkap:
-                                                                            tag.nama_lengkap,
-                                                                        judul: tag.judul,
-                                                                        jumlah: tag.jumlah,
-                                                                        status: tag.status,
-                                                                        jatuh_tempo:
-                                                                            tag.jatuh_tempo
-                                                                    }
-                                                                );
-                                                                setActiveTagihanEdit(
-                                                                    true
-                                                                );
-                                                            }}
-                                                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-sm font-medium rounded-md bg-transparent hover:bg-yellow-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-yellow-300 transition transform duration-150 shadow-sm"
-                                                        >
-                                                            <svg
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                className="h-4 w-4"
-                                                                fill="none"
-                                                                viewBox="0 0 24 24"
-                                                                stroke="currentColor"
-                                                                strokeWidth="2"
-                                                                aria-hidden="true"
-                                                            >
-                                                                <path
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                    d="M11 5h6M4 20l7-7 3 3 7-7a2.828 2.828 0 10-4-4l-7 7-3-3-7 7v4h4z"
-                                                                />
-                                                            </svg>
-                                                            <span className="leading-none">
-                                                                {" "}
-                                                                Edit
-                                                            </span>
-                                                        </button>
-
-                                                        <button
-                                                            onClick={() =>
-                                                                handleDeleteTagihan(
-                                                                    tag.id
-                                                                )
-                                                            }
-                                                            type="button"
-                                                            aria-label="Delete"
-                                                            className="
-                              inline-flex items-center gap-1
-                              px-2.5 py-1.5 text-sm font-medium
-                              rounded-md
-                              bg-transparent
-                              hover:bg-red-600 hover:text-white
-                              focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-400
-                              transition transform duration-150
-                              shadow-sm
-                            "
-                                                        >
-                                                            <svg
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                className="h-4 w-4"
-                                                                fill="none"
-                                                                viewBox="0 0 24 24"
-                                                                stroke="currentColor"
-                                                                strokeWidth="2"
-                                                                aria-hidden="true"
-                                                            >
-                                                                <path
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4m-7 4h10"
-                                                                />
-                                                            </svg>
-                                                            <span className="leading-none">
-                                                                Delete
-                                                            </span>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-
-                                        {allTagihans.length === 0 && (
-                                            <tr>
-                                                <td
-                                                    colSpan="6"
-                                                    className="px-4 py-4 text-center text-gray-500 text-sm"
-                                                >
-                                                    Belum ada data.
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* --- MODAL EDIT TAGIHAN SISWA --- */}
-                {activeTagihanEdit && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fadeIn">
-                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
-                            {/* Header Modal */}
-                            <div className="px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-500 flex justify-between items-center">
-                                <h3 className="text-lg font-bold text-white">
-                                    Edit Data Tagihan
-                                </h3>
-                                <button
-                                    onClick={() => setActiveTagihanEdit(false)}
-                                    className="text-white hover:text-gray-200"
-                                >
-                                    <svg
-                                        className="w-6 h-6"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M6 18L18 6M6 6l12 12"
-                                        />
-                                    </svg>
-                                </button>
-                            </div>
-
-                            <form
-                                className="space-y-4 p-6"
-                                onSubmit={handleUpdateTagihan}
-                            >
-                                {/* NAMA SISWA (READ-ONLY) */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Nama Siswa
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={editTagihanData.nama_lengkap}
-                                        readOnly
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 outline-none"
-                                    />
-                                </div>
-
-                                {/* JUDUL TAGIHAN */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Judul Tagihan{" "}
-                                        <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="judul"
-                                        value={editTagihanData.judul}
-                                        onChange={handleEditTagihanChange}
-                                        required
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 outline-none"
-                                    />
-                                </div>
-
-                                {/* JUMLAH TAGIHAN */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Total Tagihan (Rp){" "}
-                                        <span className="text-red-500">*</span>
-                                    </label>
-                                    <div className="relative">
-                                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
-                                            Rp
-                                        </span>
-                                        <input
-                                            type="number"
-                                            name="jumlah"
-                                            value={editTagihanData.jumlah}
-                                            onChange={handleEditTagihanChange}
-                                            required
-                                            min="0"
-                                            className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 outline-none"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* JATUH TEMPO */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Jatuh Tempo{" "}
-                                        <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="date"
-                                        name="jatuh_tempo"
-                                        value={editTagihanData.jatuh_tempo}
-                                        onChange={handleEditTagihanChange}
-                                        required
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 outline-none"
-                                    />
-                                </div>
-
-                                {/* STATUS */}
-                                {/*<div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Status{" "}
-                                        <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        name="status"
-                                        value={editTagihanData.status}
-                                        onChange={handleEditTagihanChange}
-                                        required
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 outline-none"
-                                    >
-                                        <option value="Belum Lunas">
-                                            Belum Lunas
-                                        </option>
-                                        <option value="Lunas">Lunas</option>
-                                    </select>
-                                </div>*/}
-
-                                {/* BUTTON */}
-                                <div className="flex space-x-3 pt-4 border-t border-gray-100">
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setActiveTagihanEdit(false)
-                                        }
-                                        className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-all duration-200 border border-gray-300"
-                                    >
-                                        Batal
-                                    </button>
-
-                                    <button
-                                        type="submit"
-                                        disabled={isLoadingSubmit}
-                                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
-                                    >
-                                        {isLoadingSubmit
-                                            ? "Mengedit..."
-                                            : "Edit Tagihan"}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
-
                 {/* --- PAGE: TRANSAKSI (PEMASUKAN / PENGELUARAN) --- */}
                 {["pemasukan", "pengeluaran"].includes(activePage) && (
                     <div className="bg-white shadow-lg rounded-2xl overflow-hidden border border-green-100">
@@ -1573,11 +1411,10 @@ export default function Dsbd({ onLogout }) {
                                         activePage === "pengeluaran"
                                     );
                                 }}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm text-white transition-colors ${
-                                    activePage === "pemasukan"
+                                className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm text-white transition-colors ${activePage === "pemasukan"
                                         ? "bg-green-600 hover:bg-green-700"
                                         : "bg-red-600 hover:bg-red-700"
-                                }`}
+                                    }`}
                             >
                                 + Input {activePage}
                             </button>
@@ -1622,7 +1459,7 @@ export default function Dsbd({ onLogout }) {
                                                     item.tipe === "pemasukan"
                                                         ? "text-green-600"
                                                         : "text-red-600"
-                                                }`}
+                                                    }`}
                                             >
                                                 {/* Sesuaikan field database: jumlah */}
                                                 {formatRupiah(item.jumlah)}
@@ -1633,10 +1470,10 @@ export default function Dsbd({ onLogout }) {
                                                     item.tipe === "pemasukan"
                                                         ? "text-green-600"
                                                         : "text-red-600"
-                                                }`}
+                                                    }`}
                                             >
                                                 {/* Sesuaikan field database: jumlah */}
-                                                Lunas
+                                              Lunas
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex justify-center items-center gap-2">
@@ -1732,10 +1569,10 @@ export default function Dsbd({ onLogout }) {
                                     {getFilteredFinances().length === 0 && (
                                         <tr>
                                             <td
-                                                colSpan="6"
-                                                className="px-4 py-4 text-center text-gray-500 text-sm"
+                                                colSpan="3"
+                                                className="px-6 py-4 text-center text-gray-500 text-sm"
                                             >
-                                                Belum ada data.
+                                                Tidak ada data.
                                             </td>
                                         </tr>
                                     )}
@@ -1868,7 +1705,6 @@ export default function Dsbd({ onLogout }) {
                     </div>
                 )}
 
-                {/* --- MODAL EDIT TRANSAKSI */}
                 {activeTransaksiEdit && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm">
                         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
@@ -2254,6 +2090,110 @@ export default function Dsbd({ onLogout }) {
                         </div>
                     </div>
                 )}
+
+                {/* --- PAGE: PENGUMUMAN --- */}
+                {activePage === "pengumuman" && (
+                    <div className="space-y-6">
+                        <div className="bg-white rounded-2xl shadow-sm border border-green-100 overflow-hidden">
+                            <div className="px-6 py-5 border-b border-gray-200 flex justify-between items-center">
+                                <h3 className="text-lg font-bold text-gray-900">
+                                    Manajemen Pengumuman
+                                </h3>
+                                <button
+                                    onClick={() => {
+                                        setEditPengumumanId(null);
+                                        setPengumumanForm({ judul: "", isi: "", is_active: true });
+                                        setIsModalPengumumanOpen(true);
+                                    }}
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow-sm"
+                                >
+                                    + Tambah Pengumuman
+                                </button>
+                            </div>
+                            <div className="scroll-stylling overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
+                                                Judul
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
+                                                Isi
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
+                                                Status
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
+                                                Dibuat Oleh
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
+                                                Tanggal
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
+                                                Action
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {pengumumans.map((item) => (
+                                            <tr key={item.id}>
+                                                <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                                                    {item.judul}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                                                    {item.isi}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span
+                                                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                                            item.is_active
+                                                                ? "bg-green-100 text-green-800"
+                                                                : "bg-gray-100 text-gray-800"
+                                                        }`}
+                                                    >
+                                                        {item.is_active ? "Aktif" : "Nonaktif"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-500">
+                                                    {item.user?.name || "-"}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-500">
+                                                    {new Date(item.created_at).toLocaleDateString("id-ID")}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => handleEditPengumuman(item)}
+                                                            className="px-3 py-1 text-xs bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg"
+                                                        >
+                                                            Edit
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeletePengumuman(item.id)}
+                                                            className="px-3 py-1 text-xs bg-red-500 hover:bg-red-600 text-white rounded-lg"
+                                                        >
+                                                            Hapus
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {pengumumans.length === 0 && (
+                                            <tr>
+                                                <td
+                                                    colSpan="6"
+                                                    className="px-6 py-4 text-center text-gray-500 text-sm"
+                                                >
+                                                    Belum ada pengumuman.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </main>
 
             {/* --- MODAL BUAT TAGIHAN (BARU) --- */}
@@ -2261,84 +2201,151 @@ export default function Dsbd({ onLogout }) {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
                         <div className="px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-500 flex justify-between items-center">
-                            <h3 className="text-lg font-bold text-white">
-                                Buat Tagihan Siswa
-                            </h3>
-                            <button
-                                onClick={() => setIsModalTagihanOpen(false)}
-                                className="text-white hover:text-gray-200"
-                            >
-                                ?
-                            </button>
+                            <h3 className="text-lg font-bold text-white">Buat Tagihan Siswa</h3>
+                            <button onClick={() => setIsModalTagihanOpen(false)} className="text-white hover:text-gray-200">?</button>
                         </div>
-                        <form
-                            onSubmit={handleSubmitTagihan}
-                            className="p-6 space-y-4"
-                        >
+                        <form onSubmit={handleSubmitTagihan} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Pilih Siswa
-                                </label>
-                                <select
-                                    name="biodata_id"
-                                    value={tagihanForm.biodata_id}
-                                    onChange={handleTagihanChange}
-                                    required
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Pilih Siswa</label>
+                                <select 
+                                    name="biodata_id" 
+                                    value={tagihanForm.biodata_id} 
+                                    onChange={handleTagihanChange} 
+                                    required 
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
                                 >
                                     <option value="">-- Pilih Siswa --</option>
-                                    {siswa.map(s => (
-                                        <option key={s.id} value={s.id}>
-                                            {s.nama_lengkap} ({s.email})
-                                        </option>
+                                    {siswa.map((s) => (
+                                        <option key={s.id} value={s.id}>{s.nama_lengkap} ({s.email})</option>
                                     ))}
                                 </select>
                             </div>
                             <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Judul Tagihan</label>
+                                <input 
+                                    type="text" 
+                                    name="judul" 
+                                    value={tagihanForm.judul} 
+                                    onChange={handleTagihanChange} 
+                                    placeholder="Contoh: SPP November" 
+                                    required 
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" 
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Jumlah (Rp)</label>
+                                <input 
+                                    type="number" 
+                                    name="jumlah" 
+                                    value={tagihanForm.jumlah} 
+                                    onChange={handleTagihanChange} 
+                                    placeholder="500000" 
+                                    required 
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" 
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Jatuh Tempo</label>
+                                <input 
+                                    type="date" 
+                                    name="jatuh_tempo" 
+                                    value={tagihanForm.jatuh_tempo} 
+                                    onChange={handleTagihanChange} 
+                                    required 
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" 
+                                />
+                            </div>
+                            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
+                                <button type="button" onClick={() => setIsModalTagihanOpen(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Batal</button>
+                                <button type="submit" disabled={isLoadingSubmit} className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 shadow-sm">
+                                    {isLoadingSubmit ? "Memproses..." : "Simpan Tagihan"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+            
+            {/* --- MODAL PENGUMUMAN --- */}
+            {isModalPengumumanOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
+                        <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-500 flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-white">
+                                {editPengumumanId ? "Edit Pengumuman" : "Tambah Pengumuman"}
+                            </h3>
+                            <button
+                                onClick={() => {
+                                    setIsModalPengumumanOpen(false);
+                                    setEditPengumumanId(null);
+                                    setPengumumanForm({ judul: "", isi: "", is_active: true });
+                                }}
+                                className="text-white hover:text-gray-200"
+                            >
+                                <svg
+                                    className="w-6 h-6"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+                        <form onSubmit={handleSubmitPengumuman} className="p-6 space-y-4">
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Judul Tagihan
+                                    Judul Pengumuman
                                 </label>
                                 <input
                                     type="text"
                                     name="judul"
-                                    value={tagihanForm.judul}
-                                    onChange={handleTagihanChange}
-                                    placeholder="Contoh: SPP November"
+                                    value={pengumumanForm.judul}
+                                    onChange={handlePengumumanChange}
                                     required
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                    placeholder="Masukkan judul pengumuman"
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Jumlah (Rp)
+                                    Isi Pengumuman
                                 </label>
-                                <input
-                                    type="number"
-                                    name="jumlah"
-                                    value={tagihanForm.jumlah}
-                                    onChange={handleTagihanChange}
-                                    placeholder="500000"
+                                <textarea
+                                    name="isi"
+                                    value={pengumumanForm.isi}
+                                    onChange={handlePengumumanChange}
                                     required
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
-                                />
+                                    rows="6"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                    placeholder="Masukkan isi pengumuman"
+                                ></textarea>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Jatuh Tempo
-                                </label>
+                            <div className="flex items-center">
                                 <input
-                                    type="date"
-                                    name="jatuh_tempo"
-                                    value={tagihanForm.jatuh_tempo}
-                                    onChange={handleTagihanChange}
-                                    required
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                                    type="checkbox"
+                                    name="is_active"
+                                    checked={pengumumanForm.is_active}
+                                    onChange={handlePengumumanChange}
+                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                 />
+                                <label className="ml-2 text-sm text-gray-700">
+                                    Aktifkan pengumuman
+                                </label>
                             </div>
                             <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
                                 <button
                                     type="button"
-                                    onClick={() => setIsModalTagihanOpen(false)}
+                                    onClick={() => {
+                                        setIsModalPengumumanOpen(false);
+                                        setEditPengumumanId(null);
+                                        setPengumumanForm({ judul: "", isi: "", is_active: true });
+                                    }}
                                     className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
                                 >
                                     Batal
@@ -2346,11 +2353,9 @@ export default function Dsbd({ onLogout }) {
                                 <button
                                     type="submit"
                                     disabled={isLoadingSubmit}
-                                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 shadow-sm"
+                                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                                 >
-                                    {isLoadingSubmit
-                                        ? "Memproses..."
-                                        : "Simpan Tagihan"}
+                                    {isLoadingSubmit ? "Menyimpan..." : "Simpan"}
                                 </button>
                             </div>
                         </form>
@@ -2517,6 +2522,7 @@ export default function Dsbd({ onLogout }) {
                 </div>
             )}
 
+            
             <footer className="w-full flex justify-center py-2">
                 <p className="text-center">
                     &copy; {tahunIni} Sepak Bola SMEMSA – Membangun Generasi

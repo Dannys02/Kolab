@@ -160,12 +160,12 @@ export default function Login({ setToken, setUserRole }) {
               </button>
               <div className="mt-6 text-center">
                 <p className="text-sm text-gray-600">
-                  Belum punya akun?{" "}
+                  Belum Punya akun?{" "}
                   <Link
                     to="/register"
                     className="text-blue-600 hover:underline font-medium"
                   >
-                    Daftar di sini
+                    daftar Sekarang!
                   </Link>
                 </p>
               </div>

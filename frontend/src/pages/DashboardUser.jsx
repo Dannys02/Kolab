@@ -137,6 +137,7 @@ const UserDashboard = ({ onLogout }) => {
         } catch (error) {
             alert("Gagal menyimpan biodata: " + (error.response?.data?.message || "Koneksi Error"));
         } finally {
+            alert("Biodata berhasil dikirim.");
             setIsLoading(false);
         }
     };
@@ -272,23 +273,8 @@ const UserDashboard = ({ onLogout }) => {
 
             {/* Mobile Menu Button (Dipertahankan) */}
             <div className="lg:hidden fixed top-4 left-4 z-50">
-                <button
-                    onClick={() => setSidebarOpen(!sidebarOpen)}
-                    className="p-2 bg-white rounded-lg shadow-md text-gray-600 hover:text-green-600 transition-colors"
-                >
-                    <svg
-                        className="w-6 h-6"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 6h16M4 12h16M4 18h16"
-                        />
-                    </svg>
+                <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 bg-white rounded-lg shadow-md text-gray-600">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
                 </button>
             </div>
 
@@ -605,6 +591,8 @@ const UserDashboard = ({ onLogout }) => {
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
 
                                         <div className="flex gap-3 mt-6">
                                             <button 
@@ -620,8 +608,12 @@ const UserDashboard = ({ onLogout }) => {
                                                 Cek Pembayaran
                                             </button>
                                         </div>
-                                    </div>
+                                    ))}
                                 </div>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                                     <div className="flex items-center justify-between mb-4">
@@ -812,6 +804,24 @@ const UserDashboard = ({ onLogout }) => {
                                     </ul>
                                 ) : (
                                     <p className="text-center text-gray-400 py-8">Belum ada riwayat pembayaran.</p>
+                                )}
+                            </div>
+                            <div className="bg-white rounded-2xl border border-gray-200 p-6">
+                                <h3 className="font-bold text-gray-800 mb-4">Riwayat Pembayaran</h3>
+                                {keuangan.riwayat.length > 0 ? (
+                                    <ul className="space-y-3">
+                                        {keuangan.riwayat.map((item, idx) => (
+                                            <li key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                                <div>
+                                                    <p className="text-xs text-gray-500">{item.tanggal_bayar}</p>
+                                                    <p className="text-sm font-medium">Pembayaran Kas</p>
+                                                </div>
+                                                <span className="text-green-600 font-bold bg-green-50 px-2 py-1 rounded">+ Rp {parseInt(item.jumlah_bayar).toLocaleString()}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p className="text-center text-gray-400 py-8">Belum ada riwayat.</p>
                                 )}
                             </div>
                         </div>
