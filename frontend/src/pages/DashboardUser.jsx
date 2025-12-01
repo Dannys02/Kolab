@@ -9,6 +9,16 @@ const UserDashboard = ({ onLogout }) => {
     const [activePage, setActivePage] = useState("dashboard");
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [loadingPage, setLoadingPage] = useState(true);
+    
+    // === LOADING PAGE ===
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        setLoadingPage(false);
+      }, 5000) // Atur loading menjadi 1.5 detik (sesuaikan)
+
+      return () => clearTimeout(timer); // Cleanup function
+    }, []) // Dependency array kosong, hanya berjalan saat mount
 
     // === STATE UTAMA ===
     const [hasBiodata, setHasBiodata] = useState(false);
@@ -253,9 +263,22 @@ const UserDashboard = ({ onLogout }) => {
             setIsLoading(false);
         }
      };
+     
+         if (loadingPage) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+                    <p className="text-green-800 font-semibold">
+                        Sedang Memuat Data...
+                    </p>
+                </div>
+            </div>
+        );
+    }
+     
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 relative">
-            
             {/* Modal Edit Profil */}
             {isEditing && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
