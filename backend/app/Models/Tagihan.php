@@ -15,4 +15,9 @@ class Tagihan extends Model
         'status'
     ];
     
+    public function biodata()
+{
+    return $this->belongsTo(Biodata::class, 'biodata_id');
+}
+
 }

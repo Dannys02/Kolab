@@ -50,7 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // 1. [ADMIN/HYBRID] Lihat Keuangan Siswa (List semua atau Detail via ?biodata_id=X)
     Route::get('/keuangan', [KeuanganController::class, 'index']);
-
+    
     // 2. [SISWA] Lihat Tagihan Saya Sendiri (Otomatis deteksi login)
     Route::get('/tagihan-siswa', [KeuanganController::class, 'getTagihanSiswa']);
 
