@@ -91,7 +91,7 @@ export default function Dsbd({ onLogout }) {
         ]);
         
         // 2. Tambahkan jeda waktu 1.5 detik (1500ms) setelah semua fetch selesai
-        await new Promise(resolve => setTimeout(resolve, 5000)); 
+        await new Promise(resolve => setTimeout(resolve, 4000)); 
 
         // 3. Akhiri proses loading
         setLoading(false);

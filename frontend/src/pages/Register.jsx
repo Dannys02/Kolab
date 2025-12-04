@@ -44,7 +44,7 @@ export default function Register({ setToken, setUserRole }) {
 
             alert("Registrasi Berhasil!");
             // Navigate manual sebagai fallback jika state update telat
-            // navigate('/portal/dashboard'); 
+            navigate('/login'); 
 
         } catch (err) {
             console.error("Register Error Full:", err); // Cek Console browser!
