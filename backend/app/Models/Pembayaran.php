@@ -24,4 +24,9 @@ class Pembayaran extends Model
     {
         return $this->belongsTo(Biodata::class);
     }
+    
+    public function tagihan()
+    {
+        return $this->belongsTo(Tagihan::class);
+    }
 }

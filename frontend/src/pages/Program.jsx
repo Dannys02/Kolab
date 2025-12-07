@@ -1,18 +1,19 @@
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Clock, Users, Calendar, CheckCircle } from "lucide-react";
 
 export default function Program() {
     const programs = [
         {
-            title: "Program Usia Dini (U-8 & U-10)",
+            id: "U-8-U-10",
+            title: "Program Reguler",
             description: "Pengenalan dasar sepak bola dengan metode fun learning untuk membangun fondasi keterampilan",
             image: "https://www.lines.id/wp-content/uploads/2022/11/FORSGI-Telainaipura-1536x864.jpeg",
-            age: "6-10 Tahun",
+            age: "10-15 Tahun",
             duration: "2x seminggu",
             participants: "15-20 siswa",
-            price: "Rp 500.000/bulan",
+            price: "Rp 50.000/bulan",
             features: [
                 "Teknik dasar menendang dan mengontrol bola",
                 "Koordinasi dan keseimbangan tubuh",
@@ -22,13 +23,14 @@ export default function Program() {
             badge: "Populer",
         },
         {
-            title: "Program Remaja (U-12 & U-14)",
+            id: "U-12-U-14",
+            title: "Elite Squad",
             description: "Pengembangan teknik lanjutan dan pemahaman taktik permainan modern",
             image: "https://cdn.antarafoto.com/cache/1200x802/2014/12/13/sepak-bola-pon-remaja-9w2x-dom.jpg",
-            age: "10-14 Tahun",
+            age: "10 Tahun ke atas",
             duration: "3x seminggu",
             participants: "18-22 siswa",
-            price: "Rp 750.000/bulan",
+            price: "Rp 100.000/bulan",
             features: [
                 "Teknik lanjutan dribbling dan passing",
                 "Strategi dan formasi permainan",
@@ -38,29 +40,14 @@ export default function Program() {
             badge: "Recommended",
         },
         {
-            title: "Program Elite (U-16 & U-18)",
-            description: "Persiapan intensif untuk kompetisi tingkat tinggi dan karir profesional",
-            image: "https://assetd.kompas.id/v90sYaDmlyOixHMdd7ylusphaMY=/fit-in/1980x871/filters:format(webp):quality(80):watermark(https://cdn-content.kompas.id/umum/kompas_main_logo.png,-16p,-13p,0)/https://asset.kgnewsroom.com/photo/pre/2025/06/09/ef1a4f18-e059-468d-9748-e18dd24ad81b_jpg.jpg",
-            age: "14-18 Tahun",
-            duration: "4x seminggu",
-            participants: "20-25 siswa",
-            price: "Rp 1.000.000/bulan",
-            features: [
-                "Program latihan intensif bertaraf profesional",
-                "Analisis video dan taktik modern",
-                "Latihan mental dengan psikolog olahraga",
-                "Kesempatan trial club profesional",
-            ],
-            badge: "Advanced",
-        },
-        {
-            title: "Program Penjaga Gawang",
+            id: "goalkeeper",
+            title: "Goalkeeper Class",
             description: "Spesialisasi khusus untuk calon kiper dengan teknik dan mental terbaik",
             image: "https://media.istockphoto.com/id/1444938119/id/foto/sepak-bola-olahraga-dan-pelatihan-penjaga-gawang-di-lapangan-untuk-kompetisi-profesional-atlet.jpg?s=170667a&w=0&k=20&c=AEPLtpvF1GW49Aj63dpYG6eJP-9r4rM_t8EJ2dGYQKw=",
-            age: "10-18 Tahun",
+            age: "10 Tahun ke atas",
             duration: "2x seminggu",
             participants: "8-12 siswa",
-            price: "Rp 800.000/bulan",
+            price: "Rp 75.000/bulan",
             features: [
                 "Teknik diving dan positioning",
                 "Refleks dan koordinasi khusus",
@@ -72,19 +59,28 @@ export default function Program() {
     ];
 
     const navigate = useNavigate();
+    const [hasProgram, setHasProgram] = useState(false);
+    const [userProgram, setUserProgram] = useState(null);
 
-    // Jika user sudah punya pilihan program, langsung redirect ke halaman sukses
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (!token) return;
+
         axios.get('http://localhost:8000/api/tagihan-siswa', { headers: { Authorization: `Bearer ${token}` } })
             .then(resp => {
                 const biodata = resp.data?.biodata || null;
                 if (biodata?.pilihan_program) {
                     const pid = biodata.pilihan_program;
                     const matched = programs.find(p => p.id === pid);
-                    // arahkan ke halaman sukses dan sertakan data program (jika ditemukan)
-                    navigate('/program-success', { state: { program: matched || { id: pid, judul: pid, deskripsi: '' } } });
+
+                    setHasProgram(true);
+                    // Pastikan userProgram memiliki data yang lengkap untuk dikirim
+                    setUserProgram(matched || { 
+                        id: pid, 
+                        title: pid, 
+                        description: 'Program telah dipilih.', 
+                        price: 'Tidak Diketahui'
+                    });
                 }
             })
             .catch(() => { /* ignore */ });
@@ -158,9 +154,31 @@ export default function Program() {
                                         <p className="text-2xl font-bold text-green-500">{program.price}</p>
                                     </div>
 
-                                    <Link to="/register" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-600/80 transition">
-                                        Daftar Program
-                                    </Link>
+                                    {hasProgram ? (
+                                        <button
+                                            // INI PERUBAHAN UTAMA: Mengubah nama properti saat dikirim
+                                            onClick={() => navigate('/program-success', { 
+                                                state: { 
+                                                    program: {
+                                                        id: userProgram.id,
+                                                        judul: userProgram.title,
+                                                        deskripsi: userProgram.description,
+                                                        harga: userProgram.price
+                                                    } 
+                                                } 
+                                            })}
+                                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-600/80 transition"
+                                        >
+                                            Lihat Program Saya
+                                        </button>
+                                    ) : (
+                                        <Link 
+                                            to={`/register?programId=${program.id}`}
+                                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-600/80 transition"
+                                        >
+                                            Daftar Program
+                                        </Link>
+                                    )}
                                 </div>
                             </div>
                         </div>

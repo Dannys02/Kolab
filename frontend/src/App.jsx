@@ -61,13 +61,20 @@ function App() {
   const noLayoutRoutes = [
     "/admin",
     "/dashboard",
-    "/portal", 
-    "/login",
-    "/register",
+    "/portal",
     "/dashboard-user",
   ];
   
+  const noFooterOnly = [
+    "/register",
+    "/login",
+  ];
+  
   const hideLayout = noLayoutRoutes.some((route) =>
+    location.pathname.startsWith(route)
+  );
+  
+  const hideFooterOnly = noFooterOnly.some((route) =>
     location.pathname.startsWith(route)
   );
 
@@ -176,7 +183,7 @@ function App() {
       </Routes>
 
       {/* ✅ PERBAIKAN: Footer disembunyikan untuk halaman 404 */}
-      {!hideLayout && !isNotFoundPage && <Footer />}
+      {!hideLayout && !isNotFoundPage && !hideFooterOnly && <Footer />}
     </div>
   );
 }
