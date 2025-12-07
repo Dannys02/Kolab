@@ -13,10 +13,20 @@ export default function Artikel() {
         category: "Tutorial",
         author: "Coach Ahmad",
         date: "15 Mei 2024",
-        readTime: "5 menit",
+        readTime: "5 menit"
     };
 
     const articles = [
+        {
+            title: "5 Tips Meningkatkan Teknik Dribbling untuk Pemain Muda",
+            excerpt:
+                "Dribbling adalah salah satu keterampilan fundamental dalam sepak bola. Pelajari teknik-teknik dasar yang akan membantu meningkatkan kontrol bola dan kepercayaan diri di lapangan.",
+            image: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhfZSB2NfLNl1KjexAuVNA4pxFgOuXp9QF6oriCJVCV_sXPuNaeWQbO1T77I7cFP7XI2yydAtLg-U8nJL73l3JHggkqUvOWaeQDFBZxwQc5nE6c_avgPTcpEdxR3tRxzxtGH0GMmCK00oiQ9h9PHXVZHk9lPRN4MofXHK3jNxGur4zWEIp-7G_5S5VC/s800/dribbling.jpg",
+            category: "Tutorial",
+            author: "Coach Ahmad",
+            date: "15 Mei 2024",
+            readTime: "5 menit"
+        },
         {
             title: "Pentingnya Nutrisi dalam Performa Pemain Sepak Bola",
             excerpt:
@@ -25,7 +35,7 @@ export default function Artikel() {
             category: "Kesehatan",
             author: "Dr. Budi Santoso",
             date: "12 Mei 2024",
-            readTime: "4 menit",
+            readTime: "4 menit"
         },
         {
             title: "Mental Juara: Membangun Kepercayaan Diri di Lapangan",
@@ -35,7 +45,7 @@ export default function Artikel() {
             category: "Psikologi",
             author: "Coach Rina",
             date: "10 Mei 2024",
-            readTime: "6 menit",
+            readTime: "6 menit"
         },
         {
             title: "Strategi Passing Modern dalam Sepak Bola Kontemporer",
@@ -45,8 +55,8 @@ export default function Artikel() {
             category: "Taktik",
             author: "Coach Dedi",
             date: "8 Mei 2024",
-            readTime: "7 menit",
-        },
+            readTime: "7 menit"
+        }
     ];
 
     const categories = [
@@ -57,25 +67,31 @@ export default function Artikel() {
         "Taktik",
         "Inspirasi",
         "Training",
-        "Teknologi",
+        "Teknologi"
     ];
 
     // FILTER UTAMA (Search + Kategori)
-    const filteredArticles = articles.filter((a) => {
+    const filteredArticles = articles.filter(a => {
         const cocokKategori =
             activeCategory === "Semua" ? true : a.category === activeCategory;
 
-        const cocokSearch = a.title.toLowerCase().includes(search.toLowerCase());
+        const cocokSearch = a.title
+            .toLowerCase()
+            .includes(search.toLowerCase());
 
         return cocokKategori && cocokSearch;
     });
 
     return (
         <div className="min-h-screen pt-16">
+
             <section className="py-20 bg-gradient-to-br from-green-400 to-blue-600 text-white text-center">
-                <h1 className="text-5xl md:text-6xl font-bold mb-6">Artikel & Tips</h1>
+                <h1 className="text-5xl md:text-6xl font-bold mb-6">
+                    Artikel & Tips
+                </h1>
                 <p className="text-xl md:text-2xl max-w-3xl mx-auto opacity-90">
-                    Pelajari tips, trik, dan wawasan dari para ahli untuk meningkatkan permainan Anda
+                    Pelajari tips, trik, dan wawasan dari para ahli untuk
+                    meningkatkan permainan Anda
                 </p>
             </section>
 
@@ -88,18 +104,22 @@ export default function Artikel() {
                             placeholder="Cari artikel..."
                             className="w-full border rounded-md py-2 pl-10 pr-4 bg-white shadow"
                             value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            onChange={e => setSearch(e.target.value)}
                         />
                     </div>
 
                     {/* CATEGORY BUTTONS */}
                     <div className="flex gap-3 flex-wrap">
-                        {categories.map((cat) => (
+                        {categories.map(cat => (
                             <button
                                 key={cat}
                                 onClick={() => setActiveCategory(cat)}
                                 className={`border border-gray px-4 py-2 rounded-full text-sm cursor-pointer transition-colors duration-300 hover:bg-green-500 hover:text-white transition text-black 
-                                    ${activeCategory === cat ? "bg-green-500 text-white" : ""}
+                                    ${
+                                        activeCategory === cat
+                                            ? "bg-green-500 text-white"
+                                            : ""
+                                    }
                                 `}
                             >
                                 {cat}
@@ -111,31 +131,41 @@ export default function Artikel() {
 
             <section className="py-20">
                 <div className="container mx-auto px-4">
-                    <h2 className="text-3xl font-bold mb-8">Artikel Unggulan</h2>
-
+                    <h2 className="text-3xl font-bold mb-8">
+                        Artikel Unggulan
+                    </h2>
                     <div className="bg-white shadow-md rounded-lg overflow-hidden grid grid-cols-1 lg:grid-cols-2">
                         <div className="relative h-96 lg:h-auto">
-                            <img src={featuredArticle.image} className="w-full h-full object-cover" />
+                            <img
+                                src={featuredArticle.image}
+                                className="w-full h-full object-cover"
+                            />
                             <div className="absolute top-4 left-4 bg-white px-3 py-1 rounded shadow text-sm font-semibold">
                                 {featuredArticle.category}
                             </div>
                         </div>
 
                         <div className="p-8 flex flex-col justify-center">
-                            <h3 className="text-3xl font-bold mb-4">{featuredArticle.title}</h3>
-                            <p className="text-base text-muted-foreground mb-6">{featuredArticle.excerpt}</p>
+                            <h3 className="text-3xl font-bold mb-4">
+                                {featuredArticle.title}
+                            </h3>
+                            <p className="text-base text-muted-foreground mb-6">
+                                {featuredArticle.excerpt}
+                            </p>
 
                             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-6">
                                 <div className="flex items-center gap-2">
-                                    <User className="h-4 w-4" /> {featuredArticle.author}
+                                    <User className="h-4 w-4" />{" "}
+                                    {featuredArticle.author}
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Calendar className="h-4 w-4" /> {featuredArticle.date}
+                                    <Calendar className="h-4 w-4" />{" "}
+                                    {featuredArticle.date}
                                 </div>
                                 <span>• {featuredArticle.readTime} baca</span>
                             </div>
 
-                            <button className="bg-primary text-white px-6 py-3 rounded-md flex items-center gap-2 hover:bg-primary/90">
+                            <button className="bg-green-500 text-white px-6 py-3 rounded-md flex items-center gap-2 hover:bg-green-600">
                                 Baca Selengkapnya
                                 <ArrowRight className="h-4 w-4" />
                             </button>
@@ -160,14 +190,17 @@ export default function Artikel() {
                                     className="bg-white rounded-lg shadow hover:shadow-lg transition hover:-translate-y-2 overflow-hidden"
                                 >
                                     <div className="relative h-48">
-                                        <img src={a.image} className="w-full h-full object-cover" />
+                                        <img
+                                            src={a.image}
+                                            className="w-full h-full object-cover"
+                                        />
                                         <div className="absolute top-4 left-4 bg-white px-3 py-1 rounded shadow text-sm font-semibold">
                                             {a.category}
                                         </div>
                                     </div>
 
                                     <div className="p-5">
-                                        <h3 className="text-xl font-semibold mb-2 hover:text-primary transition">
+                                        <h3 className="text-xl font-semibold mb-2 hover:text-green-500 transition">
                                             {a.title}
                                         </h3>
 
@@ -177,14 +210,16 @@ export default function Artikel() {
 
                                         <div className="flex gap-3 text-sm text-muted-foreground mb-4">
                                             <div className="flex items-center gap-1">
-                                                <User className="h-3 w-3" /> {a.author}
+                                                <User className="h-3 w-3" />{" "}
+                                                {a.author}
                                             </div>
                                             <div className="flex items-center gap-1">
-                                                <Calendar className="h-3 w-3" /> {a.date}
+                                                <Calendar className="h-3 w-3" />{" "}
+                                                {a.date}
                                             </div>
                                         </div>
 
-                                        <button className="text-primary font-semibold flex items-center gap-2">
+                                        <button className="text-green-500 font-semibold flex items-center gap-2">
                                             Baca Artikel
                                             <ArrowRight className="h-4 w-4" />
                                         </button>
