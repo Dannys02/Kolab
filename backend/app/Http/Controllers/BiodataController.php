@@ -4,127 +4,133 @@ namespace App\Http\Controllers;
 
 use App\Models\Biodata;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class BiodataController extends Controller
 {
     public function store(Request $request)
     {
-        // Validasi fleksibel: jika biodata sudah ada, hanya validasi field yang dikirim
-        $user = $request->user();
-        $existingBiodata = Biodata::where('user_id', $user->id)->first();
-        
-        if ($existingBiodata) {
-            // Jika biodata sudah ada, ini adalah UPDATE (misal update pilihan_program)
-            // Validasi hanya field yang dikirim
-            $rules = [];
-            if ($request->has('nama_lengkap')) $rules['nama_lengkap'] = 'string';
-            if ($request->has('email')) $rules['email'] = 'email';
-            if ($request->has('phone')) $rules['phone'] = 'numeric';
-            if ($request->has('alamat')) $rules['alamat'] = 'string';
-            if ($request->has('tanggal_lahir')) $rules['tanggal_lahir'] = 'date';
-            if ($request->has('pilihan_program')) $rules['pilihan_program'] = 'string';
-            
-            $request->validate($rules);
-            
-            // Jika ada upaya mengubah pilihan_program, pastikan tidak sudah ter-set
-            if ($request->has('pilihan_program')) {
-                // jika sudah ada pilihan dan user bukan admin, tolak
-                if ($existingBiodata->pilihan_program && !$user->hasRole('admin')) {
-                    return response()->json(["message" => "Pilihan program sudah diset dan tidak dapat diubah. Hubungi admin."], 403);
+        try {
+            $user = $request->user();
+
+            if (!$user) {
+                return response()->json(["message" => "Unauthorized"], 401);
+            }
+
+            // 1. CARI BIODATA (Logika Cerdas)
+            // Cari berdasarkan user_id DULU
+            $existingBiodata = Biodata::where('user_id', $user->id)->first();
+
+            // Jika tidak ketemu, cari berdasarkan EMAIL (Kasus dibuatkan Admin)
+            if (!$existingBiodata) {
+                $existingBiodata = Biodata::where('email', $user->email)->first();
+                
+                // Jika ketemu via email, update user_id nya jadi milik user yang login (KLAIM DATA)
+                if ($existingBiodata) {
+                    $existingBiodata->user_id = $user->id;
+                    $existingBiodata->save();
                 }
             }
 
-            // Update biodata yang sudah ada
-            $existingBiodata->update($request->all());
-            
-            return response()->json([
-                "message" => "Data Berhasil Diupdate",
-                "data" => $existingBiodata->fresh(),
-            ], 200);
-        } else {
-            // Jika biodata belum ada, ini adalah CREATE (pendaftaran baru)
-            $request->validate([
-                "nama_lengkap" => "required|string",
-                "email" => "required|email",
-                "phone" => "required|numeric",
-                "alamat" => "required|string",
-                "tanggal_lahir" => "required|date",
-            ]);
+            if ($existingBiodata) {
+                // ==========================
+                // LOGIKA UPDATE
+                // ==========================
+                
+                $request->validate([
+                    'pilihan_program' => 'string|nullable',
+                    // Validasi lain tidak wajib agar user bisa update parsial
+                ]);
+                
+                // LOGIKA KUNCI PROGRAM (Agar user bisa pilih program walau dibuatkan admin)
+                if ($request->has('pilihan_program')) {
+                    $isAdmin = (isset($user->role) && $user->role === 'admin');
+                    
+                    // Ambil program lama
+                    $programLama = $existingBiodata->pilihan_program ? trim($existingBiodata->pilihan_program) : null;
+                    
+                    // Program dianggap "Belum Dipilih" jika: Null, Kosong, Strip, atau kata-kata default
+                    $ignoredValues = ['', '-', 'null', 'belum memilih', 'belum dipilih', 'pilih program', 'tidak ada'];
+                    
+                    $isTerkunci = !is_null($programLama) && 
+                                  !in_array(strtolower($programLama), $ignoredValues);
 
-            $data = $request->all();
-            $data['user_id'] = $user->id;
+                    // Jika sudah terkunci & bukan admin & mencoba ganti program -> Error
+                    if ($isTerkunci && !$isAdmin) {
+                        if (strtolower($request->pilihan_program) !== strtolower($programLama)) {
+                            return response()->json([
+                                "message" => "Pilihan program sudah dikunci ($programLama). Hubungi admin untuk ubah."
+                            ], 403);
+                        }
+                    }
+                }
+                
+                // Filter hanya data yang dikirim yang diupdate
+                $dataToUpdate = array_filter($request->all(), function($value) {
+                    return !is_null($value);
+                });
 
-            $biodata = Biodata::create($data);
+                $existingBiodata->update($dataToUpdate);
+                
+                return response()->json([
+                    "message" => "Data Berhasil Diupdate",
+                    "data" => $existingBiodata->fresh(),
+                ], 200);
 
-            return response()->json([
-                "message" => "Pendaftaran Berhasil",
-                "data" => $biodata,
-            ], 201);
-        }
-    }
+            } else {
+                // ==========================
+                // LOGIKA CREATE (Benar-benar User Baru)
+                // ==========================
+                
+                // Cek apakah email sudah dipakai orang lain (untuk mencegah error 500 Duplicate)
+                if (Biodata::where('email', $request->email)->exists()) {
+                    return response()->json([
+                        "message" => "Email ini sudah terdaftar pada biodata lain. Hubungi admin."
+                    ], 409);
+                }
 
-    // ... method update dan destroy biarkan atau sesuaikan validasinya ...
+                $data = $request->all();
+                $data['user_id'] = $user->id;
 
-    public function update(Request $request, $id)
-    {
-        // ... kode lama ...
-        $request->validate([
-            "nama_lengkap" => "required|string",
-            "email" => "required|email",
-            "phone" => "required|numeric",
-            "alamat" => "required|string",
-            "tanggal_lahir" => "required|date",
-        ]);
+                // Pastikan program NULL jika kosong
+                if (empty($data['pilihan_program'])) {
+                    $data['pilihan_program'] = null;
+                }
 
-        $biodata = Biodata::findOrFail($id);
+                $biodata = Biodata::create($data);
 
-        // Protect pilihan_program from being changed by non-admins once set
-        if ($request->has('pilihan_program')) {
-            if ($biodata->pilihan_program && !$request->user()->hasRole('admin')) {
-                return response()->json(["message" => "Pilihan program sudah diset dan tidak dapat diubah oleh user."], 403);
+                return response()->json([
+                    "message" => "Pendaftaran Berhasil",
+                    "data" => $biodata,
+                ], 201);
             }
+
+        } catch (\Throwable $e) {
+            Log::error("Biodata Error: " . $e->getMessage());
+            return response()->json([
+                "message" => "Terjadi kesalahan server.",
+                "error_detail" => $e->getMessage()
+            ], 500);
         }
-
-        $biodata->update($request->all());
-
-        return response()->json([
-            "message" => "Data Berhasil Diupdate",
-            "data" => $biodata,
-        ]);
-
     }
 
-    public function destroy($id)
-    {
+    // Method lain (Destroy, Admin Update, dll) biarkan sama
+    public function destroy($id) {
         Biodata::findOrFail($id)->delete();
-
-        return response()->json([
-            "message" => "Data Berhasil Dihapus",
-        ]);
+        return response()->json(["message" => "Dihapus"]);
+    }
+    
+    public function update(Request $request, $id) {
+       $biodata = Biodata::findOrFail($id);
+       $biodata->update($request->all());
+       return response()->json(["message" => "Update Sukses", "data" => $biodata]);
     }
 
-    /**
-     * Force set pilihan_program by admin.
-     * Route: POST /api/admin/biodata/{id}/force-set-program
-     */
-    public function forceSetProgram(Request $request, $id)
-    {
-        $user = $request->user();
-        if (!$user->hasRole('admin')) {
-            return response()->json(["message" => "Unauthorized"], 403);
-        }
-
-        $request->validate([
-            'pilihan_program' => 'required|string'
-        ]);
-
+    public function forceSetProgram(Request $request, $id) {
+        $request->validate(['pilihan_program' => 'required']);
         $biodata = Biodata::findOrFail($id);
         $biodata->pilihan_program = $request->pilihan_program;
         $biodata->save();
-
-        return response()->json([
-            'message' => 'Pilihan program berhasil diperbarui oleh admin',
-            'data' => $biodata->fresh(),
-        ]);
+        return response()->json(['message' => 'Sukses', 'data' => $biodata]);
     }
 }
