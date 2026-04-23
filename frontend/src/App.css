@@ -4,10 +4,8 @@
 }
 
 .scroll-stylling::-webkit-scrollbar-thumb {
-    background: #334155; 
-    border-radius: 10px;
+background: transparent;    border-radius: 10px;
 }
 
-.scroll-stylling::-webkit-scrollbar-thumb:hover {
-    background: #475569; 
-}
+/* .scroll-stylling::-webkit-scrollbar-thumb:hover {
+background: transparent;} */
