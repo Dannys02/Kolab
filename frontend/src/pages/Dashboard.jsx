@@ -875,7 +875,7 @@ export default function Dsbd({ onLogout }) {
     </div>
 
     {/* --- NAVIGATION (flex-grow & overflow-y-auto untuk scrolling) --- */}
-    <nav className="space-y-2 mb-3 flex-grow overflow-y-auto pr-2 pb-12">
+    <nav className="scroll-stylling space-y-2 mb-3 flex-grow overflow-y-auto pr-2 pb-12">
         <button
             onClick={() => setActivePage("dashboard")}
             className={`w-full flex items-center px-4 py-3 text-white rounded-xl hover:bg-opacity-20 transition-all duration-200 shadow-sm ${
